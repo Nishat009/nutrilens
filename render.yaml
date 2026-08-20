@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: nutrilens-api
+    env: node
+    rootDir: server
+    buildCommand: npm install
+    startCommand: npm start
+    plan: free
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: MONGODB_URI
+        sync: false # Set in Render Dashboard to your MongoDB Atlas connection string
+      - key: HF_TOKEN
+        sync: false # Optional Hugging Face free token for open Food-101 vision model

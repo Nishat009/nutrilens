@@ -1,0 +1,7 @@
+# Node dependencies
+node_modules/
+**/node_modules/
+# Next build
+.next/
+out/
+.DS_Store

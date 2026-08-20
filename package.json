@@ -1,0 +1,15 @@
+{
+  "name": "nutrilens",
+  "version": "1.0.0",
+  "description": "NutriLens — AI Fitness & Nutrition Platform",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently -n \"SERVER,CLIENT\" -c \"blue,green\" \"npm --prefix server run dev\" \"npm --prefix web run dev\"",
+    "server": "npm --prefix server run dev",
+    "web": "npm --prefix web run dev",
+    "seed": "npm --prefix server run seed"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}

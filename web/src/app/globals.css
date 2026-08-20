@@ -1,0 +1,101 @@
+@import "tailwindcss";
+
+:root {
+  --bg-primary: #0a0f18;
+  --bg-secondary: #111827;
+  --bg-surface: #1a2234;
+  --bg-surface-elevated: #242f48;
+  --border: #2d3748;
+  --border-subtle: #1f293d;
+  
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  
+  --accent-primary: #10b981;
+  --accent-primary-hover: #059669;
+  --accent-primary-light: rgba(16, 185, 129, 0.15);
+  
+  --accent-secondary: #3b82f6;
+  --accent-secondary-light: rgba(59, 130, 246, 0.15);
+  
+  --protein: #8b5cf6;
+  --protein-light: rgba(139, 92, 246, 0.15);
+  --carbs: #f59e0b;
+  --carbs-light: rgba(245, 158, 11, 0.15);
+  --fat: #f43f5e;
+  --fat-light: rgba(244, 63, 94, 0.15);
+  --fiber: #06b6d4;
+  --fiber-light: rgba(6, 182, 212, 0.15);
+
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+}
+
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", sans-serif;
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0a0f18;
+}
+::-webkit-scrollbar-thumb {
+  background: #242f48;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #334155;
+}
+
+/* Glassmorphism helpers */
+.glass-card {
+  background: rgba(26, 34, 52, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-card-hover {
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.glass-card-hover:hover {
+  transform: translateY(-2px);
+  background: rgba(36, 47, 72, 0.85);
+  border-color: rgba(16, 185, 129, 0.3);
+  box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.5), 0 0 20px -5px rgba(16, 185, 129, 0.15);
+}
+
+.glow-emerald {
+  box-shadow: 0 0 25px -5px rgba(16, 185, 129, 0.4);
+}
+
+.glow-blue {
+  box-shadow: 0 0 25px -5px rgba(59, 130, 246, 0.4);
+}
+
+/* Animation utilities */
+@keyframes pulse-slow {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.85; transform: scale(1.02); }
+}
+
+@keyframes scan-line {
+  0% { transform: translateY(-100%); opacity: 0; }
+  50% { opacity: 1; }
+  100% { transform: translateY(300px); opacity: 0; }
+}
+
+.animate-scan {
+  animation: scan-line 2.5s infinite ease-in-out;
+}
