@@ -1,17 +1,19 @@
 import type { NextConfig } from "next";
 
+const rawApiUrl = process.env.NEXT_PUBLIC_API_URL || process.env.API_URL;
+const apiUrl = rawApiUrl ? rawApiUrl.replace(/\/+$/, "") : "";
+
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   images: {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "images.unsplash.com",
+        hostname: "**",
       },
     ],
   },
   async rewrites() {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || process.env.API_URL;
     if (!apiUrl) return [];
     return [
       {
@@ -35,11 +37,20 @@ const nextConfig: NextConfig = {
         destination: `${apiUrl}/api/scans/:path*`,
       },
       {
+        source: "/api/scan/:path*",
+        destination: `${apiUrl}/api/scan/:path*`,
+      },
+      {
         source: "/api/progress/:path*",
         destination: `${apiUrl}/api/progress/:path*`,
+      },
+      {
+        source: "/api/health",
+        destination: `${apiUrl}/api/health`,
       },
     ];
   },
 };
 
 export default nextConfig;
+

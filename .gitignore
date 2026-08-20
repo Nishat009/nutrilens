@@ -1,7 +1,20 @@
 # Node dependencies
 node_modules/
 **/node_modules/
-# Next build
+
+# Next.js build
 .next/
+**/.next/
 out/
+build/
+dist/
+
+# Environment files
+.env
+.env*.local
+*.log
+
+# OS metadata
 .DS_Store
+Thumbs.db
+

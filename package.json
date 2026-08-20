@@ -7,9 +7,12 @@
     "dev": "concurrently -n \"SERVER,CLIENT\" -c \"blue,green\" \"npm --prefix server run dev\" \"npm --prefix web run dev\"",
     "server": "npm --prefix server run dev",
     "web": "npm --prefix web run dev",
+    "build": "npm --prefix web run build",
+    "start": "npm --prefix web run start",
     "seed": "npm --prefix server run seed"
   },
   "devDependencies": {
     "concurrently": "^9.1.2"
   }
 }
+

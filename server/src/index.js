@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
 const dotenv = require('dotenv');
+const mongoose = require('mongoose');
 const connectDB = require('./config/db');
 
 // Load environment variables
@@ -12,8 +13,17 @@ connectDB();
 
 const app = express();
 
+// Enable Trust Proxy for Render / cloud reverse proxy
+app.enable('trust proxy');
+
 // Middleware
-app.use(cors());
+app.use(
+  cors({
+    origin: '*',
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'x-requested-with'],
+  })
+);
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
@@ -21,8 +31,27 @@ if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }
 
-// Health check endpoint
+// Root endpoint for quick verification
+app.get('/', (req, res) => {
+  res.status(200).json({
+    success: true,
+    service: 'NutriLens API Server',
+    status: 'online',
+    healthCheck: '/api/health',
+    version: '1.0.0',
+  });
+});
+
+// Health check endpoint for Render / monitoring
 app.get('/api/health', (req, res) => {
+  const dbStateMap = {
+    0: 'disconnected',
+    1: 'connected',
+    2: 'connecting',
+    3: 'disconnecting',
+  };
+  const dbState = dbStateMap[mongoose.connection.readyState] || 'unknown';
+
   res.status(200).json({
     success: true,
     code: 200,
@@ -30,7 +59,11 @@ app.get('/api/health', (req, res) => {
     status: 'ok',
     timestamp: new Date().toISOString(),
     service: 'NutriLens API',
-    uptime: process.uptime(),
+    uptime: Math.round(process.uptime()),
+    database: {
+      status: dbState,
+      connected: mongoose.connection.readyState === 1,
+    },
   });
 });
 
@@ -40,13 +73,14 @@ app.use('/api/users', require('./routes/user.routes'));
 app.use('/api/meals', require('./routes/meal.routes'));
 app.use('/api/foods', require('./routes/food.routes'));
 app.use('/api/scans', require('./routes/scan.routes'));
+app.use('/api/scan', require('./routes/scan.routes')); // Alias so both /api/scan and /api/scans work
 app.use('/api/progress', require('./routes/progress.routes'));
 
 // 404 handler
 app.use((req, res) => {
-  res.status(422).json({
+  res.status(404).json({
     success: false,
-    code: 422,
+    code: 404,
     errors: [`Route ${req.originalUrl} not found`],
   });
 });
@@ -58,9 +92,9 @@ app.use((err, req, res, next) => {
     ? Object.values(err.errors).map((e) => e.message)
     : [err.message || 'Internal Server Error'];
 
-  res.status(422).json({
+  res.status(err.status || 500).json({
     success: false,
-    code: 422,
+    code: err.status || 500,
     errors,
     ...(process.env.NODE_ENV === 'development' && { stack: err.stack }),
   });
@@ -74,3 +108,4 @@ app.listen(PORT, () => {
 });
 
 module.exports = app;
+
