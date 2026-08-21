@@ -10,9 +10,10 @@ import {
   WeightLog,
 } from '../lib/types';
 
-// In Next.js client-side, relative URLs `/api/...` go through Next.js rewrites
-// or fall back directly to the backend URL.
-const BASE_URL = '';
+// Use deployed backend URL if set, otherwise relative path
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL
+  ? process.env.NEXT_PUBLIC_API_URL.replace(/\/+$/, '')
+  : '';
 
 interface ApiResponse<T = any> {
   success: boolean;

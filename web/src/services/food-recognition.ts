@@ -32,9 +32,12 @@ export async function recognizeFoodFromImage(
   customMealType?: 'breakfast' | 'lunch' | 'dinner' | 'snack'
 ): Promise<FoodRecognitionResult> {
   const scanId = 'scan_' + Date.now().toString(36) + Math.random().toString(36).substring(2, 6);
+  const base = process.env.NEXT_PUBLIC_API_URL
+    ? process.env.NEXT_PUBLIC_API_URL.replace(/\/+$/, '')
+    : '';
 
   try {
-    const response = await fetch('/api/scans/analyze', {
+    const response = await fetch(`${base}/api/scans/analyze`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ image: imageDataUrl, mealType: customMealType }),
