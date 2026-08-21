@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import {
   Camera,
@@ -29,10 +29,16 @@ import { MEAL_TYPE_CONFIG } from '../../../lib/constants';
 import { MealType } from '../../../lib/types';
 
 export default function DashboardPage() {
-  const { profile, goal } = useUserStore();
-  const { getDailyNutritionForDate, getMealsByDate, waterIntakeMl, addWater } = useMealStore();
+  const { profile, goal, fetchUserProfile } = useUserStore();
+  const { getDailyNutritionForDate, getMealsByDate, waterIntakeMl, addWater, fetchMeals } = useMealStore();
 
   const today = getTodayDateString();
+
+  useEffect(() => {
+    fetchUserProfile();
+    fetchMeals(today);
+  }, [fetchUserProfile, fetchMeals, today]);
+
   const todayNutrition = useMemo(() => getDailyNutritionForDate(today), [getDailyNutritionForDate, today, waterIntakeMl]);
   const todayMeals = useMemo(() => getMealsByDate(today), [getMealsByDate, today]);
 

@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
   BookOpen,
@@ -16,7 +16,8 @@ import {
 import { Card } from '../../../components/ui/Card';
 import { Badge } from '../../../components/ui/Badge';
 import { Button } from '../../../components/ui/Button';
-import { MOCK_DIETS } from '../../../data/mock/diets';
+import { DietPlan } from '../../../lib/types';
+import { dietApi } from '../../../services/api-client';
 
 const iconMap: Record<string, React.ReactNode> = {
   Fish: <Fish className="w-6 h-6" />,
@@ -28,6 +29,22 @@ const iconMap: Record<string, React.ReactNode> = {
 };
 
 export default function DietsPage() {
+  const [diets, setDiets] = useState<DietPlan[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    dietApi
+      .getDiets()
+      .then((data) => {
+        setDiets(data);
+        setIsLoading(false);
+      })
+      .catch((err) => {
+        console.warn('Failed to load diets from backend:', err);
+        setIsLoading(false);
+      });
+  }, []);
+
   return (
     <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in duration-300">
       {/* Header */}
@@ -43,62 +60,73 @@ export default function DietsPage() {
         </p>
       </div>
 
-      {/* Grid of Diets */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {MOCK_DIETS.map((diet) => {
-          return (
-            <Card
-              key={diet.id}
-              variant="glass"
-              isHoverable
-              className="p-6 border-slate-800 flex flex-col justify-between space-y-6 group"
-            >
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="w-12 h-12 rounded-2xl bg-emerald-500/15 text-emerald-400 flex items-center justify-center border border-emerald-500/30 group-hover:scale-105 transition-transform">
-                    {iconMap[diet.icon] || <Sparkles className="w-6 h-6" />}
+      {isLoading ? (
+        <div className="text-center py-20 space-y-4">
+          <div className="w-8 h-8 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin mx-auto" />
+          <p className="text-xs text-slate-400">Loading diet protocols from backend...</p>
+        </div>
+      ) : diets.length === 0 ? (
+        <div className="text-center py-20 space-y-4">
+          <p className="text-xs text-slate-400">No diet protocols available yet.</p>
+        </div>
+      ) : (
+        /* Grid of Diets */
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {diets.map((diet) => {
+            return (
+              <Card
+                key={diet.id}
+                variant="glass"
+                isHoverable
+                className="p-6 border-slate-800 flex flex-col justify-between space-y-6 group"
+              >
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="w-12 h-12 rounded-2xl bg-emerald-500/15 text-emerald-400 flex items-center justify-center border border-emerald-500/30 group-hover:scale-105 transition-transform">
+                      {iconMap[diet.icon] || <Sparkles className="w-6 h-6" />}
+                    </div>
+                    <Badge variant={diet.difficulty === 'Easy' ? 'emerald' : diet.difficulty === 'Moderate' ? 'blue' : 'amber'}>
+                      {diet.difficulty}
+                    </Badge>
                   </div>
-                  <Badge variant={diet.difficulty === 'Easy' ? 'emerald' : diet.difficulty === 'Moderate' ? 'blue' : 'amber'}>
-                    {diet.difficulty}
-                  </Badge>
+
+                  <div>
+                    <h3 className="text-lg font-bold text-white group-hover:text-emerald-400 transition-colors">
+                      {diet.name}
+                    </h3>
+                    <p className="text-xs text-slate-400 leading-relaxed mt-1">
+                      {diet.description}
+                    </p>
+                  </div>
+
+                  {/* Macro Ratio Mini Bar */}
+                  <div className="space-y-1.5 pt-2">
+                    <div className="flex justify-between text-[11px] font-mono font-semibold text-slate-400">
+                      <span className="text-purple-400">{diet.macroRatio?.protein || 30}% P</span>
+                      <span className="text-amber-400">{diet.macroRatio?.carbs || 40}% C</span>
+                      <span className="text-rose-400">{diet.macroRatio?.fat || 30}% F</span>
+                    </div>
+                    <div className="h-2 rounded-full overflow-hidden flex bg-slate-800">
+                      <div className="bg-purple-500" style={{ width: `${diet.macroRatio?.protein || 30}%` }} />
+                      <div className="bg-amber-500" style={{ width: `${diet.macroRatio?.carbs || 40}%` }} />
+                      <div className="bg-rose-500" style={{ width: `${diet.macroRatio?.fat || 30}%` }} />
+                    </div>
+                  </div>
                 </div>
 
-                <div>
-                  <h3 className="text-lg font-bold text-white group-hover:text-emerald-400 transition-colors">
-                    {diet.name}
-                  </h3>
-                  <p className="text-xs text-slate-400 leading-relaxed mt-1">
-                    {diet.description}
-                  </p>
+                <div className="pt-4 border-t border-slate-800/80">
+                  <Link href={`/diets/${diet.slug}`} className="block">
+                    <Button variant="outline" size="sm" className="w-full justify-between group-hover:border-emerald-500/50">
+                      <span>Explore Protocol</span>
+                      <ArrowRight className="w-4 h-4 text-emerald-400 group-hover:translate-x-1 transition-transform" />
+                    </Button>
+                  </Link>
                 </div>
-
-                {/* Macro Ratio Mini Bar */}
-                <div className="space-y-1.5 pt-2">
-                  <div className="flex justify-between text-[11px] font-mono font-semibold text-slate-400">
-                    <span className="text-purple-400">{diet.macroRatio.protein}% P</span>
-                    <span className="text-amber-400">{diet.macroRatio.carbs}% C</span>
-                    <span className="text-rose-400">{diet.macroRatio.fat}% F</span>
-                  </div>
-                  <div className="h-2 rounded-full overflow-hidden flex bg-slate-800">
-                    <div className="bg-purple-500" style={{ width: `${diet.macroRatio.protein}%` }} />
-                    <div className="bg-amber-500" style={{ width: `${diet.macroRatio.carbs}%` }} />
-                    <div className="bg-rose-500" style={{ width: `${diet.macroRatio.fat}%` }} />
-                  </div>
-                </div>
-              </div>
-
-              <div className="pt-4 border-t border-slate-800/80">
-                <Link href={`/diets/${diet.slug}`} className="block">
-                  <Button variant="outline" size="sm" className="w-full justify-between group-hover:border-emerald-500/50">
-                    <span>Explore Protocol</span>
-                    <ArrowRight className="w-4 h-4 text-emerald-400 group-hover:translate-x-1 transition-transform" />
-                  </Button>
-                </Link>
-              </div>
-            </Card>
-          );
-        })}
-      </div>
+              </Card>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

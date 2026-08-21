@@ -97,52 +97,63 @@ export function FoodAnalysisResult({
     time: string,
     notes: string
   ) => {
-    addMeal({
-      userId: 'usr_prantik_99',
-      type: mealType,
-      date,
-      time,
-      totalCalories: totals.calories,
-      totalProtein: totals.protein,
-      totalCarbs: totals.carbs,
-      totalFat: totals.fat,
-      totalFiber: totals.fiber,
-      imageUrl: image,
-      notes: notes || initialResult.analysisNotes,
-      items: items.map((i) => ({
-        id: i.id,
-        foodName: i.name,
-        quantity: i.quantity,
-        unit: i.unit,
-        calories: i.calories,
-        protein: i.protein,
-        carbs: i.carbs,
-        fat: i.fat,
-        fiber: i.fiber,
-        confidence: i.confidence,
-      })),
-    });
-
-    // Send asynchronously to backend API if available
     try {
-      fetch('/api/meals', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          type: mealType,
-          date,
-          time,
-          totalCalories: totals.calories,
-          totalProtein: totals.protein,
-          totalCarbs: totals.carbs,
-          totalFat: totals.fat,
-          totalFiber: totals.fiber,
-          items,
-          imageUrl: image,
-          notes,
-        }),
-      }).catch(() => {});
-    } catch {}
+      const { scanApi } = await import('../../services/api-client');
+      // Save scan record
+      scanApi.createScan({
+        imageUrl: image,
+        status: 'completed',
+        suggestedMealType: mealType,
+        analysisNotes: notes || initialResult.analysisNotes,
+        totalCalories: totals.calories,
+        totalProtein: totals.protein,
+        totalCarbs: totals.carbs,
+        totalFat: totals.fat,
+        totalFiber: totals.fiber,
+        detectedItems: items.map((i) => ({
+          id: i.id,
+          name: i.name,
+          confidence: i.confidence,
+          estimatedQuantity: i.quantity,
+          unit: i.unit,
+          calories: i.calories,
+          protein: i.protein,
+          carbs: i.carbs,
+          fat: i.fat,
+          fiber: i.fiber,
+          foodId: i.foodId,
+        })),
+      }).catch((e) => console.warn('Failed to save scan record:', e));
+
+      // Save meal to database via store
+      await addMeal({
+        userId: 'current',
+        type: mealType,
+        date,
+        time,
+        totalCalories: totals.calories,
+        totalProtein: totals.protein,
+        totalCarbs: totals.carbs,
+        totalFat: totals.fat,
+        totalFiber: totals.fiber,
+        imageUrl: image,
+        notes: notes || initialResult.analysisNotes,
+        items: items.map((i) => ({
+          id: i.id,
+          foodName: i.name,
+          quantity: i.quantity,
+          unit: i.unit,
+          calories: i.calories,
+          protein: i.protein,
+          carbs: i.carbs,
+          fat: i.fat,
+          fiber: i.fiber,
+          confidence: i.confidence,
+        })),
+      });
+    } catch (err) {
+      console.error('Error saving meal:', err);
+    }
 
     router.push('/dashboard');
   };

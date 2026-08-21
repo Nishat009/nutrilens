@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   CalendarDays,
   Plus,
@@ -10,6 +10,7 @@ import {
   Utensils,
   CheckCircle2,
   Clock,
+  Trash2,
 } from 'lucide-react';
 import { Card } from '../../../components/ui/Card';
 import { Button } from '../../../components/ui/Button';
@@ -20,30 +21,16 @@ import { Select } from '../../../components/ui/Select';
 import { MEAL_TYPE_CONFIG } from '../../../lib/constants';
 import { MealType, PlannedMealSlot } from '../../../lib/types';
 import { formatCalories } from '../../../lib/utils/format';
+import { plannerApi } from '../../../services/api-client';
 
 const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
-const INITIAL_PLANNED_MEALS: PlannedMealSlot[] = [
-  { id: 'p1', dayOfWeek: 0, mealType: 'breakfast', foodName: 'Oatmeal with Whey & Berries', calories: 420, protein: 32, carbs: 54, fat: 8 },
-  { id: 'p2', dayOfWeek: 0, mealType: 'lunch', foodName: 'Grilled Salmon Quinoa Bowl', calories: 650, protein: 48, carbs: 62, fat: 18 },
-  { id: 'p3', dayOfWeek: 0, mealType: 'dinner', foodName: 'Chicken Sweet Potato Mash', calories: 580, protein: 52, carbs: 50, fat: 12 },
-  { id: 'p4', dayOfWeek: 0, mealType: 'snack', foodName: 'Greek Yogurt & Almonds', calories: 240, protein: 20, carbs: 12, fat: 10 },
-  
-  { id: 'p5', dayOfWeek: 1, mealType: 'breakfast', foodName: 'Poached Eggs & Avocado Toast', calories: 460, protein: 24, carbs: 36, fat: 22 },
-  { id: 'p6', dayOfWeek: 1, mealType: 'lunch', foodName: 'Turkey & Brown Rice Skillet', calories: 610, protein: 50, carbs: 60, fat: 14 },
-  { id: 'p7', dayOfWeek: 1, mealType: 'dinner', foodName: 'Sirloin Steak with Asparagus', calories: 620, protein: 54, carbs: 20, fat: 24 },
-  { id: 'p8', dayOfWeek: 1, mealType: 'snack', foodName: 'Whey Isolate Shake & Banana', calories: 215, protein: 26, carbs: 28, fat: 1 },
-
-  { id: 'p9', dayOfWeek: 2, mealType: 'breakfast', foodName: 'Egg White Frittata with Feta', calories: 380, protein: 35, carbs: 14, fat: 16 },
-  { id: 'p10', dayOfWeek: 2, mealType: 'lunch', foodName: 'Mediterranean Tuna Wrap', calories: 540, protein: 44, carbs: 48, fat: 14 },
-  { id: 'p11', dayOfWeek: 2, mealType: 'dinner', foodName: 'Herb Chicken with Broccoli', calories: 520, protein: 55, carbs: 24, fat: 12 },
-  { id: 'p12', dayOfWeek: 2, mealType: 'snack', foodName: 'Cottage Cheese & Berries', calories: 190, protein: 22, carbs: 16, fat: 3 },
-];
-
 export default function MealPlannerPage() {
-  const [plannedMeals, setPlannedMeals] = useState<PlannedMealSlot[]>(INITIAL_PLANNED_MEALS);
+  const [plannedMeals, setPlannedMeals] = useState<PlannedMealSlot[]>([]);
   const [selectedDay, setSelectedDay] = useState(0); // 0 = Mon
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // New meal modal form state
   const [newMealType, setNewMealType] = useState<MealType>('lunch');
@@ -53,24 +40,55 @@ export default function MealPlannerPage() {
   const [newCarbs, setNewCarbs] = useState('45');
   const [newFat, setNewFat] = useState('12');
 
-  const handleAddMeal = (e: React.FormEvent) => {
+  const loadPlanner = async () => {
+    setIsLoading(true);
+    try {
+      const data = await plannerApi.getPlannedMeals();
+      setPlannedMeals(data);
+    } catch (err) {
+      console.warn('Failed to load planner meals from backend:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadPlanner();
+  }, []);
+
+  const handleAddMeal = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newFoodName) return;
 
-    const newSlot: PlannedMealSlot = {
-      id: 'p_' + Date.now().toString(36),
-      dayOfWeek: selectedDay,
-      mealType: newMealType,
-      foodName: newFoodName,
-      calories: Number(newCalories) || 400,
-      protein: Number(newProtein) || 30,
-      carbs: Number(newCarbs) || 40,
-      fat: Number(newFat) || 10,
-    };
+    setIsSubmitting(true);
+    try {
+      const created = await plannerApi.addPlannedMeal({
+        dayOfWeek: selectedDay,
+        mealType: newMealType,
+        foodName: newFoodName,
+        calories: Number(newCalories) || 400,
+        protein: Number(newProtein) || 30,
+        carbs: Number(newCarbs) || 40,
+        fat: Number(newFat) || 10,
+      });
 
-    setPlannedMeals([...plannedMeals, newSlot]);
-    setIsModalOpen(false);
-    setNewFoodName('');
+      setPlannedMeals((prev) => [...prev, created]);
+      setIsModalOpen(false);
+      setNewFoodName('');
+    } catch (err) {
+      console.error('Failed to add planned meal to backend:', err);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDeleteSlot = async (id: string) => {
+    setPlannedMeals((prev) => prev.filter((p) => p.id !== id));
+    try {
+      await plannerApi.deletePlannedMeal(id);
+    } catch (err) {
+      console.error('Failed to delete planned meal from backend:', err);
+    }
   };
 
   const getDayTotalCalories = (dayIdx: number) => {
@@ -88,7 +106,7 @@ export default function MealPlannerPage() {
         <div>
           <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">Weekly Meal Planner</h1>
           <p className="text-xs sm:text-sm text-slate-400 mt-0.5">
-            Architect your nutrition blueprint to ensure seamless macro adherence
+            Architect your nutrition blueprint directly backed by MongoDB
           </p>
         </div>
 
@@ -138,57 +156,73 @@ export default function MealPlannerPage() {
           </span>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {(['breakfast', 'lunch', 'dinner', 'snack'] as MealType[]).map((type) => {
-            const cfg = MEAL_TYPE_CONFIG[type];
-            const slot = currentDaySlots.find((p) => p.mealType === type);
+        {isLoading ? (
+          <div className="text-center py-16 space-y-4">
+            <div className="w-8 h-8 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin mx-auto" />
+            <p className="text-xs text-slate-400">Loading weekly meal plan...</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {(['breakfast', 'lunch', 'dinner', 'snack'] as MealType[]).map((type) => {
+              const cfg = MEAL_TYPE_CONFIG[type];
+              const slot = currentDaySlots.find((p) => p.mealType === type);
 
-            return (
-              <Card
-                key={type}
-                variant="glass"
-                className="p-5 border-slate-800 flex flex-col justify-between space-y-4"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <div
-                      className="w-8 h-8 rounded-xl flex items-center justify-center font-bold text-slate-950 text-xs shadow-md"
-                      style={{ backgroundColor: cfg.color }}
-                    >
-                      <Utensils className="w-4 h-4 text-slate-950" />
+              return (
+                <Card
+                  key={type}
+                  variant="glass"
+                  className="p-5 border-slate-800 flex flex-col justify-between space-y-4"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <div
+                        className="w-8 h-8 rounded-xl flex items-center justify-center font-bold text-slate-950 text-xs shadow-md"
+                        style={{ backgroundColor: cfg.color }}
+                      >
+                        <Utensils className="w-4 h-4 text-slate-950" />
+                      </div>
+                      <span className="text-sm font-bold text-white capitalize">{cfg.label}</span>
                     </div>
-                    <span className="text-sm font-bold text-white capitalize">{cfg.label}</span>
+                    <span className="text-xs text-slate-500 font-mono">{cfg.defaultTime}</span>
                   </div>
-                  <span className="text-xs text-slate-500 font-mono">{cfg.defaultTime}</span>
-                </div>
 
-                {slot ? (
-                  <div className="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-2">
-                    <div className="font-bold text-sm text-slate-100">{slot.foodName}</div>
-                    <div className="flex items-center justify-between text-xs pt-1 border-t border-slate-800">
-                      <span className="font-bold text-emerald-400">{slot.calories} kcal</span>
-                      <div className="flex items-center gap-2.5 font-mono text-[11px]">
-                        <span className="text-purple-400">{slot.protein}g P</span>
-                        <span className="text-amber-400">{slot.carbs}g C</span>
-                        <span className="text-rose-400">{slot.fat}g F</span>
+                  {slot ? (
+                    <div className="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div className="font-bold text-sm text-slate-100">{slot.foodName}</div>
+                        <button
+                          onClick={() => handleDeleteSlot(slot.id)}
+                          aria-label="Remove meal slot"
+                          className="p-1 rounded-lg text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                      <div className="flex items-center justify-between text-xs pt-1 border-t border-slate-800">
+                        <span className="font-bold text-emerald-400">{slot.calories} kcal</span>
+                        <div className="flex items-center gap-2.5 font-mono text-[11px]">
+                          <span className="text-purple-400">{slot.protein}g P</span>
+                          <span className="text-amber-400">{slot.carbs}g C</span>
+                          <span className="text-rose-400">{slot.fat}g F</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ) : (
-                  <button
-                    onClick={() => {
-                      setNewMealType(type);
-                      setIsModalOpen(true);
-                    }}
-                    className="p-6 rounded-xl border border-dashed border-slate-800 hover:border-slate-700 hover:bg-slate-900/40 text-xs text-slate-400 text-center transition-all cursor-pointer flex items-center justify-center gap-2"
-                  >
-                    <Plus className="w-4 h-4" /> Add meal suggestion
-                  </button>
-                )}
-              </Card>
-            );
-          })}
-        </div>
+                  ) : (
+                    <button
+                      onClick={() => {
+                        setNewMealType(type);
+                        setIsModalOpen(true);
+                      }}
+                      className="p-6 rounded-xl border border-dashed border-slate-800 hover:border-slate-700 hover:bg-slate-900/40 text-xs text-slate-400 text-center transition-all cursor-pointer flex items-center justify-center gap-2"
+                    >
+                      <Plus className="w-4 h-4" /> Add meal suggestion
+                    </button>
+                  )}
+                </Card>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* Add Planned Meal Modal */}
@@ -246,7 +280,7 @@ export default function MealPlannerPage() {
             />
           </div>
 
-          <Button type="submit" variant="glow" className="w-full mt-4">
+          <Button type="submit" variant="glow" className="w-full mt-4" isLoading={isSubmitting}>
             Save to Weekly Plan
           </Button>
         </form>

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import {
   ChevronLeft,
@@ -23,8 +23,12 @@ import { MEAL_TYPE_CONFIG } from '../../../lib/constants';
 import { MealType } from '../../../lib/types';
 
 export default function MealsPage() {
-  const { meals, deleteMeal, getDailyNutritionForDate } = useMealStore();
+  const { meals, deleteMeal, getDailyNutritionForDate, fetchMeals } = useMealStore();
   const [selectedDate, setSelectedDate] = useState<string>(getTodayDateString());
+
+  useEffect(() => {
+    fetchMeals(selectedDate);
+  }, [fetchMeals, selectedDate]);
 
   const dayMeals = useMemo(() => {
     return meals.filter((m) => m.date === selectedDate);

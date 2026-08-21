@@ -62,12 +62,12 @@ export default function OnboardingPage() {
     goal
   );
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (step < totalSteps) {
       setStep(step + 1);
     } else {
-      // Finalize and save to store
-      updateProfile({
+      // Finalize and save to backend database
+      await updateProfile({
         name,
         dob,
         gender,
@@ -77,8 +77,8 @@ export default function OnboardingPage() {
         activityLevel,
         dietaryPreferences: selectedDietPrefs,
       });
-      setGoalType(goal);
-      recalculateTargets();
+      await setGoalType(goal);
+      await recalculateTargets();
       router.push('/dashboard');
     }
   };

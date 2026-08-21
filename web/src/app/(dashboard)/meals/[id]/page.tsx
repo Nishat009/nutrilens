@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -18,14 +18,43 @@ import { Badge } from '../../../../components/ui/Badge';
 import { useMealStore } from '../../../../lib/stores/meal-store';
 import { formatCalories, formatGrams, formatDatePretty } from '../../../../lib/utils/format';
 import { MEAL_TYPE_CONFIG } from '../../../../lib/constants';
-import { MealType } from '../../../../lib/types';
+import { Meal, MealType } from '../../../../lib/types';
+import { mealApi } from '../../../../services/api-client';
 
 export default function MealDetailPage() {
   const params = useParams();
   const mealId = params.id as string;
   const { getMealById } = useMealStore();
 
-  const meal = getMealById(mealId);
+  const storeMeal = getMealById(mealId);
+  const [meal, setMeal] = useState<Meal | undefined>(storeMeal);
+  const [isLoading, setIsLoading] = useState(!storeMeal);
+
+  useEffect(() => {
+    if (!storeMeal && mealId) {
+      setIsLoading(true);
+      mealApi
+        .getMealById(mealId)
+        .then((fetched) => {
+          setMeal(fetched);
+          setIsLoading(false);
+        })
+        .catch(() => {
+          setIsLoading(false);
+        });
+    } else if (storeMeal) {
+      setMeal(storeMeal);
+    }
+  }, [mealId, storeMeal]);
+
+  if (isLoading) {
+    return (
+      <div className="text-center py-20 space-y-4">
+        <div className="w-8 h-8 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin mx-auto" />
+        <p className="text-xs text-slate-400">Loading meal details from backend...</p>
+      </div>
+    );
+  }
 
   if (!meal) {
     return (
@@ -33,7 +62,7 @@ export default function MealDetailPage() {
         <h2 className="text-2xl font-bold text-white">Meal not found</h2>
         <p className="text-xs text-slate-400">This meal may have been deleted or does not exist.</p>
         <Link href="/meals">
-          <Button variant="primary">Back to Meal Log</Button>
+          <Button variant="glow">Back to Meal Log</Button>
         </Link>
       </div>
     );
@@ -119,7 +148,7 @@ export default function MealDetailPage() {
             <div>
               <h2 className="text-xl font-bold text-white">Itemized Nutritional Breakdown</h2>
               <p className="text-xs text-slate-400 mt-0.5">
-                Verified USDA ingredient weights and micro/macro contributions
+                Verified ingredient weights and micro/macro contributions
               </p>
             </div>
 

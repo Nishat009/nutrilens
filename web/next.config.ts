@@ -1,7 +1,10 @@
 import type { NextConfig } from "next";
 
-const rawApiUrl = process.env.NEXT_PUBLIC_API_URL || process.env.API_URL;
-const apiUrl = rawApiUrl ? rawApiUrl.replace(/\/+$/, "") : "";
+const rawApiUrl =
+  process.env.NEXT_PUBLIC_API_URL ||
+  process.env.API_URL ||
+  "http://localhost:5000";
+const apiUrl = rawApiUrl.replace(/\/+$/, "");
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
@@ -14,7 +17,6 @@ const nextConfig: NextConfig = {
     ],
   },
   async rewrites() {
-    if (!apiUrl) return [];
     return [
       {
         source: "/api/auth/:path*",
@@ -45,6 +47,14 @@ const nextConfig: NextConfig = {
         destination: `${apiUrl}/api/progress/:path*`,
       },
       {
+        source: "/api/diets/:path*",
+        destination: `${apiUrl}/api/diets/:path*`,
+      },
+      {
+        source: "/api/planner/:path*",
+        destination: `${apiUrl}/api/planner/:path*`,
+      },
+      {
         source: "/api/health",
         destination: `${apiUrl}/api/health`,
       },
@@ -53,4 +63,3 @@ const nextConfig: NextConfig = {
 };
 
 export default nextConfig;
-

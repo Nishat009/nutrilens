@@ -8,6 +8,8 @@ const Food = require('./models/Food');
 const Meal = require('./models/Meal');
 const FoodScan = require('./models/FoodScan');
 const WeightLog = require('./models/WeightLog');
+const DietPlan = require('./models/DietPlan');
+const PlannedMeal = require('./models/PlannedMeal');
 
 const FOODS_DATA = [
   {
@@ -147,11 +149,225 @@ const FOODS_DATA = [
   },
 ];
 
+const DIETS_DATA = [
+  {
+    slug: 'mediterranean',
+    name: 'Mediterranean Wellness',
+    tagline: 'Heart-healthy, antioxidant-rich whole foods inspired by coastal longevity.',
+    description: 'Emphasizes extra virgin olive oil, wild fatty fish, legumes, colorful vegetables, and wholesome unrefined grains.',
+    fullOverview: 'The Mediterranean diet is globally heralded as the gold standard for cardiovascular longevity and metabolic vibrancy. Rich in polyphenols, omega-3 fatty acids, and gut-friendly fiber, it provides sustained cellular energy without drastic blood sugar spikes.',
+    icon: 'Fish',
+    difficulty: 'Easy',
+    macroRatio: { protein: 25, carbs: 45, fat: 30 },
+    keyBenefits: [
+      'Reduces systemic inflammation and CRP levels',
+      'Supports optimal HDL / LDL cholesterol profiles',
+      'High satiety with polyphenol-rich plant foods',
+      'Naturally sustainable long-term lifestyle protocol',
+    ],
+    allowedFoods: [
+      'Wild salmon, tuna, mackerel, sea bass',
+      'Cold-pressed Extra Virgin Olive Oil',
+      'Greek yogurt, feta, organic eggs',
+      'Chickpeas, lentils, black beans',
+      'Broccoli, tomatoes, bell peppers, spinach, garlic',
+      'Quinoa, whole oats, sourdough',
+    ],
+    foodsToLimit: [
+      'Ultra-processed snack foods and trans fats',
+      'Refined sugars and high-fructose corn syrups',
+      'Processed deli meats with added nitrates',
+      'Refined flour pastries',
+    ],
+    sampleMealDay: {
+      breakfast: 'Poached eggs over sourdough toast with mashed avocado & heirloom cherry tomatoes.',
+      lunch: 'Grilled salmon fillet over warm quinoa, steamed broccoli, and kalamata olives with olive oil dressing.',
+      dinner: 'Lemon-herb roasted chicken thighs with roasted sweet potatoes and Mediterranean Greek salad.',
+      snack: '0% Greek yogurt topped with fresh blueberries, crushed walnuts, and a drizzle of raw honey.',
+    },
+    isFeatured: true,
+  },
+  {
+    slug: 'high-protein',
+    name: 'High Protein / Lean Muscle',
+    tagline: 'Engineered for optimal muscle protein synthesis and fat loss retention.',
+    description: 'Prioritizes 2.0g-2.4g protein per kg bodyweight with strategic carbohydrates around workout windows.',
+    fullOverview: 'Ideal for athletes, gym-goers, and body composition transformation. Protein has the highest thermic effect of food (TEF) and maximizes leucine threshold triggers for muscle repair.',
+    icon: 'Dumbbell',
+    difficulty: 'Moderate',
+    macroRatio: { protein: 40, carbs: 35, fat: 25 },
+    keyBenefits: [
+      'Maximizes lean muscle accretion and prevents catabolism',
+      'High thermic effect boosts daily basal caloric expenditure',
+      'Superior hunger suppression through ghrelin reduction',
+      'Faster neuromuscular recovery between intense workouts',
+    ],
+    allowedFoods: [
+      'Skinless chicken and turkey breast',
+      'Egg whites and whole omega-3 eggs',
+      'Whey and casein protein isolate',
+      'Lean sirloin steak and 93/7 ground beef',
+      'Cottage cheese and non-fat skyr',
+      'Jasmine rice, sweet potatoes, oats',
+    ],
+    foodsToLimit: [
+      'High-sugar snacks and empty calories',
+      'Deep-fried fatty appetizers',
+      'Sugary sodas and alcoholic beverages',
+      'High-fat creamy sauces',
+    ],
+    sampleMealDay: {
+      breakfast: '4 egg white + 2 whole egg scramble with spinach, 1 cup rolled oats with 1 scoop whey isolate.',
+      lunch: '200g grilled chicken breast with 1.5 cups jasmine rice and steamed asparagus.',
+      dinner: '200g lean sirloin steak with baked sweet potato and crisp green salad.',
+      snack: '1 cup low-fat cottage cheese with sliced strawberries and 15g raw almonds.',
+    },
+    isFeatured: true,
+  },
+  {
+    slug: 'ketogenic',
+    name: 'Targeted Ketogenic',
+    tagline: 'Metabolic flexibility switching from glucose to ketone fuel utilization.',
+    description: 'Ultra-low carb (<30g net carbs) with high healthy fats to induce nutritional ketosis and mental focus.',
+    fullOverview: 'By drastically reducing carbohydrate intake, the liver converts fatty acids into ketones (acetoacetate and beta-hydroxybutyrate), providing stable clean brain fuel without insulin volatility.',
+    icon: 'Flame',
+    difficulty: 'Advanced',
+    macroRatio: { protein: 25, carbs: 5, fat: 70 },
+    keyBenefits: [
+      'Eliminates blood sugar rollercoasters and carb crashes',
+      'Unlocks fat oxidation for steady baseline endurance',
+      'Enhanced cognitive clarity and neurological stability',
+      'Rapid reduction in water retention and visceral bloat',
+    ],
+    allowedFoods: [
+      'Hass avocados, avocado oil, MCT oil',
+      'Grass-fed butter and ghee',
+      'Macadamia nuts, pecans, chia seeds',
+      'Ribeye steaks, salmon, pork belly',
+      'Cauliflower, zucchini, asparagus, leafy greens',
+      'Aged cheeses and heavy cream',
+    ],
+    foodsToLimit: [
+      'All grains (wheat, rice, oats, corn)',
+      'High-sugar fruits (bananas, mangoes, grapes)',
+      'Starchy root vegetables (potatoes, sweet potatoes)',
+      'Legumes and high-carb beans',
+    ],
+    sampleMealDay: {
+      breakfast: '3 eggs fried in grass-fed butter with 1 whole avocado and smoked salmon.',
+      lunch: 'Cobb salad with grilled chicken, bacon bits, boiled egg, blue cheese, and olive oil dressing.',
+      dinner: 'Pan-seared ribeye steak with garlic-butter sautéed asparagus and cauliflower mash.',
+      snack: 'Handful of roasted macadamia nuts and 2 squares of 90% dark chocolate.',
+    },
+    isFeatured: false,
+  },
+  {
+    slug: 'plant-based',
+    name: 'Whole-Food Plant-Based',
+    tagline: 'Vibrant phytonutrient abundance for gut microbiome and cardiovascular vitality.',
+    description: '100% plant-powered meals maximizing micronutrients, prebiotic fibers, and clean sustainable energy.',
+    fullOverview: 'Focuses on unrefined whole botanical sources: legumes, grains, tubers, leafy greens, mushrooms, nuts, and seeds. Supports diverse gut microflora and reduces long-term biomarker risks.',
+    icon: 'Leaf',
+    difficulty: 'Moderate',
+    macroRatio: { protein: 20, carbs: 60, fat: 20 },
+    keyBenefits: [
+      'Exceptional prebiotic fiber content feeding beneficial gut bacteria',
+      'Zero dietary cholesterol and low saturated fat profiles',
+      'High antioxidant potential supporting cellular longevity',
+      'Environmentally conscious sustainable eating model',
+    ],
+    allowedFoods: [
+      'Lentils, edamame, tempeh, organic tofu',
+      'Brown rice, farro, barley, steel-cut oats',
+      'Nutritional yeast, hemp seeds, flax seeds',
+      'All vegetables, mushrooms, and seasonal fruits',
+      'Tahini, almond butter, walnuts',
+    ],
+    foodsToLimit: [
+      'All meat, poultry, dairy, and seafood',
+      'Processed vegan junk foods (mock meats with fillers)',
+      'Refined bleached flours and white sugars',
+    ],
+    sampleMealDay: {
+      breakfast: 'Superfood smoothie bowl with spinach, frozen berries, pea protein, hemp seeds, and chia.',
+      lunch: 'Warm spiced chickpea and roasted sweet potato Buddha bowl with tahini-lemon dressing.',
+      dinner: 'Crispy marinated tofu stir-fry with broccoli, bok choy, snap peas, and brown rice.',
+      snack: 'Apple slices with natural almond butter and pumpkin seeds.',
+    },
+    isFeatured: false,
+  },
+  {
+    slug: 'intermittent-fasting',
+    name: '16/8 Intermittent Fasting',
+    tagline: 'Time-restricted eating window triggering cellular autophagy and insulin sensitivity.',
+    description: 'An 8-hour eating window paired with a 16-hour fasting phase for metabolic resets without caloric deprivation.',
+    fullOverview: 'Rather than restricting specific food groups, Intermittent Fasting optimizes nutrient timing. Fasted states allow baseline insulin to fall, activating lipolysis and cellular maintenance cascades (autophagy).',
+    icon: 'Clock',
+    difficulty: 'Easy',
+    macroRatio: { protein: 30, carbs: 45, fat: 25 },
+    keyBenefits: [
+      'Enhances insulin sensitivity and glucose disposal',
+      'Simplifies daily meal prep into fewer satisfying meals',
+      'Promotes cellular autophagy and anti-aging pathways',
+      'Reduces late-night mindless snacking and acid reflux',
+    ],
+    allowedFoods: [
+      'During Fast: Black coffee, unsweetened green tea, water with electrolytes',
+      'During Window: Nutrient-dense balanced whole foods across 2-3 main meals',
+    ],
+    foodsToLimit: [
+      'Any caloric liquids during the 16-hour fasting window',
+      'Binge-eating junk food to break fasts',
+    ],
+    sampleMealDay: {
+      breakfast: 'Fasting period (08:00 - 12:00): Sparkling water & black roast espresso.',
+      lunch: '12:00 (Break-Fast): Big Mediterranean bowl with grilled chicken, avocado, quinoa, and greens.',
+      dinner: '19:30 (Final Meal): Pan-seared salmon with roasted sweet potatoes and asparagus.',
+      snack: '16:00: Protein shake with berries and a handful of mixed nuts.',
+    },
+    isFeatured: false,
+  },
+  {
+    slug: 'dash',
+    name: 'DASH Protocol',
+    tagline: 'Dietary Approaches to Stop Hypertension and optimize arterial elasticity.',
+    description: 'Rich in potassium, magnesium, and calcium with reduced sodium for optimal blood pressure.',
+    fullOverview: 'Clinically proven by the NIH, the DASH diet balances essential electrolytes (high potassium, calcium, magnesium with controlled sodium) to support vascular endothelium function.',
+    icon: 'HeartPulse',
+    difficulty: 'Easy',
+    macroRatio: { protein: 25, carbs: 50, fat: 25 },
+    keyBenefits: [
+      'Clinically proven to lower systolic and diastolic blood pressure',
+      'Supports healthy kidney filtration and fluid balance',
+      'Rich in cardioprotective minerals and micronutrients',
+      'Easy to adhere to with family-friendly everyday ingredients',
+    ],
+    allowedFoods: [
+      'Bananas, oranges, apricots, berries',
+      'Dark leafy greens, carrots, beets, tomatoes',
+      'Low-fat yogurt and skim milk',
+      'Skinless poultry and fish',
+      'Beans, lentils, seeds, and unsalted nuts',
+    ],
+    foodsToLimit: [
+      'High-sodium canned soups and cured meats',
+      'Processed cheese and table salt excess',
+      'Store-bought packaged dressings with preservatives',
+    ],
+    sampleMealDay: {
+      breakfast: 'Oatmeal cooked in low-fat milk, topped with sliced banana and cinnamon.',
+      lunch: 'Turkey breast wrap with whole grain tortilla, spinach, sliced tomatoes, and hummus.',
+      dinner: 'Baked cod fillet with steamed green beans and baked potato topped with low-fat Greek yogurt.',
+      snack: 'Unsalted pistachios and an organic crisp apple.',
+    },
+    isFeatured: false,
+  },
+];
+
 const seedDB = async () => {
   try {
-    const conn = await mongoose.connect(
-      process.env.MONGODB_URI || 'mongodb://localhost:27017/nutrilens'
-    );
+    const uri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/nutrilens';
+    const conn = await mongoose.connect(uri, { serverSelectionTimeoutMS: 5000 });
     console.log(`Connected to MongoDB: ${conn.connection.host}`);
 
     // Clear existing data
@@ -161,6 +377,8 @@ const seedDB = async () => {
       Meal.deleteMany({}),
       FoodScan.deleteMany({}),
       WeightLog.deleteMany({}),
+      DietPlan.deleteMany({}),
+      PlannedMeal.deleteMany({}),
     ]);
     console.log('🧹 Cleared existing database collections');
 
@@ -201,9 +419,13 @@ const seedDB = async () => {
     const foods = await Food.insertMany(FOODS_DATA);
     console.log(`🥗 Seeded ${foods.length} food items`);
 
+    // 3. Seed Diet Plans
+    const diets = await DietPlan.insertMany(DIETS_DATA);
+    console.log(`📖 Seeded ${diets.length} clinical diet protocols`);
+
     const todayStr = new Date().toISOString().split('T')[0];
 
-    // 3. Seed Meals
+    // 4. Seed Meals
     const meals = await Meal.insertMany([
       {
         userId: user._id,
@@ -377,7 +599,7 @@ const seedDB = async () => {
     ]);
     console.log(`🍲 Seeded ${meals.length} meals`);
 
-    // 4. Seed Food Scans
+    // 5. Seed Food Scans
     const scans = await FoodScan.insertMany([
       {
         userId: user._id,
@@ -442,7 +664,26 @@ const seedDB = async () => {
     ]);
     console.log(`📸 Seeded ${scans.length} food scans`);
 
-    // 5. Seed 30 Days of Weight Logs
+    // 6. Seed Weekly Planned Meals
+    const plannedMeals = await PlannedMeal.insertMany([
+      { userId: user._id, dayOfWeek: 0, mealType: 'breakfast', foodName: 'Oatmeal with Whey & Berries', calories: 420, protein: 32, carbs: 54, fat: 8 },
+      { userId: user._id, dayOfWeek: 0, mealType: 'lunch', foodName: 'Grilled Salmon Quinoa Bowl', calories: 650, protein: 48, carbs: 62, fat: 18 },
+      { userId: user._id, dayOfWeek: 0, mealType: 'dinner', foodName: 'Chicken Sweet Potato Mash', calories: 580, protein: 52, carbs: 50, fat: 12 },
+      { userId: user._id, dayOfWeek: 0, mealType: 'snack', foodName: 'Greek Yogurt & Almonds', calories: 240, protein: 20, carbs: 12, fat: 10 },
+
+      { userId: user._id, dayOfWeek: 1, mealType: 'breakfast', foodName: 'Poached Eggs & Avocado Toast', calories: 460, protein: 24, carbs: 36, fat: 22 },
+      { userId: user._id, dayOfWeek: 1, mealType: 'lunch', foodName: 'Turkey & Brown Rice Skillet', calories: 610, protein: 50, carbs: 60, fat: 14 },
+      { userId: user._id, dayOfWeek: 1, mealType: 'dinner', foodName: 'Sirloin Steak with Asparagus', calories: 620, protein: 54, carbs: 20, fat: 24 },
+      { userId: user._id, dayOfWeek: 1, mealType: 'snack', foodName: 'Whey Isolate Shake & Banana', calories: 215, protein: 26, carbs: 28, fat: 1 },
+
+      { userId: user._id, dayOfWeek: 2, mealType: 'breakfast', foodName: 'Egg White Frittata with Feta', calories: 380, protein: 35, carbs: 14, fat: 16 },
+      { userId: user._id, dayOfWeek: 2, mealType: 'lunch', foodName: 'Mediterranean Tuna Wrap', calories: 540, protein: 44, carbs: 48, fat: 14 },
+      { userId: user._id, dayOfWeek: 2, mealType: 'dinner', foodName: 'Herb Chicken with Broccoli', calories: 520, protein: 55, carbs: 24, fat: 12 },
+      { userId: user._id, dayOfWeek: 2, mealType: 'snack', foodName: 'Cottage Cheese & Berries', calories: 190, protein: 22, carbs: 16, fat: 3 },
+    ]);
+    console.log(`📅 Seeded ${plannedMeals.length} weekly planned meal slots`);
+
+    // 7. Seed 30 Days of Weight Logs
     const weightLogsData = [];
     let currentWeight = 76.2;
     const now = new Date();

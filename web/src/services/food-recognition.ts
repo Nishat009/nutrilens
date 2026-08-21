@@ -34,8 +34,7 @@ export async function recognizeFoodFromImage(
   const scanId = 'scan_' + Date.now().toString(36) + Math.random().toString(36).substring(2, 6);
 
   try {
-    // 1. Check if backend open API endpoint is reachable
-    const response = await fetch('/api/scan/analyze', {
+    const response = await fetch('/api/scans/analyze', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ image: imageDataUrl, mealType: customMealType }),
@@ -47,11 +46,11 @@ export async function recognizeFoodFromImage(
         return data.result;
       }
     }
-  } catch {
-    // Graceful fallback to client-side open engine
+  } catch (err) {
+    console.warn('Backend food recognition call error, using local fallback:', err);
   }
 
-  // 2. Client-side deterministic open fallback recognition
+  // Graceful fallback to local engine if server unavailable
   return analyzeLocally(imageDataUrl, scanId, customMealType);
 }
 

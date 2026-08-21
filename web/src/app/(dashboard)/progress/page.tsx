@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   LineChart,
   Line,
@@ -29,36 +29,109 @@ import { Button } from '../../../components/ui/Button';
 import { Badge } from '../../../components/ui/Badge';
 import { Modal } from '../../../components/ui/Modal';
 import { Input } from '../../../components/ui/Input';
-import { MOCK_WEIGHT_LOGS, MOCK_DAILY_HISTORY } from '../../../data/mock/progress';
 import { useUserStore } from '../../../lib/stores/user-store';
 import { formatCalories, formatGrams } from '../../../lib/utils/format';
+import { progressApi } from '../../../services/api-client';
+import { DailyNutrition, WeightLog } from '../../../lib/types';
 
 export default function ProgressPage() {
-  const { profile, goal } = useUserStore();
+  const { profile, goal, fetchUserProfile, updateProfile } = useUserStore();
   const [range, setRange] = useState<'7d' | '30d' | '90d'>('30d');
   const [isWeightModalOpen, setIsWeightModalOpen] = useState(false);
   const [newWeight, setNewWeight] = useState(profile.weightKg.toString());
+  const [weightLogs, setWeightLogs] = useState<WeightLog[]>([]);
+  const [nutritionHistory, setNutritionHistory] = useState<DailyNutrition[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSubmittingWeight, setIsSubmittingWeight] = useState(false);
 
   const daysCount = range === '7d' ? 7 : range === '30d' ? 30 : 90;
 
+  const loadProgressData = async () => {
+    setIsLoading(true);
+    try {
+      const [logs, history] = await Promise.all([
+        progressApi.getWeightLogs(),
+        progressApi.getNutritionHistory({ days: daysCount }),
+      ]);
+      setWeightLogs(logs);
+      setNutritionHistory(history);
+    } catch (err) {
+      console.warn('Failed to load progress analytics from backend:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchUserProfile();
+    loadProgressData();
+  }, [daysCount]);
+
+  // Construct chart timeline merging nutrition history and weight logs
   const chartData = useMemo(() => {
-    return MOCK_DAILY_HISTORY.slice(-daysCount).map((item, idx) => {
-      const weightEntry = MOCK_WEIGHT_LOGS[MOCK_WEIGHT_LOGS.length - daysCount + idx];
-      return {
-        date: item.date.slice(5), // MM-DD
+    if (nutritionHistory.length === 0 && weightLogs.length === 0) {
+      // Return structured fallback timeline
+      const now = new Date();
+      return Array.from({ length: Math.min(daysCount, 7) }, (_, i) => {
+        const d = new Date(now.getTime() - (Math.min(daysCount, 7) - 1 - i) * 24 * 60 * 60 * 1000);
+        return {
+          date: d.toISOString().slice(5, 10),
+          calories: goal.targetCalories,
+          targetCalories: goal.targetCalories,
+          protein: goal.targetProteinG,
+          carbs: goal.targetCarbsG,
+          fat: goal.targetFatG,
+          weight: profile.weightKg,
+        };
+      });
+    }
+
+    const weightMap = new Map<string, number>();
+    weightLogs.forEach((w) => weightMap.set(w.date, w.weightKg));
+
+    if (nutritionHistory.length > 0) {
+      return nutritionHistory.map((item) => ({
+        date: item.date.slice(5),
         calories: item.totalCalories,
         targetCalories: goal.targetCalories,
         protein: item.totalProtein,
         carbs: item.totalCarbs,
         fat: item.totalFat,
-        weight: weightEntry ? weightEntry.weightKg : null,
-      };
-    });
-  }, [daysCount, goal.targetCalories]);
+        weight: weightMap.get(item.date) || profile.weightKg,
+      }));
+    }
+
+    return weightLogs.slice(-daysCount).map((w) => ({
+      date: w.date.slice(5),
+      calories: goal.targetCalories,
+      targetCalories: goal.targetCalories,
+      protein: goal.targetProteinG,
+      carbs: goal.targetCarbsG,
+      fat: goal.targetFatG,
+      weight: w.weightKg,
+    }));
+  }, [nutritionHistory, weightLogs, daysCount, goal, profile.weightKg]);
 
   const initialWeight = chartData[0]?.weight || profile.weightKg;
   const latestWeight = chartData[chartData.length - 1]?.weight || profile.weightKg;
   const weightDelta = Math.round((latestWeight - initialWeight) * 10) / 10;
+
+  const handleSaveWeight = async () => {
+    const val = parseFloat(newWeight);
+    if (isNaN(val) || val <= 0) return;
+
+    setIsSubmittingWeight(true);
+    try {
+      await progressApi.logWeight({ weightKg: val });
+      await updateProfile({ weightKg: val });
+      await loadProgressData();
+      setIsWeightModalOpen(false);
+    } catch (err) {
+      console.error('Failed to log weight to backend:', err);
+    } finally {
+      setIsSubmittingWeight(false);
+    }
+  };
 
   return (
     <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in duration-300">
@@ -120,9 +193,9 @@ export default function ProgressPage() {
 
         <Card variant="glass" className="p-5 flex items-center justify-between">
           <div className="space-y-1">
-            <span className="text-xs font-bold uppercase text-slate-400">Avg Caloric Pacing</span>
-            <div className="text-2xl font-black text-white">2,110 kcal</div>
-            <div className="text-[11px] text-emerald-400 font-medium">98.2% Adherence Rate</div>
+            <span className="text-xs font-bold uppercase text-slate-400">Daily Calorie Target</span>
+            <div className="text-2xl font-black text-white">{formatCalories(goal.targetCalories)} kcal</div>
+            <div className="text-[11px] text-emerald-400 font-medium">Adaptive Baseline</div>
           </div>
           <div className="p-3 rounded-2xl bg-amber-500/15 text-amber-400 border border-amber-500/30">
             <Flame className="w-6 h-6" />
@@ -131,9 +204,11 @@ export default function ProgressPage() {
 
         <Card variant="glass" className="p-5 flex items-center justify-between">
           <div className="space-y-1">
-            <span className="text-xs font-bold uppercase text-slate-400">Avg Daily Protein</span>
-            <div className="text-2xl font-black text-purple-300">162g</div>
-            <div className="text-[11px] text-purple-400 font-medium">2.18g / kg body mass</div>
+            <span className="text-xs font-bold uppercase text-slate-400">Daily Protein Target</span>
+            <div className="text-2xl font-black text-purple-300">{goal.targetProteinG}g</div>
+            <div className="text-[11px] text-purple-400 font-medium">
+              {((goal.targetProteinG / (profile.weightKg || 1))).toFixed(2)}g / kg body mass
+            </div>
           </div>
           <div className="p-3 rounded-2xl bg-purple-500/15 text-purple-400 border border-purple-500/30">
             <Dumbbell className="w-6 h-6" />
@@ -147,10 +222,10 @@ export default function ProgressPage() {
           <div>
             <h3 className="text-lg font-bold text-white">Weight Progression (kg)</h3>
             <p className="text-xs text-slate-400 mt-0.5">
-              Consistent downward trend toward {profile.targetWeightKg}kg goal
+              Live weigh-in records from MongoDB database
             </p>
           </div>
-          <Badge variant="emerald">On Track</Badge>
+          <Badge variant="emerald">Live Backend Data</Badge>
         </div>
 
         <div className="h-72 w-full">
@@ -250,7 +325,7 @@ export default function ProgressPage() {
         isOpen={isWeightModalOpen}
         onClose={() => setIsWeightModalOpen(false)}
         title="Log Today's Body Weight"
-        description="Weigh-ins are best recorded first thing in the morning."
+        description="Weigh-ins are recorded directly into your MongoDB account history."
       >
         <div className="space-y-4">
           <Input
@@ -263,9 +338,8 @@ export default function ProgressPage() {
           <Button
             variant="glow"
             className="w-full"
-            onClick={() => {
-              setIsWeightModalOpen(false);
-            }}
+            isLoading={isSubmittingWeight}
+            onClick={handleSaveWeight}
           >
             Save Weigh-In
           </Button>

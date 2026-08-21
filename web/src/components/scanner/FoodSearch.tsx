@@ -1,11 +1,11 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
-import { Search, Plus, Check, X, Flame } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Search, Plus, X, Flame } from 'lucide-react';
 import { Modal } from '../ui/Modal';
-import { DatabaseFoodItem } from '../../data/nutrition-database';
+import { DatabaseFoodItem, NUTRITION_DATABASE } from '../../data/nutrition-database';
 import { searchNutritionDatabase } from '../../services/nutrition-engine';
-import { Badge } from '../ui/Badge';
+import { foodApi } from '../../services/api-client';
 
 interface FoodSearchProps {
   isOpen: boolean;
@@ -33,11 +33,47 @@ export function FoodSearch({
 }: FoodSearchProps) {
   const [query, setQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
+  const [foods, setFoods] = useState<DatabaseFoodItem[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const filteredFoods = useMemo(() => {
+  useEffect(() => {
+    if (!isOpen) return;
+
+    setIsLoading(true);
     const cat = selectedCategory === 'All' ? undefined : selectedCategory;
-    return searchNutritionDatabase(query, cat);
-  }, [query, selectedCategory]);
+
+    // First search backend MongoDB
+    foodApi
+      .getFoods({ search: query || undefined, category: cat })
+      .then((backendFoods) => {
+        if (backendFoods && backendFoods.length > 0) {
+          const mapped: DatabaseFoodItem[] = backendFoods.map((f) => ({
+            id: f.id,
+            name: f.name,
+            category: (f.category as any) || 'General',
+            defaultPortion: f.servingSize || 100,
+            unit: f.servingUnit || 'g',
+            caloriesPer100g: f.nutrition?.calories || 0,
+            proteinPer100g: f.nutrition?.protein || 0,
+            carbsPer100g: f.nutrition?.carbs || 0,
+            fatPer100g: f.nutrition?.fat || 0,
+            fiberPer100g: f.nutrition?.fiber || 0,
+            aliases: f.tags || [],
+            tags: f.tags || [],
+            imageUrl: f.imageUrl,
+          }));
+          setFoods(mapped);
+        } else {
+          // Fallback to rich nutrition database
+          setFoods(searchNutritionDatabase(query, cat));
+        }
+        setIsLoading(false);
+      })
+      .catch(() => {
+        setFoods(searchNutritionDatabase(query, cat));
+        setIsLoading(false);
+      });
+  }, [query, selectedCategory, isOpen]);
 
   const handleSelect = (food: DatabaseFoodItem) => {
     onSelectFood(food);
@@ -89,12 +125,17 @@ export function FoodSearch({
 
         {/* Results List */}
         <div className="max-h-80 overflow-y-auto space-y-2 pr-1">
-          {filteredFoods.length === 0 ? (
+          {isLoading ? (
+            <div className="text-center py-8 space-y-2">
+              <div className="w-6 h-6 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin mx-auto" />
+              <p className="text-xs text-slate-400">Searching database...</p>
+            </div>
+          ) : foods.length === 0 ? (
             <div className="text-center py-8 text-slate-400 text-xs">
               No matching foods found for &ldquo;{query}&rdquo;.
             </div>
           ) : (
-            filteredFoods.map((food) => (
+            foods.map((food) => (
               <div
                 key={food.id}
                 onClick={() => handleSelect(food)}

@@ -1,21 +1,54 @@
 'use client';
 
-import React from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useEffect, useState } from 'react';
+import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '../../../../components/ui/Button';
 import { useScanStore } from '../../../../lib/stores/scan-store';
 import { FoodAnalysisResult } from '../../../../components/scanner/FoodAnalysisResult';
 import { FoodRecognitionResult } from '../../../../services/food-recognition';
-import { buildResultItem, findBestFoodMatch } from '../../../../services/nutrition-engine';
+import { findBestFoodMatch } from '../../../../services/nutrition-engine';
 import { NUTRITION_DATABASE } from '../../../../data/nutrition-database';
+import { scanApi } from '../../../../services/api-client';
+import { FoodScan } from '../../../../lib/types';
 
 export default function ScanResultDetailPage() {
   const router = useRouter();
-  const { currentScan } = useScanStore();
+  const params = useParams();
+  const scanId = params.id as string;
+  const { currentScan, setCurrentScan } = useScanStore();
+  const [scan, setScan] = useState<FoodScan | null>(currentScan);
+  const [isLoading, setIsLoading] = useState(!currentScan);
 
-  if (!currentScan) {
+  useEffect(() => {
+    if (!currentScan && scanId) {
+      setIsLoading(true);
+      scanApi
+        .getScanById(scanId)
+        .then((fetched) => {
+          setScan(fetched);
+          setCurrentScan(fetched);
+          setIsLoading(false);
+        })
+        .catch(() => {
+          setIsLoading(false);
+        });
+    } else if (currentScan) {
+      setScan(currentScan);
+    }
+  }, [scanId, currentScan, setCurrentScan]);
+
+  if (isLoading) {
+    return (
+      <div className="text-center py-20 space-y-4">
+        <div className="w-8 h-8 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin mx-auto" />
+        <p className="text-xs text-slate-400">Loading food scan details from backend...</p>
+      </div>
+    );
+  }
+
+  if (!scan) {
     return (
       <div className="text-center py-20 space-y-4">
         <h2 className="text-2xl font-bold text-white">Scan Not Found</h2>
@@ -29,15 +62,15 @@ export default function ScanResultDetailPage() {
 
   // Convert FoodScan into FoodRecognitionResult format
   const recognitionResult: FoodRecognitionResult = {
-    scanId: currentScan.id,
+    scanId: scan.id,
     status: 'completed',
-    isDemoMode: true,
-    modelName: 'Open Food-101 Classifier (Demo / Local Fallback)',
-    detectedFoods: currentScan.detectedItems.map((item) => {
+    isDemoMode: false,
+    modelName: 'AI Multimodal Vision Classifier',
+    detectedFoods: scan.detectedItems.map((item) => {
       const match = findBestFoodMatch(item.name);
       return {
         id: item.id,
-        foodId: match.item.id,
+        foodId: item.foodId || match.item.id,
         name: item.name,
         category: match.item.category,
         quantity: item.estimatedQuantity,
@@ -56,8 +89,8 @@ export default function ScanResultDetailPage() {
     overallConfidence: 0.94,
     overallConfidenceLevel: 'high',
     topSuggestions: NUTRITION_DATABASE.slice(0, 5).map((f) => f.name),
-    suggestedMealType: currentScan.suggestedMealType || 'lunch',
-    analysisNotes: currentScan.analysisNotes || 'AI Food Vision recognized ingredients with high semantic confidence.',
+    suggestedMealType: scan.suggestedMealType || 'lunch',
+    analysisNotes: scan.analysisNotes || 'AI Food Vision recognized ingredients with high semantic confidence.',
     disclaimer:
       'Nutrition values are estimates based on standard recipe averages and may vary depending on exact ingredients, preparation method, and portion size. Not intended for medical diagnosis.',
   };
@@ -73,7 +106,7 @@ export default function ScanResultDetailPage() {
       </div>
 
       <FoodAnalysisResult
-        image={currentScan.imageUrl}
+        image={scan.imageUrl}
         initialResult={recognitionResult}
         onReset={() => router.push('/scan')}
       />

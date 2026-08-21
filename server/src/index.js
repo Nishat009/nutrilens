@@ -75,6 +75,8 @@ app.use('/api/foods', require('./routes/food.routes'));
 app.use('/api/scans', require('./routes/scan.routes'));
 app.use('/api/scan', require('./routes/scan.routes')); // Alias so both /api/scan and /api/scans work
 app.use('/api/progress', require('./routes/progress.routes'));
+app.use('/api/diets', require('./routes/diet.routes'));
+app.use('/api/planner', require('./routes/planner.routes'));
 
 // 404 handler
 app.use((req, res) => {

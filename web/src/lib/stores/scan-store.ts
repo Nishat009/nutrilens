@@ -1,14 +1,16 @@
 import { create } from 'zustand';
-import { MOCK_RECENT_SCANS } from '../../data/mock/scans';
-import { FoodScan, FoodScanItem, MealType, ScanStatus } from '../types';
+import { FoodScan, FoodScanItem, MealType } from '../types';
+import { scanApi } from '../../services/api-client';
 
 interface ScanState {
   currentScan: FoodScan | null;
   history: FoodScan[];
   isAnalyzing: boolean;
-  analysisStep: number; // 0: Idle, 1: Identifying, 2: Estimating portions, 3: Calculating nutrition, 4: Done
-  analysisProgress: number; // 0 to 100%
-  
+  analysisStep: number;
+  analysisProgress: number;
+  isLoadingHistory: boolean;
+
+  fetchHistory: (userId?: string) => Promise<void>;
   setCurrentScan: (scan: FoodScan | null) => void;
   updateDetectedItem: (itemId: string, updates: Partial<FoodScanItem>) => void;
   removeDetectedItem: (itemId: string) => void;
@@ -19,11 +21,23 @@ interface ScanState {
 }
 
 export const useScanStore = create<ScanState>((set, get) => ({
-  currentScan: MOCK_RECENT_SCANS[0],
-  history: MOCK_RECENT_SCANS,
+  currentScan: null,
+  history: [],
   isAnalyzing: false,
   analysisStep: 0,
   analysisProgress: 0,
+  isLoadingHistory: false,
+
+  fetchHistory: async (userId?: string) => {
+    set({ isLoadingHistory: true });
+    try {
+      const scans = await scanApi.getScans(userId);
+      set({ history: scans, isLoadingHistory: false });
+    } catch (err) {
+      console.warn('Failed to load scan history from backend:', err);
+      set({ isLoadingHistory: false });
+    }
+  },
 
   setCurrentScan: (scan) => set({ currentScan: scan }),
 
@@ -33,9 +47,8 @@ export const useScanStore = create<ScanState>((set, get) => ({
 
     const newItems = currentScan.detectedItems.map((item) => {
       if (item.id !== itemId) return item;
-      
+
       const updated = { ...item, ...updates };
-      // If quantity changed, scale the calories/macros proportionally
       if (updates.estimatedQuantity && updates.estimatedQuantity !== item.estimatedQuantity) {
         const ratio = updates.estimatedQuantity / (item.estimatedQuantity || 1);
         updated.calories = Math.round(item.calories * ratio);
@@ -97,55 +110,64 @@ export const useScanStore = create<ScanState>((set, get) => ({
     set({ isAnalyzing: true, analysisStep: 1, analysisProgress: 15 });
 
     // Step 1: Identifying
-    await new Promise((r) => setTimeout(r, 900));
-    set({ analysisStep: 2, analysisProgress: 55 });
-
-    // Step 2: Estimating portions
-    await new Promise((r) => setTimeout(r, 900));
-    set({ analysisStep: 3, analysisProgress: 88 });
-
-    // Step 3: Calculating nutrition
     await new Promise((r) => setTimeout(r, 600));
+    set({ analysisStep: 2, analysisProgress: 50 });
 
-    // Dynamic Image Classification from Vision Engine
-    const { classifyFoodImage } = await import('../../services/vision-recognition');
-    const match = classifyFoodImage(imageUrl, suggestedMealType);
+    // Step 2: Estimating portions & calculating
+    await new Promise((r) => setTimeout(r, 600));
+    set({ analysisStep: 3, analysisProgress: 85 });
 
-    const totalCalories = match.items.reduce((acc, item) => acc + item.calories, 0);
-    const totalProtein = Math.round(match.items.reduce((acc, item) => acc + item.protein, 0) * 10) / 10;
-    const totalCarbs = Math.round(match.items.reduce((acc, item) => acc + item.carbs, 0) * 10) / 10;
-    const totalFat = Math.round(match.items.reduce((acc, item) => acc + item.fat, 0) * 10) / 10;
-    const totalFiber = Math.round(match.items.reduce((acc, item) => acc + item.fiber, 0) * 10) / 10;
+    try {
+      const { recognizeFoodFromImage } = await import('../../services/food-recognition');
+      const result = await recognizeFoodFromImage(imageUrl, suggestedMealType);
 
-    const newScanId = 'scan_' + Date.now().toString(36);
-    const completedScan: FoodScan = {
-      id: newScanId,
-      userId: 'usr_prantik_99',
-      imageUrl,
-      status: 'completed',
-      createdAt: new Date().toISOString(),
-      suggestedMealType: match.suggestedMealType,
-      analysisNotes: match.analysisNotes,
-      totalCalories,
-      totalProtein,
-      totalCarbs,
-      totalFat,
-      totalFiber,
-      detectedItems: match.items.map((item, idx) => ({
-        id: `det_${Date.now()}_${idx}`,
-        ...item,
-      })),
-    };
+      const totalCalories = result.detectedFoods.reduce((acc: number, item: any) => acc + item.calories, 0);
+      const totalProtein = Math.round(result.detectedFoods.reduce((acc: number, item: any) => acc + item.protein, 0) * 10) / 10;
+      const totalCarbs = Math.round(result.detectedFoods.reduce((acc: number, item: any) => acc + item.carbs, 0) * 10) / 10;
+      const totalFat = Math.round(result.detectedFoods.reduce((acc: number, item: any) => acc + item.fat, 0) * 10) / 10;
+      const totalFiber = Math.round(result.detectedFoods.reduce((acc: number, item: any) => acc + item.fiber, 0) * 10) / 10;
 
-    set((state) => ({
-      isAnalyzing: false,
-      analysisStep: 4,
-      analysisProgress: 100,
-      currentScan: completedScan,
-      history: [completedScan, ...state.history],
-    }));
+      const scanData: Partial<FoodScan> = {
+        imageUrl,
+        status: 'completed',
+        suggestedMealType: result.suggestedMealType || suggestedMealType,
+        analysisNotes: result.analysisNotes,
+        totalCalories,
+        totalProtein,
+        totalCarbs,
+        totalFat,
+        totalFiber,
+        detectedItems: result.detectedFoods.map((item: any, idx: number) => ({
+          id: `det_${Date.now()}_${idx}`,
+          name: item.name,
+          confidence: item.confidence,
+          estimatedQuantity: item.quantity,
+          unit: item.unit,
+          calories: item.calories,
+          protein: item.protein,
+          carbs: item.carbs,
+          fat: item.fat,
+          fiber: item.fiber,
+          foodId: item.foodId,
+        })),
+      };
 
-    return completedScan;
+      const savedScan = await scanApi.createScan(scanData);
+
+      set((state) => ({
+        isAnalyzing: false,
+        analysisStep: 4,
+        analysisProgress: 100,
+        currentScan: savedScan,
+        history: [savedScan, ...state.history],
+      }));
+
+      return savedScan;
+    } catch (err) {
+      console.error('Scan analysis error:', err);
+      set({ isAnalyzing: false, analysisStep: 0, analysisProgress: 0 });
+      throw err;
+    }
   },
 
   clearCurrentScan: () => set({ currentScan: null, isAnalyzing: false, analysisStep: 0, analysisProgress: 0 }),

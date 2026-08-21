@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   User,
@@ -32,7 +32,7 @@ import { formatCalories, formatGrams } from '../../../lib/utils/format';
 
 export default function ProfilePage() {
   const router = useRouter();
-  const { profile, goal, updateProfile, setGoalType, recalculateTargets } = useUserStore();
+  const { profile, goal, updateProfile, setGoalType, recalculateTargets, fetchUserProfile } = useUserStore();
   const { logout } = useAuthStore();
 
   const [name, setName] = useState(profile.name);
@@ -46,6 +46,24 @@ export default function ProfilePage() {
   const [selectedGoal, setSelectedGoal] = useState<GoalType>(goal.type);
   const [dietaryPrefs, setDietaryPrefs] = useState<string[]>(profile.dietaryPreferences || []);
   const [savedSuccess, setSavedSuccess] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    fetchUserProfile();
+  }, [fetchUserProfile]);
+
+  useEffect(() => {
+    setName(profile.name);
+    setEmail(profile.email);
+    setDob(profile.dob);
+    setGender(profile.gender);
+    setHeightCm(profile.heightCm);
+    setWeightKg(profile.weightKg);
+    setTargetWeightKg(profile.targetWeightKg || 72.0);
+    setActivityLevel(profile.activityLevel);
+    setDietaryPrefs(profile.dietaryPreferences || []);
+    setSelectedGoal(goal.type);
+  }, [profile, goal]);
 
   const toggleDietPref = (pref: string) => {
     if (dietaryPrefs.includes(pref)) {
@@ -55,23 +73,30 @@ export default function ProfilePage() {
     }
   };
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    updateProfile({
-      name,
-      email,
-      dob,
-      gender,
-      heightCm,
-      weightKg,
-      targetWeightKg,
-      activityLevel,
-      dietaryPreferences: dietaryPrefs,
-    });
-    setGoalType(selectedGoal);
-    recalculateTargets();
-    setSavedSuccess(true);
-    setTimeout(() => setSavedSuccess(false), 3000);
+    setIsSaving(true);
+    try {
+      await updateProfile({
+        name,
+        email,
+        dob,
+        gender,
+        heightCm,
+        weightKg,
+        targetWeightKg,
+        activityLevel,
+        dietaryPreferences: dietaryPrefs,
+      });
+      await setGoalType(selectedGoal);
+      await recalculateTargets();
+      setSavedSuccess(true);
+      setTimeout(() => setSavedSuccess(false), 3000);
+    } catch (err) {
+      console.error('Save profile error:', err);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleLogout = () => {
@@ -111,7 +136,7 @@ export default function ProfilePage() {
       {savedSuccess && (
         <div className="p-4 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-semibold flex items-center gap-2">
           <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-          <span>Profile updated and daily nutritional targets successfully recalculated!</span>
+          <span>Profile updated and daily nutritional targets saved to database!</span>
         </div>
       )}
 
@@ -328,9 +353,10 @@ export default function ProfilePage() {
           variant="glow"
           size="lg"
           className="w-full text-base font-bold"
+          isLoading={isSaving}
           leftIcon={<Sparkles className="w-5 h-5 stroke-[2.5]" />}
         >
-          Save Changes & Update Targets
+          Save Changes & Update Targets in Database
         </Button>
       </form>
     </div>
