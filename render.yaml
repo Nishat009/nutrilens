@@ -14,5 +14,7 @@ services:
         value: 10000
       - key: MONGODB_URI
         sync: false # Set in Render Dashboard to your MongoDB Atlas connection string
+      - key: GEMINI_API_KEY
+        sync: false # (Optional) Google Gemini API Key for multimodal AI vision
       - key: HF_TOKEN
-        sync: false # Optional Hugging Face free token for open Food-101 vision model
+        sync: false # (Optional) Hugging Face token for open Food-101 vision model
