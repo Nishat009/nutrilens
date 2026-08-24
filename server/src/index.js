@@ -72,6 +72,7 @@ app.use('/api/auth', require('./routes/auth.routes'));
 app.use('/api/users', require('./routes/user.routes'));
 app.use('/api/meals', require('./routes/meal.routes'));
 app.use('/api/foods', require('./routes/food.routes'));
+app.use('/api/vegetables', require('./routes/vegetable.routes'));
 app.use('/api/scans', require('./routes/scan.routes'));
 app.use('/api/scan', require('./routes/scan.routes')); // Alias so both /api/scan and /api/scans work
 app.use('/api/progress', require('./routes/progress.routes'));

@@ -6,6 +6,8 @@ import { Modal } from '../ui/Modal';
 import { DatabaseFoodItem, NUTRITION_DATABASE } from '../../data/nutrition-database';
 import { searchNutritionDatabase } from '../../services/nutrition-engine';
 import { foodApi } from '../../services/api-client';
+import { vegetableApi } from '../../services/vegetable-api';
+
 
 interface FoodSearchProps {
   isOpen: boolean;
@@ -42,29 +44,52 @@ export function FoodSearch({
     setIsLoading(true);
     const cat = selectedCategory === 'All' ? undefined : selectedCategory;
 
-    // First search backend MongoDB
-    foodApi
-      .getFoods({ search: query || undefined, category: cat })
-      .then((backendFoods) => {
-        if (backendFoods && backendFoods.length > 0) {
-          const mapped: DatabaseFoodItem[] = backendFoods.map((f) => ({
-            id: f.id,
-            name: f.name,
-            category: (f.category as any) || 'General',
-            defaultPortion: f.servingSize || 100,
-            unit: f.servingUnit || 'g',
-            caloriesPer100g: f.nutrition?.calories || 0,
-            proteinPer100g: f.nutrition?.protein || 0,
-            carbsPer100g: f.nutrition?.carbs || 0,
-            fatPer100g: f.nutrition?.fat || 0,
-            fiberPer100g: f.nutrition?.fiber || 0,
-            aliases: f.tags || [],
-            tags: f.tags || [],
-            imageUrl: f.imageUrl,
-          }));
-          setFoods(mapped);
+    // Search both dedicated Vegetable database and general foods
+    Promise.all([
+      vegetableApi.searchVegetables(query).catch(() => []),
+      foodApi.getFoods({ search: query || undefined, category: cat }).catch(() => []),
+    ])
+      .then(([vegs, backendFoods]) => {
+        const vegItems: DatabaseFoodItem[] = (vegs || []).map((v) => ({
+          id: `veg_${v._id || v.slug}`,
+          name: `${v.name} (USDA Raw)`,
+          category: 'Vegetables',
+          defaultPortion: 100,
+          unit: 'g',
+          caloriesPer100g: v.caloriesPer100g,
+          proteinPer100g: v.proteinPer100g,
+          carbsPer100g: v.carbsPer100g,
+          fatPer100g: v.fatPer100g,
+          fiberPer100g: v.fiberPer100g,
+          aliases: v.aliases || [],
+          tags: ['USDA Raw', v.category, ...(v.aliases || [])],
+          imageUrl: v.imageUrl,
+        }));
+
+        const foodItems: DatabaseFoodItem[] = (backendFoods || []).map((f) => ({
+          id: f.id,
+          name: f.name,
+          category: (f.category as any) || 'General',
+          defaultPortion: f.servingSize || 100,
+          unit: f.servingUnit || 'g',
+          caloriesPer100g: f.nutrition?.calories || 0,
+          proteinPer100g: f.nutrition?.protein || 0,
+          carbsPer100g: f.nutrition?.carbs || 0,
+          fatPer100g: f.nutrition?.fat || 0,
+          fiberPer100g: f.nutrition?.fiber || 0,
+          aliases: f.tags || [],
+          tags: f.tags || [],
+          imageUrl: f.imageUrl,
+        }));
+
+        // Prioritize dedicated vegetables if in Vegetable category or matching
+        const combined = selectedCategory === 'Vegetables'
+          ? [...vegItems, ...foodItems]
+          : [...vegItems, ...foodItems];
+
+        if (combined.length > 0) {
+          setFoods(combined);
         } else {
-          // Fallback to rich nutrition database
           setFoods(searchNutritionDatabase(query, cat));
         }
         setIsLoading(false);

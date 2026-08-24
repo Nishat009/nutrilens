@@ -17,16 +17,22 @@ export function FoodScanner() {
   const [analysisStep, setAnalysisStep] = useState(1);
   const [analysisProgress, setAnalysisProgress] = useState(0);
   const [scanResult, setScanResult] = useState<FoodRecognitionResult | null>(null);
+  const [imageMeta, setImageMeta] = useState<{ fileName?: string; dominantColor?: string; colorProfile?: Record<string, number> } | undefined>();
 
   // When user selects an image from upload or presets
-  const handleImageSelected = (dataUrl: string) => {
+  const handleImageSelected = (
+    dataUrl: string,
+    meta?: { fileName?: string; dominantColor?: string; colorProfile?: Record<string, number> }
+  ) => {
     setSelectedImage(dataUrl);
+    setImageMeta(meta);
     setIsCameraActive(false);
   };
 
   // When user takes a photo with the live camera
   const handleCameraCapture = (dataUrl: string) => {
     setSelectedImage(dataUrl);
+    setImageMeta(undefined);
     setIsCameraActive(false);
   };
 
@@ -55,7 +61,7 @@ export function FoodScanner() {
     }, 2000);
 
     try {
-      const result = await recognizeFoodFromImage(selectedImage);
+      const result = await recognizeFoodFromImage(selectedImage, undefined, imageMeta);
       clearTimeout(timer1);
       clearTimeout(timer2);
       clearTimeout(timer3);

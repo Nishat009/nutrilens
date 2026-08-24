@@ -10,6 +10,8 @@ const FoodScan = require('./models/FoodScan');
 const WeightLog = require('./models/WeightLog');
 const DietPlan = require('./models/DietPlan');
 const PlannedMeal = require('./models/PlannedMeal');
+const Vegetable = require('./models/Vegetable');
+const { VEGETABLES_DATA } = require('./data/vegetables-data');
 
 const FOODS_DATA = [
   {
@@ -374,6 +376,7 @@ const seedDB = async () => {
     await Promise.all([
       User.deleteMany({}),
       Food.deleteMany({}),
+      Vegetable.deleteMany({}),
       Meal.deleteMany({}),
       FoodScan.deleteMany({}),
       WeightLog.deleteMany({}),
@@ -381,6 +384,7 @@ const seedDB = async () => {
       PlannedMeal.deleteMany({}),
     ]);
     console.log('🧹 Cleared existing database collections');
+
 
     // 1. Seed User
     const user = await User.create({
@@ -419,7 +423,12 @@ const seedDB = async () => {
     const foods = await Food.insertMany(FOODS_DATA);
     console.log(`🥗 Seeded ${foods.length} food items`);
 
+    // 2b. Seed Researched Dedicated Vegetables
+    const vegetables = await Vegetable.insertMany(VEGETABLES_DATA);
+    console.log(`🥦 Seeded ${vegetables.length} dedicated researched USDA vegetables`);
+
     // 3. Seed Diet Plans
+
     const diets = await DietPlan.insertMany(DIETS_DATA);
     console.log(`📖 Seeded ${diets.length} clinical diet protocols`);
 

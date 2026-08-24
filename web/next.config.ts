@@ -35,6 +35,10 @@ const nextConfig: NextConfig = {
         destination: `${apiUrl}/api/foods/:path*`,
       },
       {
+        source: "/api/vegetables/:path*",
+        destination: `${apiUrl}/api/vegetables/:path*`,
+      },
+      {
         source: "/api/scans/:path*",
         destination: `${apiUrl}/api/scans/:path*`,
       },

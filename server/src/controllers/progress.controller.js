@@ -135,3 +135,35 @@ exports.getNutritionHistory = async (req, res) => {
     });
   }
 };
+
+// @desc    Get overall progress summary (weight and recent nutrition)
+// @route   GET /api/progress
+exports.getProgressSummary = async (req, res) => {
+  try {
+    const { userId } = req.query;
+    const filter = {};
+    if (userId) filter.userId = userId;
+
+    const [weightLogs, meals] = await Promise.all([
+      WeightLog.find(filter).sort({ date: 1 }),
+      Meal.find(filter).sort({ date: -1 }).limit(30),
+    ]);
+
+    res.status(200).json({
+      success: true,
+      code: 200,
+      message: 'Progress summary retrieved successfully',
+      data: {
+        weightLogs,
+        recentMealsCount: meals.length,
+      },
+    });
+  } catch (error) {
+    res.status(422).json({
+      success: false,
+      code: 422,
+      errors: [error.message || 'Failed to retrieve progress summary'],
+    });
+  }
+};
+

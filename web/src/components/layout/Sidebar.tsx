@@ -13,6 +13,7 @@ import {
   User,
   Sparkles,
   Flame,
+  Leaf,
 } from 'lucide-react';
 import { cn } from '../../lib/utils/format';
 import { APP_NAME } from '../../lib/constants';
@@ -20,6 +21,7 @@ import { APP_NAME } from '../../lib/constants';
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/scan', label: 'AI Food Scanner', icon: Camera, highlight: true },
+  { href: '/vegetables', label: 'Vegetables DB', icon: Leaf },
   { href: '/meals', label: 'Meal History', icon: UtensilsCrossed },
   { href: '/diets', label: 'Diet Explorer', icon: BookOpen },
   { href: '/planner', label: 'Meal Planner', icon: CalendarDays },

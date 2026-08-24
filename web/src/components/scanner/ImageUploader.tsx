@@ -6,11 +6,34 @@ import { Button } from '../ui/Button';
 import { processAndCompressImage } from '../../lib/utils/image-utils';
 
 interface ImageUploaderProps {
-  onImageSelected: (dataUrl: string) => void;
+  onImageSelected: (
+    dataUrl: string,
+    meta?: { fileName?: string; dominantColor?: string; colorProfile?: Record<string, number> }
+  ) => void;
   onOpenLiveCamera: () => void;
 }
 
 const SAMPLE_DEMO_MEALS = [
+  {
+    label: 'Fresh Vine Tomatoes (টমেটো)',
+    image: 'https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=600&auto=format&fit=crop&q=80',
+    desc: 'Ripe Tomato (USDA 100g raw standard: 18 kcal)',
+  },
+  {
+    label: 'Fresh Organic Carrot (গাজর)',
+    image: 'https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?w=600&auto=format&fit=crop&q=80',
+    desc: 'Carrot (USDA 100g raw standard: 41 kcal)',
+  },
+  {
+    label: 'Fresh Eggplant / Begun (বেগুন)',
+    image: 'https://images.unsplash.com/photo-1615484477778-ca3b77940c25?w=600&auto=format&fit=crop&q=80',
+    desc: 'Eggplant / Aubergine (USDA 100g raw: 25 kcal)',
+  },
+  {
+    label: 'Steamed Broccoli & Greens',
+    image: 'https://images.unsplash.com/photo-1584270354949-c26b0d5b4a0c?w=600&auto=format&fit=crop&q=80',
+    desc: 'Broccoli, leafy greens, cucumber (USDA standard)',
+  },
   {
     label: 'Chicken & Steamed Rice Bowl',
     image: 'https://images.unsplash.com/photo-1604503468506-a8da13d82791?w=600&auto=format&fit=crop&q=80',
@@ -21,26 +44,6 @@ const SAMPLE_DEMO_MEALS = [
     image: 'https://images.unsplash.com/photo-1525351484163-7529414344d8?w=600&auto=format&fit=crop&q=80',
     desc: 'Egg omelette, whole wheat roti, Greek yogurt',
   },
-  {
-    label: 'Atlantic Salmon & Quinoa',
-    image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&auto=format&fit=crop&q=80',
-    desc: 'Pan-seared salmon, tricolor quinoa, broccoli',
-  },
-  {
-    label: 'Spiced Chickpea & Avocado Salad',
-    image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=600&auto=format&fit=crop&q=80',
-    desc: 'Chickpeas, avocado, spinach, olive oil',
-  },
-  {
-    label: 'Grass-Fed Sirloin & Sweet Potato',
-    image: 'https://images.unsplash.com/photo-1558030006-450675393462?w=600&auto=format&fit=crop&q=80',
-    desc: 'Sirloin steak, roasted sweet potato, greens',
-  },
-  {
-    label: 'Acai Whey Smoothie Bowl',
-    image: 'https://images.unsplash.com/photo-1590301157890-4810ed352733?w=600&auto=format&fit=crop&q=80',
-    desc: 'Oats, whey isolate, banana, almonds',
-  },
 ];
 
 export function ImageUploader({ onImageSelected, onOpenLiveCamera }: ImageUploaderProps) {
@@ -50,9 +53,13 @@ export function ImageUploader({ onImageSelected, onOpenLiveCamera }: ImageUpload
 
   const handleFileProcess = async (file: File) => {
     setErrorMessage(null);
-    const result = await processAndCompressImage(file);
+    const result: any = await processAndCompressImage(file);
     if (result.valid && result.dataUrl) {
-      onImageSelected(result.dataUrl);
+      onImageSelected(result.dataUrl, {
+        fileName: file.name,
+        dominantColor: result.dominantColor,
+        colorProfile: result.colorProfile,
+      });
     } else {
       setErrorMessage(result.error || 'Failed to process image file.');
     }

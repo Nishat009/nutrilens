@@ -6,7 +6,7 @@ const { analyzeFoodImageServer } = require('../services/foodRecognitionService')
 // @route   POST /api/scans/analyze
 exports.analyzeFoodScan = async (req, res) => {
   try {
-    const { image, mealType } = req.body;
+    const { image, mealType, dominantColor, colorProfile, fileName } = req.body;
 
     if (!image) {
       return res.status(422).json({
@@ -16,7 +16,11 @@ exports.analyzeFoodScan = async (req, res) => {
       });
     }
 
-    const result = await analyzeFoodImageServer(image, mealType);
+    const result = await analyzeFoodImageServer(image, mealType, {
+      dominantColor,
+      colorProfile,
+      fileName,
+    });
     res.status(200).json({
       success: true,
       code: 200,

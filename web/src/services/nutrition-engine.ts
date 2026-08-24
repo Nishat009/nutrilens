@@ -11,6 +11,9 @@ export interface CalculatedNutrition {
 export interface NutritionResultItem {
   id: string;
   foodId: string;
+  vegetableId?: string;
+  vegetableSlug?: string;
+  isVegetableMatch?: boolean;
   name: string;
   category: string;
   quantity: number;
@@ -22,8 +25,19 @@ export interface NutritionResultItem {
   fiber: number;
   confidence: number;
   confidenceLevel: 'high' | 'medium' | 'low';
+  source?: string;
+  sourceReference?: string;
+  preparationState?: string;
+  standardNotice?: string;
   suggestions?: string[];
   imageUrl?: string;
+  // Visual botanical features & Piece-based metrics
+  visualDescription?: string;
+  pieceWeightGrams?: number;
+  caloriesPerPiece?: number;
+  pieceUnitLabel?: string;
+  visualMatchConfidence?: number;
+  visualMatchExplanation?: string;
 }
 
 /**
@@ -82,8 +96,9 @@ export function searchNutritionDatabase(
     const matchesName = item.name.toLowerCase().includes(cleanQuery);
     const matchesAlias = item.aliases.some((a) => a.toLowerCase().includes(cleanQuery));
     const matchesTag = item.tags.some((t) => t.toLowerCase().includes(cleanQuery));
+    const matchesVisual = (item.visualDescription || '').toLowerCase().includes(cleanQuery);
 
-    return matchesCategory && (matchesName || matchesAlias || matchesTag);
+    return matchesCategory && (matchesName || matchesAlias || matchesTag || matchesVisual);
   });
 }
 
@@ -133,7 +148,7 @@ export function findBestFoodMatch(rawLabel: string): {
 
   for (const food of NUTRITION_DATABASE) {
     let score = 0;
-    const foodTokens = `${food.name} ${food.aliases.join(' ')}`.toLowerCase().split(/\s+/);
+    const foodTokens = `${food.name} ${food.aliases.join(' ')} ${food.visualDescription || ''}`.toLowerCase().split(/\s+/);
     for (const token of labelTokens) {
       if (token.length > 2 && foodTokens.includes(token)) {
         score++;
@@ -190,5 +205,13 @@ export function buildResultItem(
     confidenceLevel,
     suggestions: getAlternativeSuggestions(food.id),
     imageUrl: food.imageUrl,
+    visualDescription: food.visualDescription,
+    pieceWeightGrams: food.pieceWeightGrams,
+    caloriesPerPiece: food.caloriesPerPiece,
+    pieceUnitLabel: food.pieceUnitLabel,
+    visualMatchConfidence: Math.round(confidence * 100),
+    visualMatchExplanation: food.visualDescription
+      ? `Visual Match (${Math.round(confidence * 100)}%): Matches visual profile — ${food.visualDescription}`
+      : undefined,
   };
 }
