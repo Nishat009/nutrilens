@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const Vegetable = require('../models/Vegetable');
+const { VEGETABLES_DATA } = require('../data/vegetables-data');
 
 /**
  * Normalization helper for fuzzy & alias vegetable matching
@@ -18,6 +19,41 @@ function normalizeQuery(str) {
 exports.getVegetables = async (req, res) => {
   try {
     const { category, search, sortBy = 'name', order = 'asc', page = 1, limit = 50 } = req.query;
+
+    if (mongoose.connection.readyState !== 1) {
+      let filtered = [...VEGETABLES_DATA];
+      if (category && category !== 'All') {
+        filtered = filtered.filter((v) => v.category === category);
+      }
+      if (search && search.trim()) {
+        const q = search.toLowerCase().trim();
+        filtered = filtered.filter(
+          (v) =>
+            v.name?.toLowerCase().includes(q) ||
+            v.bengaliName?.includes(q) ||
+            v.scientificName?.toLowerCase().includes(q) ||
+            v.category?.toLowerCase().includes(q)
+        );
+      }
+      const pageNum = Math.max(1, parseInt(page, 10) || 1);
+      const limitNum = Math.min(150, Math.max(1, parseInt(limit, 10) || 50));
+      const skip = (pageNum - 1) * limitNum;
+      const paginated = filtered.slice(skip, skip + limitNum);
+      const categories = [...new Set(VEGETABLES_DATA.map((v) => v.category).filter(Boolean))];
+
+      return res.status(200).json({
+        success: true,
+        code: 200,
+        message: 'Vegetables retrieved (offline fallback mode)',
+        count: paginated.length,
+        total: filtered.length,
+        page: pageNum,
+        totalPages: Math.ceil(filtered.length / limitNum),
+        categories,
+        data: paginated,
+      });
+    }
+
     const filter = { isActive: true };
 
     if (category && category !== 'All') {

@@ -38,7 +38,7 @@ export default function OnboardingPage() {
   const totalSteps = 5;
 
   // Form State initialized from mock/active user
-  const [name, setName] = useState(profile.name || 'Prantik Mitra');
+  const [name, setName] = useState(profile.name || 'Alex Morgan');
   const [dob, setDob] = useState(profile.dob || '1998-05-14');
   const [gender, setGender] = useState<Gender>(profile.gender || 'male');
   const [heightCm, setHeightCm] = useState<number>(profile.heightCm || 178);
@@ -125,7 +125,7 @@ export default function OnboardingPage() {
                 label="Your Full Name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="e.g. Prantik Mitra"
+                placeholder="e.g. Alex Morgan"
                 leftIcon={<User className="w-4 h-4 text-slate-400" />}
                 required
               />

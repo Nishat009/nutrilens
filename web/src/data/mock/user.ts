@@ -1,9 +1,9 @@
 import { UserGoal, UserProfile } from '../../lib/types';
 
 export const MOCK_USER_PROFILE: UserProfile = {
-  id: 'usr_prantik_99',
-  name: 'Prantik Mitra',
-  email: 'prantik@nutrilens.ai',
+  id: 'usr_alex_01',
+  name: 'Alex Morgan',
+  email: 'alex.morgan@nutrilens.ai',
   gender: 'male',
   dob: '1998-05-14',
   heightCm: 178,
@@ -17,7 +17,7 @@ export const MOCK_USER_PROFILE: UserProfile = {
 
 export const MOCK_USER_GOAL: UserGoal = {
   id: 'goal_active_01',
-  userId: 'usr_prantik_99',
+  userId: 'usr_alex_01',
   type: 'lose_weight',
   targetCalories: 2150,
   targetProteinG: 160,

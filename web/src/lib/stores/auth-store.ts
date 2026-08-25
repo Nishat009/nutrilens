@@ -17,9 +17,9 @@ export const useAuthStore = create<AuthState>((set) => ({
   isAuthenticated: true,
   isLoading: false,
   user: {
-    id: 'usr_prantik_99',
-    name: 'Prantik Mitra',
-    email: 'prantik@nutrilens.ai',
+    id: 'usr_alex_01',
+    name: 'Alex Morgan',
+    email: 'alex.morgan@nutrilens.ai',
     gender: 'male',
     dob: '1998-05-14',
     heightCm: 178,

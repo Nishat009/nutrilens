@@ -388,8 +388,8 @@ const seedDB = async () => {
 
     // 1. Seed User
     const user = await User.create({
-      name: 'Prantik Mitra',
-      email: 'prantik@nutrilens.ai',
+      name: 'Alex Morgan',
+      email: 'alex.morgan@nutrilens.ai',
       password: 'password123',
       gender: 'male',
       dob: '1998-05-14',

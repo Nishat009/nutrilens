@@ -16,8 +16,8 @@ interface UserState {
 
 const DEFAULT_PROFILE: UserProfile = {
   id: 'current',
-  name: 'Prantik Mitra',
-  email: 'prantik@nutrilens.ai',
+  name: 'Alex Morgan',
+  email: 'alex.morgan@nutrilens.ai',
   gender: 'male',
   dob: '1998-05-14',
   heightCm: 178,

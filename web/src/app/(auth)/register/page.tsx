@@ -62,7 +62,7 @@ export default function RegisterPage() {
         <Input
           label="Full Name"
           type="text"
-          placeholder="Prantik Mitra"
+          placeholder="Alex Morgan"
           value={name}
           onChange={(e) => setName(e.target.value)}
           leftIcon={<User className="w-4 h-4 text-slate-400" />}
