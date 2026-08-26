@@ -1,318 +1,258 @@
 # 🥗 NutriLens — AI Fitness & Nutrition Platform
 
 [![Next.js](https://img.shields.io/badge/Next.js-15.1-black?style=flat&logo=next.js)](https://nextjs.org/)
-[![React](https://img.shields.io/badge/React-19.0-61DAFB?style=flat&logo=react)](https://react.dev/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue?style=flat&logo=typescript)](https://www.typescriptlang.org/)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4.0-38B2AC?style=flat&logo=tailwind-css)](https://tailwindcss.com/)
-[![Express.js](https://img.shields.io/badge/Express.js-4.21-lightgrey?style=flat&logo=express)](https://expressjs.com/)
-[![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-47A248?style=flat&logo=mongodb)](https://www.mongodb.com/)
-[![Node.js](https://img.shields.io/badge/Node.js-18+-green?style=flat&logo=node.js)](https://nodejs.org/)
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![React](https://img.shields.io/badge/React-19-blue?style=flat&logo=react)](https://react.dev/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind-v4-38bdf8?style=flat&logo=tailwindcss)](https://tailwindcss.com/)
+[![Express.js](https://img.shields.io/badge/Express-4.21-lightgrey?style=flat&logo=express)](https://expressjs.com/)
+[![MongoDB](https://img.shields.io/badge/MongoDB-Mongoose%208-green?style=flat&logo=mongodb)](https://www.mongodb.com/)
+[![Gemini](https://img.shields.io/badge/Google%20Gemini-1.5%20Flash-orange?style=flat&logo=google)](https://ai.google.dev/)
 
-**NutriLens** is an advanced, full-stack AI-driven health and nutrition platform. It empowers users to photograph meals, analyze nutritional profiles instantly via multimodal computer vision, track daily calories and macronutrients, explore an extensive botanical/vegetable encyclopedia, adopt tailored diet protocols, and plan meals across an interactive 7-day schedule.
+**NutriLens** is an AI-powered health-tech SaaS web application that enables users to photograph meals, instantly break down calories & macronutrients using multimodal computer vision, track daily nutrition, follow curated diet protocols, plan weekly meals, and monitor health analytics.
 
 ---
 
-## 🌟 Key Features
+## 🏗️ Architecture Overview
 
-### 📸 1. Multimodal AI Food Scanner & Computer Vision
-- **Resilient 3-Tier Recognition Pipeline**:
-  - **Google Gemini 1.5 Flash Multimodal Vision API**: High-accuracy food classification and portion estimation directly from camera capture or uploaded photos.
-  - **Hugging Face Food-101 Vision Model**: Open-source neural network integration for rapid food item identification.
-  - **Chromatic Visual Signature Analyzer**: Intelligent image color-space profiling (HSV/RGB color distribution & shape heuristics) to distinguish fresh produce, curries, grains, and specialty dishes.
-  - **Smart Client-Side Fallback Heuristics**: Seamless offline-ready food detection fallback.
-- **Interactive Portion & Unit Adjustment**: Real-time recalculation of calories, protein, carbs, fat, and fiber as users change portion sizes or measurement units (grams, ounces, servings, cups, pieces).
-- **One-Click Logging**: Directly log scanned meals into today's timeline.
+```mermaid
+graph TB
+    subgraph Client ["Frontend (Next.js 15 App Router - Port 3000)"]
+        LP["Landing Page (/)"]
+        AUTH["Auth & Onboarding"]
+        DASH["Dashboard (/dashboard)"]
+        SCAN["AI Scanner (/scan)"]
+        MEALS["Meal Logs (/meals)"]
+        DIETS["Diet Protocols (/diets)"]
+        PLANNER["Weekly Planner (/planner)"]
+        PROGRESS["Analytics (/progress)"]
+        PROFILE["User Profile (/profile)"]
+    end
 
-### 🥦 2. Vegetable & Botanical Directory (100+ Items)
-- **Comprehensive Botanical Database**: Rich encyclopedia featuring 100+ vegetables, leafy greens, cruciferous varieties, legumes, root crops, alliums, and culinary herbs.
-- **Micro & Macronutrient Breakdown**: In-depth nutritional data per 100g raw edible portion based on verified USDA FoodData Central standards, glycemic index, water content, and dietary fiber.
-- **Culinary & Health Insights**: Preparation tips, culinary flavor pairings, seasonal availability, and health benefits (cardiovascular, gut health, antioxidants).
-- **Advanced Filtering & Instant Search**: Filter by botanical categories, seasonal availability, and health benefits.
+    subgraph Server ["Backend (Express.js - Port 5000)"]
+        API["REST API Routes"]
+        RECOG["Food Recognition Service"]
+        NUTRI["Nutrition Engine"]
+        SEED["DB Seeder"]
+    end
 
-### 📊 3. Smart Nutrition & Meal Tracking Dashboard
-- **Dynamic Calorie Gauge**: Real-time circular progress visualizer tracking target budget vs. consumed calories.
-- **Macronutrient Meters**: Live progress bars for Protein, Carbohydrates, Fats, and Dietary Fiber compared against daily goals.
-- **Meal Chronology**: Meal logs grouped by Breakfast, Lunch, Dinner, and Snacks with exact timestamps and individual item breakdowns.
-- **Hydration Tracker**: Quick-increment water logger with daily target monitoring.
-- **Recent Scans Quick Widget**: Instant access to recent food scans for fast re-logging.
+    subgraph AI ["AI Vision Pipeline"]
+        GEMINI["Google Gemini 1.5 Flash Vision"]
+        HF["Hugging Face Food-101 (ViT)"]
+        HEURISTIC["Chromatic Heuristic Engine"]
+    end
 
-### 🥗 4. Tailored Diet Plans & Protocols
-- **Structured Dietary Regimes**: Curated diet plans including **Keto / Low-Carb**, **Mediterranean**, **High Protein Fitness**, **Balanced Clean Eating**, **Plant-Based / Vegan**, and **Intermittent Fasting**.
-- **Daily Meal Breakdown**: Step-by-step meal plans with calorie and macro distributions.
-- **Active Plan Switching**: Seamlessly activate and follow your preferred diet protocol.
+    subgraph DB ["Database"]
+        MONGO[("MongoDB (Local / Atlas)")]
+    end
 
-### 📅 5. 7-Day Interactive Weekly Meal Planner
-- **Full-Week Scheduling Grid**: Plan meals from Monday through Sunday across all meal slots.
-- **Nutritional Balance Overview**: Daily aggregate calorie and macro calculations to ensure balanced weekly nutrition.
-- **Diet Plan Integration**: Assign recipes and meals directly from active diet plans.
-
-### 📈 6. Progress Analytics & Weight Tracking
-- **Interactive Weight Charts**: Track body weight progression against target milestones powered by Recharts.
-- **Compliance & Calorie Trends**: Visualize calorie surplus/deficit and macro distributions over 7-day, 30-day, and 90-day timeframes.
-- **Streak & Consistency Metrics**: Track logging streaks and daily consistency.
-
-### 👤 7. Personalized Onboarding & BMR/TDEE Calculator
-- **Mifflin-St Jeor Metabolic Engine**: Computes personalized Basal Metabolic Rate (BMR) and Total Daily Energy Expenditure (TDEE) based on age, gender, height, weight, and activity level.
-- **Fitness Goal Customization**: Tailored targets for weight loss, lean muscle gain, maintenance, or athletic performance.
-- **Custom Macro Ratio Configuration**: Configurable macro splits (e.g. 40/30/30 or custom ratios).
-
----
-
-## 🏗️ Architecture & Tech Stack
-
-```
-                               ┌──────────────────────────────────────────────┐
-                               │             Vercel (Next.js 15)              │
-                               │        https://nutrilens.vercel.app          │
-                               │         (App Router + Glassmorphism UI)      │
-                               └──────────────────────┬───────────────────────┘
-                                                      │
-                                                      │ HTTPS Requests / Rewrites
-                                                      │ NEXT_PUBLIC_API_URL
-                                                      ▼
-                               ┌──────────────────────────────────────────────┐
-                               │          Render (Express API Server)         │
-                               │       https://nutrilens-api.onrender.com     │
-                               │      (Node.js 18+ / Vision AI Engine)        │
-                               └──────────────────────┬───────────────────────┘
-                                                      │
-                                                      │ MONGODB_URI (TLS/SSL)
-                                                      ▼
-                               ┌──────────────────────────────────────────────┐
-                               │        MongoDB Atlas (Cloud Database)        │
-                               │        (M0 Free Tier Cluster / replica)      │
-                               └──────────────────────────────────────────────┘
-```
-
-### **Frontend (`/web`)**
-- **Framework**: Next.js 15+ (App Router), React 19
-- **Language**: TypeScript 5.7
-- **Styling**: Tailwind CSS v4, PostCSS, Glassmorphism UI tokens
-- **State Management**: Zustand
-- **Data Visualization**: Recharts, SVG/Canvas circular gauges
-- **Icons & UI**: Lucide React, clsx, tailwind-merge, React Hook Form, Zod
-
-### **Backend (`/server`)**
-- **Runtime**: Node.js & Express.js 4.21
-- **Database & ODM**: MongoDB Atlas & Mongoose 8.12
-- **Middleware**: CORS, Morgan logger, JSON body parser (10MB limit for image payloads)
-- **AI & Vision Services**: Google Gemini 1.5 Flash Multimodal Vision API, Hugging Face Inference API, Chromatic Color Extraction & Matching Engine
-
----
-
-## 📁 Repository Structure
-
-```
-nutrilens/
-├── DEPLOYMENT.md              # Complete Vercel & Render production deployment guide
-├── README.md                  # Project overview & documentation
-├── package.json               # Root monorepo workspace scripts
-├── render.yaml                # Render Blueprint infrastructure definition
-│
-├── server/                    # Express.js + MongoDB API Server
-│   ├── .env.example           # Backend environment variable template
-│   ├── package.json           # Server dependencies & scripts
-│   └── src/
-│       ├── config/
-│       │   └── db.js          # MongoDB Mongoose connection with auto-reconnect
-│       ├── controllers/       # Route business logic handlers
-│       │   ├── auth.controller.js
-│       │   ├── diet.controller.js
-│       │   ├── food.controller.js
-│       │   ├── meal.controller.js
-│       │   ├── planner.controller.js
-│       │   ├── progress.controller.js
-│       │   ├── scan.controller.js
-│       │   ├── user.controller.js
-│       │   └── vegetable.controller.js
-│       ├── data/              # Rich seed datasets & nutrition databases
-│       │   ├── nutrition-database.js
-│       │   └── vegetables-data.js (100+ botanical profiles)
-│       ├── models/            # Mongoose schemas & data models
-│       │   ├── DietPlan.js
-│       │   ├── Food.js
-│       │   ├── FoodScan.js
-│       │   ├── Meal.js
-│       │   ├── PlannedMeal.js
-│       │   ├── User.js
-│       │   ├── Vegetable.js
-│       │   └── WeightLog.js
-│       ├── routes/            # Express REST route definitions
-│       ├── services/          # AI Vision & Nutrition engines
-│       │   ├── foodRecognitionService.js
-│       │   └── nutrition-engine.js
-│       ├── seed.js            # Comprehensive database seeding script
-│       └── index.js           # Express application entrypoint
-│
-└── web/                       # Next.js 15 Frontend Web Application
-    ├── .env.example           # Frontend environment variable template
-    ├── next.config.ts         # Next.js configuration & API reverse proxies
-    ├── package.json           # Frontend dependencies & scripts
-    ├── vercel.json            # Vercel deployment configuration
-    └── src/
-        ├── app/
-        │   ├── (auth)/        # Authentication routes (login, register, forgot-password)
-        │   ├── (dashboard)/   # Authenticated dashboard views
-        │   │   ├── dashboard/ # Daily nutrition overview & calorie gauges
-        │   │   ├── diets/     # Diet plans & detailed recipes
-        │   │   ├── meals/     # Meal history & custom food logger
-        │   │   ├── planner/   # 7-day weekly meal planner
-        │   │   ├── profile/   # User profile & goal preferences
-        │   │   ├── progress/  # Weight & compliance analytics
-        │   │   ├── scan/      # AI Food Scanner & portion selector
-        │   │   └── vegetables/# Vegetable & Botanical Explorer
-        │   ├── (onboarding)/  # User onboarding & BMR setup flow
-        │   ├── layout.tsx     # Global layout with responsive sidebar/navbar
-        │   └── page.tsx       # Marketing landing page & live demo
-        ├── components/        # Modular UI components
-        │   ├── layout/        # Sidebar, Header, MobileNav
-        │   ├── scanner/       # FoodScanner, ImageUploader, PortionSelector, DetectedFoodItem
-        │   ├── ui/            # Buttons, Cards, Modals, Progress bars, Tooltips
-        │   └── vegetables/    # VegetableExplorer, VegetableCard, VegetableDetailModal, VegetableSearch
-        ├── data/              # Client-side nutrition & seed databases
-        ├── lib/               # Utility functions, validators, types
-        └── services/          # API client, vision recognition, and nutrition calculation engines
+    Client -->|API Rewrites /api/*| Server
+    Server --> MONGO
+    RECOG --> GEMINI
+    RECOG --> HF
+    RECOG --> HEURISTIC
 ```
 
 ---
 
-## 🚀 REST API Reference
+## ✨ Features Completed (কি কি কাজ করা হয়েছে)
 
-| Method | Endpoint | Description |
+### 1. 📸 Zero API Key On-Device Vision + 100+ Vegetable Database & Active Visual Memory
+* **On-Device Vision**: Runs browser-native TensorFlow.js MobileNetV2 + chromatic pixel extractor without needing external paid API keys.
+* **100+ Vegetable Nutrition Dataset**: USDA & ICMR calibrated nutritional database with bilingual (Bengali & English) names and aliases.
+* **🧠 Active Visual Memory (dHash)**: If a user corrects or types a vegetable name manually, the system computes a 64-bit gradient perceptual difference hash and stores it in MongoDB and local cache. Future scans of this picture match instantly with 100% confidence!
+
+### 2. 📊 Clinical AI Nutritionist Dashboard
+* **Clean Slate Fresh State**: Initial dashboard starts at clean 0 kcal / 0 dummy meals for new users.
+* **Personalized Hydration**: Body weight & height based daily water target (Liters & glasses) with 1-click water loggers.
+* **Exercise & NEAT Non-Exercise Habits**: Workout durations + 8,000-10,000 steps and post-meal walk alternatives.
+* **30-Day Predictive Fat Loss Forecast**: Live 30-day weight projection based on daily caloric deficit vs TDEE.
+* **Mobile Responsive Drawer**: Accessible Sidebar drawer with hamburger button for small screens and mobile devices.
+
+### 3. 🍽️ Comprehensive Meal Logging & Tracking
+* Log breakfast, lunch, dinner, and snacks.
+* Auto-calculation of total calories and macros from individual meal items.
+* Full CRUD endpoints (`GET`, `POST`, `DELETE`) with detailed meal breakdown views (`/meals/[id]`).
+
+### 4. 🥗 Curated Diet Protocols
+* 7 built-in scientific diet plans (Mediterranean, High Protein Gym, Ketogenic, Intermittent Fasting, Clean Eating, DASH, Plant-Based).
+* Deep breakdown: macro ratios, health benefits, allowed foods, foods to limit, and a sample meal day plan.
+* **"Adopt Protocol"** capability to customize user profile targets.
+
+### 5. 📅 Weekly Meal Planner
+* Drag-and-plan meal schedule for Monday through Sunday.
+* Add planned meal slots with preset or custom calories and macros.
+* Integrated with user goals.
+
+### 6. 📈 Progress, Weight & Nutrition Analytics
+* Interactive Recharts visualizations for weight tracking over time.
+* Upsert weight logs per date with automatic profile synchronization.
+* 30-day nutrition history aggregation from meal history.
+
+### 7. 👤 User Profile & Custom Nutrition Targets
+* Detailed physical metrics (height, weight, target weight, activity level, dietary preferences, allergies).
+* Dynamic macro and calorie goal setting (calories, protein, carbs, fat, fiber, water targets).
+
+### 8. 🔐 Authentication & Onboarding
+* Email login, registration with body metrics, and password recovery pages.
+* Interactive multi-step onboarding wizard for personalized goal calculation.
+* Global state management powered by **Zustand**.
+
+### 9. 🎨 Premium Glassmorphic UI/UX Design System
+* Modern dark-mode health-tech aesthetic with subtle emerald/teal glows.
+* 11+ reusable custom UI components: Button, Card, Badge, Input, Select, Modal, ProgressBar, ProgressRing, Skeleton, EmptyState, ErrorState.
+* 100% responsive: Desktop Sidebar + Mobile Bottom Navigation Bar + TopBar.
+
+### 10. 📦 Massive Seed Data Script
+* Comprehensive 727-line seeder (`npm run seed`) populating demo users, comprehensive food items, sample meals, scans, weight logs, and diet plans.
+
+---
+
+## 💻 Tech Stack
+
+| Domain | Technology |
+|---|---|
+| **Frontend** | [Next.js 15](https://nextjs.org/) (App Router), [React 19](https://react.dev/), [TypeScript](https://www.typescriptlang.org/) |
+| **Styling** | [Tailwind CSS v4](https://tailwindcss.com/), Glassmorphism, CSS Variables |
+| **State Management** | [Zustand 5](https://github.com/pmndrs/zustand) |
+| **Icons & Charts** | [Lucide React](https://lucide.dev/), [Recharts](https://recharts.org/) |
+| **Backend** | [Node.js](https://nodejs.org/), [Express.js](https://expressjs.com/) |
+| **Database** | [MongoDB](https://www.mongodb.com/) & [Mongoose 8](https://mongoosejs.com/) |
+| **AI Vision Models** | Google Gemini 1.5 Flash Vision, Hugging Face Food-101 |
+| **Deployment** | [Vercel](https://vercel.com/) (Frontend) + [Render](https://render.com/) (Backend) + [MongoDB Atlas](https://www.mongodb.com/atlas) (Cloud DB) |
+
+---
+
+## 🗄️ Database Models (Mongoose Schemas)
+
+1. **`User`**: Profile information, biometrics, activity level, dietary preferences, allergies, and embedded `goal` object.
+2. **`Food`**: Global nutrition database items with serving sizes, macros, tags, and category.
+3. **`Meal`**: Logged meals with embedded `items[]`, timestamps, total calories/macros, and photos.
+4. **`FoodScan`**: AI vision analysis history, confidence levels, detected item breakdowns, and notes.
+5. **`DietPlan`**: Complete diet protocols with macro ratios, descriptions, benefits, and sample days.
+6. **`PlannedMeal`**: Day-of-week (0-6) planned meal slots with macro targets.
+7. **`WeightLog`**: Daily weight entries with date index and notes.
+
+---
+
+## 🔌 API Endpoints Summary
+
+| Method | Route | Description |
 |---|---|---|
-| `GET` | `/api/health` | Health check & MongoDB connection status |
-| **Auth & User** | | |
-| `POST` | `/api/auth/register` | Register new user account |
-| `POST` | `/api/auth/login` | Authenticate user & receive session token |
-| `GET` | `/api/auth/me` | Get currently authenticated user details |
-| `GET` | `/api/users/:id` | Get user profile and nutritional targets |
-| `PUT` | `/api/users/:id` | Update user metrics and biological details |
-| `PUT` | `/api/users/:id/goal` | Update fitness goal and custom macro splits |
-| **AI Food Scan** | | |
-| `POST` | `/api/scan/analyze` | Multimodal AI vision analysis (Gemini / Food-101 / Chromatic) |
-| `GET` | `/api/scans` | Get recent food scans for current user |
-| `POST` | `/api/scans` | Save a new food scan entry |
-| `GET` | `/api/scans/:id` | Retrieve specific food scan record |
-| **Meals & Nutrition** | | |
-| `GET` | `/api/meals` | List logged meals with optional date filtering |
-| `POST` | `/api/meals` | Log a meal (Breakfast, Lunch, Dinner, Snack) with items |
-| `GET` | `/api/meals/:id` | Fetch specific meal entry by ID |
-| `DELETE` | `/api/meals/:id` | Delete a logged meal entry |
-| **Foods Database** | | |
-| `GET` | `/api/foods` | List food items from the central database |
-| `POST` | `/api/foods` | Add a custom food item |
-| `GET` | `/api/foods/:id` | Get single food nutritional profile |
-| **Vegetables & Botanicals** | | |
-| `GET` | `/api/vegetables` | List all vegetables with pagination & category filter |
-| `GET` | `/api/vegetables/search` | Search vegetables by name, flavor, or health benefits |
-| `GET` | `/api/vegetables/categories` | Get botanical categories with item counts |
-| `POST` | `/api/vegetables/match` | Match uploaded food image/attributes against botanical DB |
-| `GET` | `/api/vegetables/:idOrSlug` | Get complete profile for a specific vegetable |
-| `POST` | `/api/vegetables/:idOrSlug/calculate` | Calculate nutrition for custom portion & unit |
-| **Diet Plans & Planner** | | |
-| `GET` | `/api/diets` | Retrieve all curated diet protocols |
-| `GET` | `/api/diets/:slug` | Retrieve specific diet protocol details & meals |
-| `POST` | `/api/diets/adopt` | Adopt / activate a diet plan for user profile |
-| `GET` | `/api/planner` | Fetch 7-day scheduled meal planner entries |
-| `POST` | `/api/planner` | Assign or update a planned meal slot |
-| `DELETE` | `/api/planner/:id` | Remove a planned meal slot |
-| **Progress & Analytics** | | |
-| `GET` | `/api/progress` | Retrieve calorie compliance, streaks, and macro averages |
-| `GET` | `/api/progress/weight` | Fetch historical weight logs |
-| `POST` | `/api/progress/weight` | Log a new body weight entry |
-| `GET` | `/api/progress/nutrition` | Retrieve detailed nutrition trend logs |
+| `GET` | `/api/health` | Service health & MongoDB connection status |
+| `POST` | `/api/auth/register` | Register new user profile |
+| `POST` | `/api/auth/login` | Email-based login |
+| `GET` | `/api/auth/me` | Fetch active user profile |
+| `GET` | `/api/users/:id` | Get user details (`/api/users/current` supported) |
+| `PUT` | `/api/users/:id` | Update profile information |
+| `PUT` | `/api/users/:id/goal` | Update calorie and macro goals |
+| `GET` | `/api/meals` | List meals (supports `userId` & `date` filters) |
+| `GET` | `/api/meals/:id` | Get meal by ID |
+| `POST` | `/api/meals` | Create meal (auto-calculates item totals) |
+| `DELETE` | `/api/meals/:id` | Delete meal log |
+| `GET` | `/api/foods` | Search food items with category and text filters |
+| `POST` | `/api/foods` | Create new food item |
+| `POST` | `/api/scans/analyze` | Run AI vision food recognition on image base64 |
+| `GET` | `/api/scans` | Get scan history |
+| `POST` | `/api/scans` | Save scan result |
+| `GET` | `/api/progress/weight` | Get weight history |
+| `POST` | `/api/progress/weight` | Log weight entry |
+| `GET` | `/api/progress/nutrition` | Get aggregated nutrition history |
+| `GET` | `/api/diets` | List all diet protocols |
+| `GET` | `/api/diets/:slug` | Get single diet plan details |
+| `POST` | `/api/diets/adopt` | Adopt diet protocol to user profile |
+| `GET` | `/api/planner` | Get weekly planned meals |
+| `POST` | `/api/planner` | Add planned meal slot |
+| `DELETE` | `/api/planner/:id` | Remove planned meal slot |
 
 ---
 
-## 🛠️ Getting Started (Local Development)
+## 📱 Frontend Pages (15 Routes)
 
-### Prerequisites
-- **Node.js** (v18.0.0 or higher)
-- **npm** (v9.0.0 or higher)
-- **MongoDB** (Local instance or free [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) cluster)
+| Page | Path | Description |
+|---|---|---|
+| **Landing** | `/` | Hero section, feature previews, protocol showcase |
+| **Login** | `/login` | Authentication form |
+| **Register** | `/register` | Full biometric registration |
+| **Forgot Password** | `/forgot-password` | Password recovery page |
+| **Onboarding** | `/onboarding` | Interactive setup wizard |
+| **Dashboard** | `/dashboard` | Daily calorie, macro ring & meal log overview |
+| **AI Scanner** | `/scan` | Live camera / file upload AI food scanner |
+| **Scan Detail** | `/scan/[id]` | Historical scan breakdown view |
+| **Meals List** | `/meals` | Complete meal history with date filtering |
+| **Meal Detail** | `/meals/[id]` | Individual meal breakdown |
+| **Diet Plans** | `/diets` | Browse 7 scientific diet plans |
+| **Diet Detail** | `/diets/[slug]` | Full diet protocol breakdown & adoption |
+| **Weekly Planner** | `/planner` | Mon-Sun weekly meal scheduling |
+| **Progress** | `/progress` | Weight & macro charts via Recharts |
+| **Profile** | `/profile` | Profile info & nutrition goal manager |
 
-### 1. Clone the Repository
+---
+
+## 🚀 Getting Started (Local Development)
+
+### 1. Prerequisites
+- **Node.js** v18+ & **npm**
+- **MongoDB** running locally on port `27017` (or MongoDB Atlas URI)
+
+### 2. Clone & Install Dependencies
 ```bash
 git clone https://github.com/Nishat009/nutrilens.git
 cd nutrilens
-```
 
-### 2. Install Dependencies
-```bash
-# Install root dependencies
+# Install root, server, and web dependencies
 npm install
-
-# Install server & web dependencies
 npm --prefix server install
 npm --prefix web install
 ```
 
 ### 3. Configure Environment Variables
 
-**Backend (`server/.env`):**
+**Server Environment** (`server/.env`):
 ```env
 PORT=5000
-MONGODB_URI=mongodb+srv://<username>:<password>@cluster0.xxxxx.mongodb.net/nutrilens?retryWrites=true&w=majority
+MONGODB_URI=mongodb://127.0.0.1:27017/nutrilens
 NODE_ENV=development
 
-# Optional AI Vision API Keys:
-GEMINI_API_KEY= # (Optional) Google Gemini API Key
-HF_TOKEN=       # (Optional) Hugging Face token
+# Optional AI Vision keys
+GEMINI_API_KEY=your_gemini_api_key_here
+HF_TOKEN=your_huggingface_token_here
 ```
 
-**Frontend (`web/.env.local`):**
+**Web Environment** (`web/.env.local` - Optional for local dev):
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:5000
 ```
 
-### 4. Seed the Database
-Populate MongoDB with default nutrition databases, 100+ vegetable profiles, sample diet plans, and demo meal logs:
+### 4. Seed Database (Optional but Recommended)
+Populate the database with sample users, nutrition database, diet protocols, and sample logs:
 ```bash
 npm run seed
 ```
 
-### 5. Run Development Servers
-Run both backend API and frontend Next.js application concurrently:
+### 5. Run Concurrently (Frontend + Backend)
 ```bash
 npm run dev
 ```
-- **Web App**: [http://localhost:3000](http://localhost:3000)
-- **API Server**: [http://localhost:5000](http://localhost:5000)
-- **API Health Check**: [http://localhost:5000/api/health](http://localhost:5000/api/health)
+
+* **Frontend**: [http://localhost:3000](http://localhost:3000)
+* **Backend API**: [http://localhost:5000](http://localhost:5000)
+* **API Health Check**: [http://localhost:5000/api/health](http://localhost:5000/api/health)
 
 ---
 
-## 📦 Production Build & Deployment
+## ☁️ Deployment
 
-To build the production application locally:
+Check out the full step-by-step production deployment guide in [DEPLOYMENT.md](DEPLOYMENT.md).
 
-```bash
-# Build the Next.js frontend production bundle
-npm run build
-
-# Start the Next.js production server
-npm run start
-```
-
-For complete step-by-step deployment instructions to **Vercel** (Frontend), **Render** (Backend API), and **MongoDB Atlas** (Cloud Database), refer to:
-
-👉 **[Complete Production Deployment Guide (DEPLOYMENT.md)](DEPLOYMENT.md)**
+* **Frontend**: Deploy `web/` to **Vercel** with environment variable `NEXT_PUBLIC_API_URL`.
+* **Backend**: Deploy `server/` to **Render** using the provided `render.yaml`.
+* **Database**: **MongoDB Atlas** M0 Cluster.
 
 ---
 
-## 📜 Available Scripts
+## 🔮 Future Roadmap / Next Improvements
 
-| Command | Action |
-|---|---|
-| `npm run dev` | Runs both Express backend and Next.js frontend concurrently |
-| `npm run web` | Starts the Next.js frontend in development mode |
-| `npm run server` | Starts the Express.js API server with nodemon |
-| `npm run build` | Builds optimized production bundle for Next.js app |
-| `npm run start` | Starts Next.js in production mode |
-| `npm run seed` | Seeds MongoDB database with nutrition data and vegetable encyclopedia |
-
----
-
-## 📄 License
-This project is open-source and licensed under the [MIT License](LICENSE).
+- [ ] **JWT Authentication & Bcrypt**: Secure token-based auth and password hashing.
+- [ ] **Auth Middleware**: Route-level protection on backend endpoints.
+- [ ] **Cloud Image Storage**: Direct upload to Cloudinary / AWS S3 instead of Base64 strings.
+- [ ] **Live Barcode Scanning**: OpenFoodFacts API integration for packaged foods.
+- [ ] **Automated Testing**: Unit & integration tests with Jest/Supertest/Playwright.

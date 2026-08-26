@@ -150,6 +150,8 @@ export interface DietPlan {
   keyBenefits: string[];
   allowedFoods: string[];
   foodsToLimit: string[];
+  forbiddenKeywords?: string[];
+  guidelines?: string[];
   sampleMealDay: {
     breakfast: string;
     lunch: string;

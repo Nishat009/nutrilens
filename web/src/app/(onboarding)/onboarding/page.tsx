@@ -28,7 +28,7 @@ import {
   GOAL_OPTIONS,
 } from '../../../lib/constants';
 import { ActivityLevel, Gender, GoalType } from '../../../lib/types';
-import { formatCalories } from '../../../lib/utils/format';
+import { formatCalories, cmToFeetInches, feetInchesToCm } from '../../../lib/utils/format';
 
 export default function OnboardingPage() {
   const router = useRouter();
@@ -42,6 +42,7 @@ export default function OnboardingPage() {
   const [dob, setDob] = useState(profile.dob || '1998-05-14');
   const [gender, setGender] = useState<Gender>(profile.gender || 'male');
   const [heightCm, setHeightCm] = useState<number>(profile.heightCm || 178);
+  const [heightUnit, setHeightUnit] = useState<'cm' | 'ft'>('cm');
   const [weightKg, setWeightKg] = useState<number>(profile.weightKg || 74.5);
   const [targetWeightKg, setTargetWeightKg] = useState<number>(profile.targetWeightKg || 72.0);
   const [activityLevel, setActivityLevel] = useState<ActivityLevel>(profile.activityLevel || 'moderately_active');
@@ -172,22 +173,106 @@ export default function OnboardingPage() {
                 </p>
               </div>
 
-              {/* Height */}
-              <div className="space-y-2">
+              {/* Height with Unit Converter Toggle */}
+              <div className="space-y-3 p-4 rounded-2xl bg-slate-900/80 border border-slate-800">
                 <div className="flex justify-between items-center">
-                  <label className="text-xs font-semibold uppercase tracking-wider text-slate-300">
-                    Height
-                  </label>
-                  <span className="text-base font-bold text-emerald-400">{heightCm} cm</span>
+                  <div>
+                    <label className="text-xs font-semibold uppercase tracking-wider text-slate-300">
+                      Height
+                    </label>
+                    <div className="text-[11px] text-slate-400 mt-0.5">
+                      {heightUnit === 'cm'
+                        ? `≈ ${cmToFeetInches(heightCm).text}`
+                        : `≈ ${heightCm} cm`}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <span className="text-base font-bold text-emerald-400 font-mono">
+                      {heightUnit === 'cm' ? `${heightCm} cm` : cmToFeetInches(heightCm).text}
+                    </span>
+
+                    {/* Unit Switcher */}
+                    <div className="flex rounded-lg bg-slate-950 p-0.5 border border-slate-800 text-xs">
+                      <button
+                        type="button"
+                        onClick={() => setHeightUnit('cm')}
+                        className={`px-2.5 py-1 rounded-md font-semibold transition-all cursor-pointer ${
+                          heightUnit === 'cm'
+                            ? 'bg-emerald-500 text-slate-950 shadow-sm'
+                            : 'text-slate-400 hover:text-white'
+                        }`}
+                      >
+                        cm
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setHeightUnit('ft')}
+                        className={`px-2.5 py-1 rounded-md font-semibold transition-all cursor-pointer ${
+                          heightUnit === 'ft'
+                            ? 'bg-emerald-500 text-slate-950 shadow-sm'
+                            : 'text-slate-400 hover:text-white'
+                        }`}
+                      >
+                        ft / in
+                      </button>
+                    </div>
+                  </div>
                 </div>
-                <input
-                  type="range"
-                  min="130"
-                  max="220"
-                  value={heightCm}
-                  onChange={(e) => setHeightCm(Number(e.target.value))}
-                  className="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-emerald-500"
-                />
+
+                {heightUnit === 'cm' ? (
+                  <input
+                    type="range"
+                    min="120"
+                    max="225"
+                    value={heightCm}
+                    onChange={(e) => setHeightCm(Number(e.target.value))}
+                    className="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-emerald-500"
+                  />
+                ) : (
+                  <div className="grid grid-cols-2 gap-3 pt-1">
+                    <div>
+                      <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">
+                        Feet (ft)
+                      </label>
+                      <select
+                        value={cmToFeetInches(heightCm).feet}
+                        onChange={(e) =>
+                          setHeightCm(
+                            feetInchesToCm(Number(e.target.value), cmToFeetInches(heightCm).inches)
+                          )
+                        }
+                        className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500 cursor-pointer"
+                      >
+                        {[4, 5, 6, 7].map((f) => (
+                          <option key={f} value={f}>
+                            {f} feet
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">
+                        Inches (in)
+                      </label>
+                      <select
+                        value={cmToFeetInches(heightCm).inches}
+                        onChange={(e) =>
+                          setHeightCm(
+                            feetInchesToCm(cmToFeetInches(heightCm).feet, Number(e.target.value))
+                          )
+                        }
+                        className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500 cursor-pointer"
+                      >
+                        {Array.from({ length: 12 }, (_, i) => i).map((inch) => (
+                          <option key={inch} value={inch}>
+                            {inch} inches
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Weight */}

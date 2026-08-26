@@ -6,7 +6,7 @@ import { cn } from '../../lib/utils/format';
 export interface ProgressBarProps {
   value: number; // current value
   max?: number; // max value
-  variant?: 'emerald' | 'purple' | 'amber' | 'rose' | 'blue' | 'gradient';
+  variant?: 'emerald' | 'purple' | 'amber' | 'rose' | 'blue' | 'cyan' | 'gradient';
   size?: 'xs' | 'sm' | 'md' | 'lg';
   showLabel?: boolean;
   className?: string;
@@ -35,6 +35,7 @@ export function ProgressBar({
     amber: 'bg-amber-500 shadow-sm shadow-amber-500/40',
     rose: 'bg-rose-500 shadow-sm shadow-rose-500/40',
     blue: 'bg-blue-500 shadow-sm shadow-blue-500/40',
+    cyan: 'bg-cyan-500 shadow-sm shadow-cyan-500/40',
     gradient: 'bg-gradient-to-r from-emerald-500 via-teal-400 to-blue-500',
   };
 

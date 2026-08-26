@@ -36,13 +36,30 @@ exports.analyzeFoodScan = async (req, res) => {
   }
 };
 
+const mongoose = require('mongoose');
+
+async function resolveUserId(rawId) {
+  if (!rawId || rawId === 'current' || rawId === 'default' || !mongoose.Types.ObjectId.isValid(rawId)) {
+    const defaultUser = await User.findOne();
+    return defaultUser ? defaultUser._id : null;
+  }
+  return rawId;
+}
+
 // @desc    Get recent food scans for user
 // @route   GET /api/scans
 exports.getScans = async (req, res) => {
   try {
     const { userId } = req.query;
     const filter = {};
-    if (userId) filter.userId = userId;
+    if (userId && userId !== 'current' && userId !== 'default') {
+      if (mongoose.Types.ObjectId.isValid(userId)) {
+        filter.userId = userId;
+      } else {
+        const resolved = await resolveUserId(userId);
+        if (resolved) filter.userId = resolved;
+      }
+    }
 
     const scans = await FoodScan.find(filter).sort({ createdAt: -1 });
     res.status(200).json({
@@ -93,9 +110,11 @@ exports.getScanById = async (req, res) => {
 exports.createScan = async (req, res) => {
   try {
     let { userId } = req.body;
+    userId = await resolveUserId(userId);
+
     if (!userId) {
       const defaultUser = await User.findOne();
-      if (defaultUser) userId = defaultUser._id;
+      userId = defaultUser ? defaultUser._id : null;
     }
 
     const scan = await FoodScan.create({
@@ -121,3 +140,78 @@ exports.createScan = async (req, res) => {
     });
   }
 };
+
+// @desc    Teach the AI system by associating an image visual hash with a corrected/added vegetable
+// @route   POST /api/scans/teach
+exports.teachFoodScan = async (req, res) => {
+  try {
+    const LearnedFoodMatch = require('../models/LearnedFoodMatch');
+    const { foodId, foodName, category, perceptualHash, colorSignature, sampleThumbnail } = req.body;
+
+    if (!foodName || !perceptualHash) {
+      return res.status(422).json({
+        success: false,
+        code: 422,
+        errors: ['Please provide both foodName and perceptualHash to teach the model'],
+      });
+    }
+
+    // Upsert or increment learned count if same hash exists
+    let match = await LearnedFoodMatch.findOne({ perceptualHash });
+    if (match) {
+      match.foodId = foodId || match.foodId;
+      match.foodName = foodName;
+      match.category = category || match.category;
+      match.learnedCount += 1;
+      if (colorSignature) match.colorSignature = colorSignature;
+      if (sampleThumbnail) match.sampleThumbnail = sampleThumbnail;
+      await match.save();
+    } else {
+      match = await LearnedFoodMatch.create({
+        foodId: foodId || `custom_${Date.now()}`,
+        foodName,
+        category: category || 'Vegetables',
+        perceptualHash,
+        colorSignature: colorSignature || [],
+        sampleThumbnail: sampleThumbnail || '',
+        learnedCount: 1,
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      code: 200,
+      message: `Successfully learned visual association for "${foodName}". Future scans of this image will match automatically.`,
+      data: match,
+    });
+  } catch (error) {
+    res.status(422).json({
+      success: false,
+      code: 422,
+      errors: [error.message || 'Failed to save learned food association'],
+    });
+  }
+};
+
+// @desc    Get all learned visual associations
+// @route   GET /api/scans/learned
+exports.getLearnedMatches = async (req, res) => {
+  try {
+    const LearnedFoodMatch = require('../models/LearnedFoodMatch');
+    const matches = await LearnedFoodMatch.find().sort({ updatedAt: -1 }).limit(200);
+
+    res.status(200).json({
+      success: true,
+      code: 200,
+      count: matches.length,
+      data: matches,
+    });
+  } catch (error) {
+    res.status(422).json({
+      success: false,
+      code: 422,
+      errors: [error.message || 'Failed to retrieve learned visual associations'],
+    });
+  }
+};
+

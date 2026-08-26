@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { analyzeLocally } from '../../../../services/food-recognition';
+import { recognizeFoodFromImage } from '../../../../services/food-recognition';
 
 export async function POST(req: NextRequest) {
   try {
@@ -17,8 +17,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const scanId = 'scan_' + Date.now().toString(36);
-    const result = analyzeLocally(image, scanId, mealType);
+    const result = await recognizeFoodFromImage(image, mealType);
 
     return NextResponse.json(
       {

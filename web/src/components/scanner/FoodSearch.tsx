@@ -18,13 +18,18 @@ interface FoodSearchProps {
 
 const CATEGORIES = [
   'All',
+  'Vegetables',
+  'Leafy Greens',
+  'Root Vegetables',
+  'Gourds',
+  'Legumes',
+  'Cruciferous',
+  'Solanaceae',
   'South Asian Dishes',
   'Protein',
   'Grains & Carbs',
-  'Vegetables',
   'Fruits',
   'Dairy & Eggs',
-  'Fats & Oils',
 ];
 
 export function FoodSearch({
@@ -114,7 +119,7 @@ export function FoodSearch({
           <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
-            placeholder="Search food by name (e.g. Chicken, Rice, Dal, Beef, Egg)..."
+            placeholder="Search 100+ vegetables & foods (e.g. বেগুন, আলু, Palong Shak, Cauliflower, Tomato)..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             autoFocus

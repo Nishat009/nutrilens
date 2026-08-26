@@ -13,7 +13,7 @@ import {
   User,
   Sparkles,
   Flame,
-  Leaf,
+  X,
 } from 'lucide-react';
 import { cn } from '../../lib/utils/format';
 import { APP_NAME } from '../../lib/constants';
@@ -21,7 +21,6 @@ import { APP_NAME } from '../../lib/constants';
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/scan', label: 'AI Food Scanner', icon: Camera, highlight: true },
-  { href: '/vegetables', label: 'Vegetables DB', icon: Leaf },
   { href: '/meals', label: 'Meal History', icon: UtensilsCrossed },
   { href: '/diets', label: 'Diet Explorer', icon: BookOpen },
   { href: '/planner', label: 'Meal Planner', icon: CalendarDays },
@@ -29,27 +28,45 @@ const navItems = [
   { href: '/profile', label: 'Health Profile', icon: User },
 ];
 
-export function Sidebar() {
+interface SidebarProps {
+  isOpen?: boolean;
+  onClose?: () => void;
+}
+
+export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
   const pathname = usePathname();
 
-  return (
-    <aside className="hidden lg:flex flex-col w-72 bg-slate-950/80 backdrop-blur-2xl border-r border-slate-800/80 p-6 fixed inset-y-0 left-0 z-30 justify-between">
+  const sidebarContent = (
+    <div className="flex flex-col h-full justify-between">
       <div className="space-y-8">
         {/* Brand Header */}
-        <Link href="/dashboard" className="flex items-center gap-3 group">
-          <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center shadow-lg shadow-emerald-500/25 group-hover:scale-105 transition-transform">
-            <Sparkles className="w-5 h-5 text-slate-950 stroke-[2.5]" />
-          </div>
-          <div>
-            <span className="text-xl font-black tracking-tight text-white flex items-center gap-1.5">
-              {APP_NAME}
-              <span className="text-[10px] uppercase font-bold tracking-widest px-1.5 py-0.5 rounded-md bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                PRO
+        <div className="flex items-center justify-between">
+          <Link href="/dashboard" onClick={onClose} className="flex items-center gap-3 group">
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center shadow-lg shadow-emerald-500/25 group-hover:scale-105 transition-transform">
+              <Sparkles className="w-5 h-5 text-slate-950 stroke-[2.5]" />
+            </div>
+            <div>
+              <span className="text-xl font-black tracking-tight text-white flex items-center gap-1.5">
+                {APP_NAME}
+                <span className="text-[10px] uppercase font-bold tracking-widest px-1.5 py-0.5 rounded-md bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                  PRO
+                </span>
               </span>
-            </span>
-            <p className="text-[11px] text-slate-400 font-medium">Vision Health Intelligence</p>
-          </div>
-        </Link>
+              <p className="text-[11px] text-slate-400 font-medium">Vision Health Intelligence</p>
+            </div>
+          </Link>
+
+          {/* Mobile close button */}
+          {onClose && (
+            <button
+              onClick={onClose}
+              aria-label="Close sidebar"
+              className="lg:hidden p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-900 border border-slate-800 transition-colors cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          )}
+        </div>
 
         {/* Navigation links */}
         <nav className="space-y-1.5">
@@ -62,6 +79,7 @@ export function Sidebar() {
               <Link
                 key={item.href}
                 href={item.href}
+                onClick={onClose}
                 className={cn(
                   'flex items-center gap-3.5 px-4 py-3 rounded-2xl text-sm font-medium transition-all duration-200 group relative',
                   isActive
@@ -89,7 +107,7 @@ export function Sidebar() {
       </div>
 
       {/* Daily Streak Card */}
-      <div className="p-4 rounded-2xl bg-gradient-to-b from-slate-900/90 to-slate-900/50 border border-slate-800/90 text-slate-200">
+      <div className="p-4 rounded-2xl bg-gradient-to-b from-slate-900/90 to-slate-900/50 border border-slate-800/90 text-slate-200 mt-6">
         <div className="flex items-center gap-3 mb-2">
           <div className="p-2 rounded-xl bg-amber-500/15 text-amber-400 border border-amber-500/20">
             <Flame className="w-5 h-5 animate-pulse" />
@@ -103,6 +121,31 @@ export function Sidebar() {
           Log 1 more meal today to secure your streak milestone!
         </p>
       </div>
-    </aside>
+    </div>
+  );
+
+  return (
+    <>
+      {/* Desktop Persistent Sidebar */}
+      <aside className="hidden lg:flex flex-col w-72 bg-slate-950/80 backdrop-blur-2xl border-r border-slate-800/80 p-6 fixed inset-y-0 left-0 z-30">
+        {sidebarContent}
+      </aside>
+
+      {/* Mobile Slide-in Drawer */}
+      {isOpen && (
+        <div className="fixed inset-0 z-50 lg:hidden flex">
+          {/* Backdrop */}
+          <div
+            onClick={onClose}
+            className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-200"
+          />
+
+          {/* Drawer Sidebar */}
+          <aside className="relative w-72 max-w-[85vw] bg-slate-950 border-r border-slate-800 p-6 z-50 shadow-2xl animate-in slide-in-from-left duration-300 overflow-y-auto">
+            {sidebarContent}
+          </aside>
+        </div>
+      )}
+    </>
   );
 }

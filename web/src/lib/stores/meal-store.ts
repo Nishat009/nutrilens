@@ -20,7 +20,7 @@ interface MealState {
 export const useMealStore = create<MealState>((set, get) => ({
   meals: [],
   isLoading: false,
-  waterIntakeMl: 1800,
+  waterIntakeMl: 0,
 
   fetchMeals: async (date?: string, userId?: string) => {
     set({ isLoading: true });

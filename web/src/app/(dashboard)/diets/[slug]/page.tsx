@@ -22,7 +22,7 @@ import { useUserStore } from '../../../../lib/stores/user-store';
 export default function DietDetailPage() {
   const params = useParams();
   const slug = params.slug as string;
-  const { profile, updateProfile } = useUserStore();
+  const { profile, goal, updateProfile, updateGoal, fetchUserProfile } = useUserStore();
 
   const [diet, setDiet] = useState<DietPlan | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -51,11 +51,23 @@ export default function DietDetailPage() {
     setIsAdopting(true);
     try {
       await dietApi.adoptDiet(diet.name);
-      if (!profile.dietaryPreferences.includes(diet.name)) {
-        await updateProfile({
-          dietaryPreferences: [...(profile.dietaryPreferences || []), diet.name],
-        });
-      }
+
+      const targetCalories = goal.targetCalories || 2000;
+      const targetProteinG = Math.round((targetCalories * (diet.macroRatio.protein / 100)) / 4);
+      const targetCarbsG = Math.round((targetCalories * (diet.macroRatio.carbs / 100)) / 4);
+      const targetFatG = Math.round((targetCalories * (diet.macroRatio.fat / 100)) / 9);
+
+      await updateProfile({
+        dietaryPreferences: [diet.name],
+      });
+
+      await updateGoal({
+        targetProteinG,
+        targetCarbsG,
+        targetFatG,
+      });
+
+      await fetchUserProfile();
     } catch (err) {
       console.error('Failed to adopt diet:', err);
     } finally {

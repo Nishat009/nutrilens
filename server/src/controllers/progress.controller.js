@@ -1,6 +1,15 @@
+const mongoose = require('mongoose');
 const WeightLog = require('../models/WeightLog');
 const Meal = require('../models/Meal');
 const User = require('../models/User');
+
+async function resolveUserId(rawId) {
+  if (!rawId || rawId === 'current' || rawId === 'default' || !mongoose.Types.ObjectId.isValid(rawId)) {
+    const defaultUser = await User.findOne();
+    return defaultUser ? defaultUser._id : null;
+  }
+  return rawId;
+}
 
 // @desc    Get weight logs
 // @route   GET /api/progress/weight
@@ -8,7 +17,14 @@ exports.getWeightLogs = async (req, res) => {
   try {
     const { userId } = req.query;
     const filter = {};
-    if (userId) filter.userId = userId;
+    if (userId && userId !== 'current' && userId !== 'default') {
+      if (mongoose.Types.ObjectId.isValid(userId)) {
+        filter.userId = userId;
+      } else {
+        const resolved = await resolveUserId(userId);
+        if (resolved) filter.userId = resolved;
+      }
+    }
 
     const logs = await WeightLog.find(filter).sort({ date: 1 });
     res.status(200).json({
@@ -41,10 +57,7 @@ exports.logWeight = async (req, res) => {
       });
     }
 
-    if (!userId) {
-      const defaultUser = await User.findOne();
-      if (defaultUser) userId = defaultUser._id;
-    }
+    userId = await resolveUserId(userId);
 
     const logDate = date || new Date().toISOString().split('T')[0];
 
@@ -91,7 +104,14 @@ exports.getNutritionHistory = async (req, res) => {
     const startDateStr = startDate.toISOString().split('T')[0];
 
     const filter = { date: { $gte: startDateStr } };
-    if (userId) filter.userId = userId;
+    if (userId && userId !== 'current' && userId !== 'default') {
+      if (mongoose.Types.ObjectId.isValid(userId)) {
+        filter.userId = userId;
+      } else {
+        const resolved = await resolveUserId(userId);
+        if (resolved) filter.userId = resolved;
+      }
+    }
 
     const meals = await Meal.find(filter).sort({ date: 1 });
 

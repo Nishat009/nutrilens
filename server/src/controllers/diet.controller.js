@@ -49,15 +49,22 @@ exports.getDietBySlug = async (req, res) => {
   }
 };
 
+const mongoose = require('mongoose');
+
+async function resolveUserId(rawId) {
+  if (!rawId || rawId === 'current' || rawId === 'default' || !mongoose.Types.ObjectId.isValid(rawId)) {
+    const defaultUser = await User.findOne();
+    return defaultUser ? defaultUser._id : null;
+  }
+  return rawId;
+}
+
 // @desc    Adopt / select a diet plan for user
 // @route   POST /api/diets/adopt
 exports.adoptDiet = async (req, res) => {
   try {
     let { userId, dietName } = req.body;
-    if (!userId) {
-      const defaultUser = await User.findOne();
-      if (defaultUser) userId = defaultUser._id;
-    }
+    userId = await resolveUserId(userId);
 
     if (!dietName) {
       return res.status(422).json({

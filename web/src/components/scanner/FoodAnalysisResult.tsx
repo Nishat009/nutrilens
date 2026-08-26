@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Sparkles,
@@ -10,6 +10,12 @@ import {
   Info,
   ShieldCheck,
   AlertCircle,
+  Award,
+  ShieldAlert,
+  AlertTriangle,
+  Search,
+  TrendingDown,
+  ArrowUpRight,
 } from 'lucide-react';
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
@@ -18,7 +24,7 @@ import { DetectedFoodItem } from './DetectedFoodItem';
 import { NutritionSummary } from './NutritionSummary';
 import { FoodSearch } from './FoodSearch';
 import { AddMealModal } from './AddMealModal';
-import { DatabaseFoodItem } from '../../data/nutrition-database';
+import { DatabaseFoodItem, NUTRITION_DATABASE } from '../../data/nutrition-database';
 import {
   calculateNutrition,
   calculateTotalNutrition,
@@ -27,6 +33,8 @@ import {
 } from '../../services/nutrition-engine';
 import { FoodRecognitionResult } from '../../services/food-recognition';
 import { useMealStore } from '../../lib/stores/meal-store';
+import { useUserStore } from '../../lib/stores/user-store';
+import { checkDietPlanCompatibility } from '../../services/nutrition';
 import { MealType } from '../../lib/types';
 
 interface FoodAnalysisResultProps {
@@ -41,14 +49,54 @@ export function FoodAnalysisResult({
   onReset,
 }: FoodAnalysisResultProps) {
   const router = useRouter();
-  const { addMeal } = useMealStore();
+  const { addMeal, getDailyNutritionForDate } = useMealStore();
+  const { profile, goal } = useUserStore();
 
   const [items, setItems] = useState<NutritionResultItem[]>(initialResult.detectedFoods);
   const [isAddSearchOpen, setIsAddSearchOpen] = useState(false);
   const [isAddMealModalOpen, setIsAddMealModalOpen] = useState(false);
+  const [learnedFeedback, setLearnedFeedback] = useState<string | null>(null);
+  const [manualVegName, setManualVegName] = useState('');
+
+  const activeDietName = profile.dietaryPreferences?.[0] || 'Mediterranean Wellness';
+
+  // Quick manual vegetable search matches
+  const quickVegMatches = useMemo(() => {
+    if (!manualVegName.trim()) return [];
+    const q = manualVegName.toLowerCase().trim();
+    return NUTRITION_DATABASE.filter(
+      (f) =>
+        f.name.toLowerCase().includes(q) ||
+        f.bengaliName?.toLowerCase().includes(q) ||
+        f.englishName?.toLowerCase().includes(q) ||
+        f.aliases?.some((a) => a.toLowerCase().includes(q))
+    ).slice(0, 5);
+  }, [manualVegName]);
 
   // Recalculate totals dynamically whenever items or portions change
   const totals = calculateTotalNutrition(items);
+
+  // Quick select manual vegetable from top bar
+  const handleQuickSelectVeg = async (food: DatabaseFoodItem) => {
+    const newItem = buildResultItem(food, 1.0, food.defaultPortion);
+    // If only 1 item and low confidence, replace it; otherwise append
+    if (items.length <= 1) {
+      setItems([newItem]);
+    } else {
+      setItems((prev) => [...prev, newItem]);
+    }
+    setManualVegName('');
+
+    try {
+      const { teachVisualMemory } = await import('../../services/image-fingerprint');
+      await teachVisualMemory(image, food);
+      setLearnedFeedback(
+        `🧠 Saved to visual memory! Next time this image will automatically be recognized as ${food.name}.`
+      );
+    } catch (err) {
+      console.warn('Failed to teach visual memory:', err);
+    }
+  };
 
   // Update portion quantity of an item
   const handleUpdatePortion = (id: string, newQuantity: number) => {
@@ -69,14 +117,22 @@ export function FoodAnalysisResult({
     );
   };
 
-  // Replace item with a new food chosen from manual search
-  const handleReplaceFood = (id: string, newFood: DatabaseFoodItem) => {
+  // Replace item with a new food chosen from manual search and teach visual memory
+  const handleReplaceFood = async (id: string, newFood: DatabaseFoodItem) => {
     setItems((prev) =>
       prev.map((item) => {
         if (item.id !== id) return item;
         return buildResultItem(newFood, 1.0, item.quantity || newFood.defaultPortion);
       })
     );
+
+    try {
+      const { teachVisualMemory } = await import('../../services/image-fingerprint');
+      await teachVisualMemory(image, newFood);
+      setLearnedFeedback(`🧠 Saved to visual memory! Next time this image will automatically be recognized as ${newFood.name}.`);
+    } catch (err) {
+      console.warn('Failed to teach visual memory:', err);
+    }
   };
 
   // Remove an item
@@ -84,10 +140,18 @@ export function FoodAnalysisResult({
     setItems((prev) => prev.filter((item) => item.id !== id));
   };
 
-  // Add a newly searched food item
-  const handleAddNewFood = (food: DatabaseFoodItem) => {
+  // Add a newly searched food item and teach visual memory
+  const handleAddNewFood = async (food: DatabaseFoodItem) => {
     const newItem = buildResultItem(food, 1.0, food.defaultPortion);
     setItems((prev) => [...prev, newItem]);
+
+    try {
+      const { teachVisualMemory } = await import('../../services/image-fingerprint');
+      await teachVisualMemory(image, food);
+      setLearnedFeedback(`🧠 Saved to visual memory! Next time this image will automatically be recognized as ${food.name}.`);
+    } catch (err) {
+      console.warn('Failed to teach visual memory:', err);
+    }
   };
 
   // Confirm and log meal to store & database
@@ -179,6 +243,16 @@ export function FoodAnalysisResult({
         </Button>
       </div>
 
+      {/* Visual Memory Saved Notification */}
+      {learnedFeedback && (
+        <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs sm:text-sm font-semibold flex items-center gap-3 animate-in fade-in slide-in-from-top-2 shadow-lg shadow-emerald-500/10">
+          <div className="w-7 h-7 rounded-xl bg-emerald-500/20 flex items-center justify-center shrink-0">
+            <Sparkles className="w-4 h-4 text-emerald-400" />
+          </div>
+          <span>{learnedFeedback}</span>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Left Column: Image Viewport + Macro Summary */}
         <div className="lg:col-span-5 space-y-6">
@@ -186,6 +260,144 @@ export function FoodAnalysisResult({
             <div className="relative rounded-2xl overflow-hidden aspect-[4/3] bg-slate-900 border border-slate-800 shadow-xl">
               <img src={image} alt="Scanned Food" className="w-full h-full object-cover" />
             </div>
+
+            {/* Quick Manual Search & Name Enter Bar */}
+            <div className="p-3.5 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-2">
+              <div className="flex items-center gap-2">
+                <Search className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                <span className="text-xs font-bold text-white">
+                  Vegetable not recognized? Type name:
+                </span>
+              </div>
+              <div className="relative">
+                <input
+                  type="text"
+                  value={manualVegName}
+                  onChange={(e) => setManualVegName(e.target.value)}
+                  placeholder="Type (e.g. Gajor, Begun, Potol, Lau, Spinach, Broccoli)..."
+                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-emerald-500"
+                />
+              </div>
+
+              {quickVegMatches.length > 0 && (
+                <div className="p-2 rounded-xl bg-slate-950 border border-slate-800 space-y-1 animate-in fade-in">
+                  <div className="text-[10px] uppercase font-bold text-slate-400 px-2 pt-1">
+                    Click to select & teach AI:
+                  </div>
+                  {quickVegMatches.map((veg) => (
+                    <button
+                      key={veg.id}
+                      type="button"
+                      onClick={() => handleQuickSelectVeg(veg)}
+                      className="w-full text-left px-3 py-2 rounded-lg hover:bg-slate-900 flex items-center justify-between text-xs text-slate-200 hover:text-emerald-300 transition-colors cursor-pointer"
+                    >
+                      <div>
+                        <span className="font-semibold text-white">{veg.name}</span>
+                        {veg.bengaliName && (
+                          <span className="text-slate-400 ml-1.5 font-mono">({veg.bengaliName})</span>
+                        )}
+                      </div>
+                      <span className="text-[11px] text-emerald-400 font-mono font-bold">
+                        {veg.caloriesPer100g} kcal/100g
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Diet Plan Compliance & Calorie Budget Impact */}
+            <div className="p-3.5 rounded-2xl bg-gradient-to-r from-slate-900 to-slate-950 border border-slate-800 space-y-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5">
+                  <Award className="w-4 h-4 text-emerald-400" />
+                  <span className="text-xs font-bold text-white">
+                    Diet: <span className="text-emerald-400">{activeDietName}</span>
+                  </span>
+                </div>
+                <Badge
+                  variant={
+                    items.some(
+                      (i) =>
+                        checkDietPlanCompatibility(i.name, 'Vegetables', activeDietName).isViolation
+                    )
+                      ? 'rose'
+                      : 'emerald'
+                  }
+                  size="sm"
+                >
+                  {items.some(
+                    (i) =>
+                      checkDietPlanCompatibility(i.name, 'Vegetables', activeDietName).isViolation
+                  )
+                    ? 'Violation Detected'
+                    : 'Compliant'}
+                </Badge>
+              </div>
+
+              <div className="flex flex-wrap gap-1.5 pt-1">
+                {items.map((i) => {
+                  const evalResult = checkDietPlanCompatibility(
+                    i.name,
+                    'Vegetables',
+                    activeDietName
+                  );
+                  return (
+                    <span
+                      key={i.id}
+                      className={`px-2 py-1 rounded-lg text-[10px] font-medium border ${
+                        evalResult.isViolation
+                          ? 'bg-rose-500/15 border-rose-500/30 text-rose-300'
+                          : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-300'
+                      }`}
+                    >
+                      {evalResult.tag}: {i.name}
+                    </span>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Diet Violation Warning Alert */}
+            {items.some(
+              (i) => checkDietPlanCompatibility(i.name, 'Vegetables', activeDietName).isViolation
+            ) && (
+              <div className="p-3.5 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-200 space-y-2 animate-in fade-in">
+                <div className="flex items-center gap-2 text-xs font-bold text-rose-400">
+                  <ShieldAlert className="w-4 h-4 text-rose-400 shrink-0" />
+                  <span>⚠️ Non-Compliant Food Warning ({activeDietName})</span>
+                </div>
+                <div className="space-y-1.5 text-xs text-slate-300">
+                  {items
+                    .filter(
+                      (i) =>
+                        checkDietPlanCompatibility(i.name, 'Vegetables', activeDietName).isViolation
+                    )
+                    .map((i) => {
+                      const evalRes = checkDietPlanCompatibility(
+                        i.name,
+                        'Vegetables',
+                        activeDietName
+                      );
+                      return (
+                        <div
+                          key={i.id}
+                          className="p-2.5 rounded-xl bg-slate-950/80 border border-rose-500/20 space-y-1"
+                        >
+                          <div className="font-semibold text-rose-300 text-xs">
+                            ❌ {i.name}: {evalRes.clinicalFeedback}
+                          </div>
+                          {evalRes.alternativeSuggestions.length > 0 && (
+                            <div className="text-[11px] text-emerald-400 font-medium">
+                              💡 Try instead: {evalRes.alternativeSuggestions.join(', ')}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                </div>
+              </div>
+            )}
 
             {/* Nutrition Breakdown Rings & Values */}
             <NutritionSummary

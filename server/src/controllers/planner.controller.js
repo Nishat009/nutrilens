@@ -1,5 +1,14 @@
+const mongoose = require('mongoose');
 const PlannedMeal = require('../models/PlannedMeal');
 const User = require('../models/User');
+
+async function resolveUserId(rawId) {
+  if (!rawId || rawId === 'current' || rawId === 'default' || !mongoose.Types.ObjectId.isValid(rawId)) {
+    const defaultUser = await User.findOne();
+    return defaultUser ? defaultUser._id : null;
+  }
+  return rawId;
+}
 
 // @desc    Get planned meals (filterable by userId and dayOfWeek)
 // @route   GET /api/planner
@@ -8,12 +17,8 @@ exports.getPlannedMeals = async (req, res) => {
     const { userId, dayOfWeek } = req.query;
     const filter = {};
 
-    if (userId) {
-      filter.userId = userId;
-    } else {
-      const defaultUser = await User.findOne();
-      if (defaultUser) filter.userId = defaultUser._id;
-    }
+    const resolved = await resolveUserId(userId);
+    if (resolved) filter.userId = resolved;
 
     if (dayOfWeek !== undefined && dayOfWeek !== '') {
       filter.dayOfWeek = parseInt(dayOfWeek, 10);
@@ -23,7 +28,6 @@ exports.getPlannedMeals = async (req, res) => {
       dayOfWeek: 1,
       createdAt: 1,
     });
-
     res.status(200).json({
       success: true,
       code: 200,
@@ -63,10 +67,7 @@ exports.addPlannedMeal = async (req, res) => {
       });
     }
 
-    if (!userId) {
-      const defaultUser = await User.findOne();
-      if (defaultUser) userId = defaultUser._id;
-    }
+    userId = await resolveUserId(userId);
 
     const plannedMeal = await PlannedMeal.create({
       userId,

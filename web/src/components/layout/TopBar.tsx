@@ -4,16 +4,31 @@ import React from 'react';
 import Link from 'next/link';
 import { useUserStore } from '../../lib/stores/user-store';
 import { getGreeting } from '../../lib/utils/format';
-import { Bell, Sparkles } from 'lucide-react';
+import { Bell, Sparkles, Menu } from 'lucide-react';
 import { Button } from '../ui/Button';
 
-export function TopBar() {
+interface TopBarProps {
+  onOpenSidebar?: () => void;
+}
+
+export function TopBar({ onOpenSidebar }: TopBarProps) {
   const { profile } = useUserStore();
   const greeting = getGreeting(profile?.name?.split(' ')[0]);
 
   return (
     <header className="sticky top-0 z-20 w-full bg-slate-950/70 backdrop-blur-xl border-b border-slate-800/80 px-4 sm:px-8 py-3.5 flex items-center justify-between">
       <div className="flex items-center gap-3">
+        {/* Mobile Hamburger Menu Trigger */}
+        {onOpenSidebar && (
+          <button
+            onClick={onOpenSidebar}
+            aria-label="Open sidebar menu"
+            className="lg:hidden p-2 rounded-xl text-slate-300 hover:text-white bg-slate-900/90 border border-slate-800 transition-colors cursor-pointer"
+          >
+            <Menu className="w-5 h-5" />
+          </button>
+        )}
+
         <div>
           <h2 className="text-base sm:text-lg font-bold text-white tracking-tight">{greeting} 👋</h2>
           <p className="text-xs text-slate-400 hidden sm:block">
@@ -33,7 +48,7 @@ export function TopBar() {
         {/* Notifications Icon */}
         <button
           aria-label="View notifications"
-          className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-850 bg-slate-900/80 border border-slate-800 transition-colors relative"
+          className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-850 bg-slate-900/80 border border-slate-800 transition-colors relative cursor-pointer"
         >
           <Bell className="w-4 h-4" />
           <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-emerald-400" />

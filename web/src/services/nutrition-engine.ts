@@ -116,6 +116,8 @@ export function findBestFoodMatch(rawLabel: string): {
   for (const food of NUTRITION_DATABASE) {
     if (
       food.name.toLowerCase() === cleanLabel ||
+      (food.englishName && food.englishName.toLowerCase() === cleanLabel) ||
+      (food.bengaliName && food.bengaliName === cleanLabel) ||
       food.aliases.some((a) => a.toLowerCase() === cleanLabel)
     ) {
       return {
@@ -131,7 +133,8 @@ export function findBestFoodMatch(rawLabel: string): {
     if (
       food.name.toLowerCase().includes(cleanLabel) ||
       cleanLabel.includes(food.name.toLowerCase()) ||
-      food.aliases.some((a) => cleanLabel.includes(a) || a.includes(cleanLabel))
+      (food.englishName && food.englishName.toLowerCase().includes(cleanLabel)) ||
+      food.aliases.some((a) => cleanLabel.includes(a.toLowerCase()) || a.toLowerCase().includes(cleanLabel))
     ) {
       return {
         item: food,
