@@ -75,9 +75,18 @@ import { findLearnedMemoryMatch } from './image-fingerprint';
  * Classifies an image using TensorFlow.js MobileNet or High-Resolution Canvas Chromatic Histogram
  * and matches the predictions directly to the 100+ Vegetable Database.
  */
+export interface ImageAnalysisMeta {
+  fileName?: string;
+  name?: string;
+  size?: number;
+  dominantColor?: string;
+  colorProfile?: Record<string, number>;
+}
+
 export async function classifyFoodImageLocally(
   imageDataUrl: string,
-  customMealType?: 'breakfast' | 'lunch' | 'dinner' | 'snack'
+  customMealType?: 'breakfast' | 'lunch' | 'dinner' | 'snack',
+  imageMeta?: ImageAnalysisMeta
 ): Promise<LocalClassificationResult> {
   // 0. FIRST: Check Learned Visual Memory (User Corrections & Saved Vegetable Associations)
   try {

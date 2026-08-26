@@ -29,15 +29,24 @@ const MEDICAL_DISCLAIMER =
  * Analyzes food photos via in-browser Neural Computer Vision (TensorFlow.js)
  * and matches against our 100+ Vegetable Bengali & Global Nutrition Database.
  */
+export interface ImageAnalysisMeta {
+  fileName?: string;
+  name?: string;
+  size?: number;
+  dominantColor?: string;
+  colorProfile?: Record<string, number>;
+}
+
 export async function recognizeFoodFromImage(
   imageDataUrl: string,
-  customMealType?: 'breakfast' | 'lunch' | 'dinner' | 'snack'
+  customMealType?: 'breakfast' | 'lunch' | 'dinner' | 'snack',
+  imageMeta?: ImageAnalysisMeta
 ): Promise<FoodRecognitionResult> {
   const scanId = 'scan_' + Date.now().toString(36) + Math.random().toString(36).substring(2, 6);
 
   // 1. First run the in-browser Neural & 100+ Vegetable Database Engine
   try {
-    const localResult = await classifyFoodImageLocally(imageDataUrl, customMealType);
+    const localResult = await classifyFoodImageLocally(imageDataUrl, customMealType, imageMeta);
     if (localResult && localResult.primaryFood) {
       const primaryItem = localResult.primaryFood;
       const portion = localResult.portion;

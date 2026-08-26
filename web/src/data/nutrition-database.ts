@@ -14,6 +14,11 @@ export interface DatabaseFoodItem {
   imageUrl?: string;
   aliases: string[]; // for flexible search and classification mapping
   tags: string[];
+  visualDescription?: string;
+  pieceWeightGrams?: number;
+  caloriesPerPiece?: number;
+  pieceUnitLabel?: string;
+  visualMatchExplanation?: string;
 }
 
 export const NUTRITION_DATABASE: DatabaseFoodItem[] = [
