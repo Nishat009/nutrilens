@@ -1,0 +1,49 @@
+{
+  "recommendation_engine_version": "2.0.0",
+  "scoring_weights": {
+    "primary_condition_match": 40,
+    "goal_alignment": 25,
+    "bmi_suitability": 15,
+    "activity_compatibility": 10,
+    "dietary_preference_fit": 10
+  },
+  "condition_primary_diet_map": {
+    "pcos": ["pcos_hormone_balance", "deshi_low_gi_insulin_resistance"],
+    "irregular_cycles": ["pcos_hormone_balance", "anti_inflammatory_fertility"],
+    "hypothyroidism": ["hypothyroidism_metabolic_boost"],
+    "prediabetes": ["deshi_low_gi_insulin_resistance", "mediterranean_fusion"],
+    "type_2_diabetes": ["deshi_low_gi_insulin_resistance", "dash_cardio_care"],
+    "hypertension": ["dash_cardio_care", "mediterranean_fusion"],
+    "gout_hyperuricemia": ["low_purine_uric_acid_gout"],
+    "nafld_fatty_liver": ["fatty_liver_nafld", "deshi_low_gi_insulin_resistance"],
+    "bloating_ibs": ["gut_healing_anti_bloat"],
+    "iron_deficiency_anemia": ["anemia_iron_boost"],
+    "postpartum_recovery": ["postpartum_lactation"],
+    "underweight": ["weight_gain_amenorrhea"],
+    "chronic_stress": ["cortisol_adrenal_reset"],
+    "pms_pmdd": ["pms_pmdd_mood_care"],
+    "perimenopause": ["perimenopause_bone_care"],
+    "general_longevity": ["mediterranean_fusion", "dash_cardio_care"]
+  },
+  "hard_contraindications": [
+    {
+      "condition": "ckd_kidney_disease",
+      "blocked_diets": ["muscle_recomp", "deshi_keto"],
+      "action": "PROFESSIONAL_REVIEW",
+      "message": "High protein or ketogenic regimens are contraindicated for CKD without personalized nephrology and renal dietitian clearance."
+    },
+    {
+      "condition": "pregnancy",
+      "blocked_diets": ["deshi_keto", "hormone_safe_fasting_14_10"],
+      "action": "PROFESSIONAL_REVIEW",
+      "message": "Ketogenic or fasting regimens are contraindicated during pregnancy without obstetrician supervision."
+    },
+    {
+      "condition": "underweight",
+      "blocked_diets": ["deshi_keto", "hormone_safe_fasting_14_10"],
+      "action": "BLOCK",
+      "message": "Calorie-restrictive or fasting protocols are not permitted for underweight individuals (BMI <18.5). Please choose the Nutritional Re-Nourish Protocol."
+    }
+  ]
+}
+

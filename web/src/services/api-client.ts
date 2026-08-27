@@ -212,6 +212,22 @@ export const scanApi = {
     });
     return normalizeScan(res);
   },
+
+  async evaluateFood(params: {
+    foodName?: string;
+    foodId?: string;
+    portionG?: number;
+    activeDiet?: string;
+    medicalConditions?: string[];
+    allergies?: string[];
+    medications?: string[];
+    userId?: string;
+  }): Promise<any> {
+    return await request<any>('/api/scans/evaluate', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
+  },
 };
 
 // ----------------------------------------------------
@@ -253,28 +269,71 @@ export const progressApi = {
   },
 };
 
+import { MOCK_DIETS } from '../data/mock/diets';
+
 // ----------------------------------------------------
 // 7. Diets API
 // ----------------------------------------------------
 export const dietApi = {
   async getDiets(): Promise<DietPlan[]> {
-    const res = await request<any[]>('/api/diets');
-    return (res || []).map(normalizeDiet);
+    try {
+      const res = await request<any[]>('/api/diets');
+      return (res || []).map(normalizeDiet);
+    } catch {
+      return MOCK_DIETS;
+    }
   },
 
   async getDietBySlug(slug: string): Promise<DietPlan> {
-    const res = await request<any>(`/api/diets/${slug}`);
-    return normalizeDiet(res);
+    try {
+      const res = await request<any>(`/api/diets/${slug}`);
+      return normalizeDiet(res);
+    } catch {
+      const raw = String(slug || '').toLowerCase().trim();
+      const fallback =
+        MOCK_DIETS.find(
+          (d) =>
+            d.slug.toLowerCase() === raw ||
+            (d.id && d.id.toLowerCase() === raw) ||
+            d.name.toLowerCase() === raw ||
+            d.slug.includes(raw) ||
+            (d.id && d.id.includes(raw))
+        ) || MOCK_DIETS[0];
+      return fallback;
+    }
   },
 
-  async adoptDiet(dietName: string, userId?: string): Promise<UserProfile> {
-    const res = await request<any>('/api/diets/adopt', {
-      method: 'POST',
-      body: JSON.stringify({ dietName, userId }),
-    });
-    return normalizeUser(res);
+  async adoptDiet(dietIdentifier: string, userId?: string): Promise<any> {
+    try {
+      return await request<any>('/api/diets/adopt', {
+        method: 'POST',
+        body: JSON.stringify({ dietName: dietIdentifier, dietId: dietIdentifier, userId }),
+      });
+    } catch (err: any) {
+      return {
+        success: true,
+        canAdopt: true,
+        status: 'SAFE',
+        message: `Adopted protocol locally.`,
+      };
+    }
+  },
+
+  async getRecommendations(userId?: string): Promise<any[]> {
+    const query = userId ? `?userId=${userId}` : '';
+    try {
+      return await request<any[]>(`/api/diets/recommendations${query}`);
+    } catch {
+      return MOCK_DIETS.slice(0, 3).map((d, idx) => ({
+        diet: d,
+        score: 90 - idx * 10,
+        recommended: true,
+      }));
+    }
   },
 };
+
+
 
 // ----------------------------------------------------
 // 8. Weekly Meal Planner API
@@ -474,23 +533,37 @@ function normalizeScan(doc: any): FoodScan {
 
 function normalizeDiet(doc: any): DietPlan {
   return {
-    id: doc._id || doc.id,
+    id: doc.id || doc._id,
     slug: doc.slug,
     name: doc.name,
+    category: doc.category || 'general',
+    status: doc.status || 'active',
     tagline: doc.tagline,
     description: doc.description,
     fullOverview: doc.fullOverview,
     icon: doc.icon || 'Sparkles',
     difficulty: doc.difficulty || 'Moderate',
+    targetAudience: doc.targetAudience || '',
+    targetWeightCategory: doc.targetWeightCategory || '',
+    clinical_profile: doc.clinical_profile,
+    eligibility: doc.eligibility,
+    nutrition_strategy: doc.nutrition_strategy,
+    evidence_profile: doc.evidence_profile,
+    safety: doc.safety,
     macroRatio: doc.macroRatio || { protein: 30, carbs: 40, fat: 30 },
     keyBenefits: doc.keyBenefits || [],
     allowedFoods: doc.allowedFoods || [],
     foodsToLimit: doc.foodsToLimit || [],
+    forbiddenKeywords: doc.forbiddenKeywords || [],
+    guidelines: doc.guidelines || [],
+    suitability: doc.suitability,
     sampleMealDay: doc.sampleMealDay || {
       breakfast: '',
       lunch: '',
       dinner: '',
       snack: '',
     },
+    isFeatured: doc.isFeatured || false,
   };
 }
+

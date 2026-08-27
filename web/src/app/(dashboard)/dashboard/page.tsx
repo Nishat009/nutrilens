@@ -132,36 +132,39 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* 30-Day Predictive Weight Loss & Deficit Card */}
+      {/* 30-Day Estimated Energy-Balance Change Card */}
       <div className="p-6 rounded-3xl bg-gradient-to-r from-emerald-950/70 via-slate-900/90 to-teal-950/70 border border-emerald-500/30 shadow-xl relative overflow-hidden">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
           <div className="lg:col-span-8 space-y-2">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-bold border border-emerald-500/30">
-              <TrendingUp className="w-3.5 h-3.5" /> 30-Day Dynamic Weight Projection
+              <TrendingUp className="w-3.5 h-3.5" /> Estimated Energy-Balance Change (30 Days)
             </div>
             <h3 className="text-xl sm:text-2xl font-black text-white">
               {projection.projected30DayChangeKg < 0 ? (
                 <span>
-                  Projected Fat Loss:{' '}
+                  Estimated Fat Balance Pace:{' '}
                   <span className="text-emerald-400">
                     {Math.abs(projection.projected30DayChangeKg)} kg
                   </span>{' '}
-                  in 30 days
+                  over 30 days
                 </span>
               ) : (
                 <span>
-                  Projected Weight: <span className="text-teal-400">{projection.projectedWeightIn30DaysKg} kg</span>
+                  Projected Weight Pace: <span className="text-teal-400">{projection.projectedWeightIn30DaysKg} kg</span>
                 </span>
               )}
             </h3>
             <p className="text-xs sm:text-sm text-slate-300 leading-relaxed max-w-2xl">
               {projection.statusAdvice} Daily TDEE Expenditure: <strong>{targets.tdee} kcal</strong> • Current Deficit Pace: <strong>{Math.abs(projection.dailyDeficit)} kcal/day</strong>.
             </p>
+            <p className="text-[11px] text-slate-400/90 italic pt-0.5">
+              *Theoretical energy-balance estimate. Actual biological weight change varies with fluid balance, glycogen, and metabolic adaptation.
+            </p>
           </div>
 
           <div className="lg:col-span-4 flex flex-col sm:flex-row lg:flex-col gap-3 justify-center">
             <div className="p-4 rounded-2xl bg-slate-950/80 border border-slate-800 text-center">
-              <div className="text-[11px] font-semibold text-slate-400 uppercase">30-Day Target Weight</div>
+              <div className="text-[11px] font-semibold text-slate-400 uppercase">30-Day Estimated Weight</div>
               <div className="text-2xl font-black text-emerald-400 mt-0.5">
                 {projection.projectedWeightIn30DaysKg}{' '}
                 <span className="text-xs text-slate-400 font-normal">kg</span>
@@ -171,6 +174,7 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
+
 
       {/* Hero Calorie & Macro Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">

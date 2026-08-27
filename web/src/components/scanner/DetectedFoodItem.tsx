@@ -87,45 +87,100 @@ export function DetectedFoodItem({
           </div>
         </div>
 
-        {/* Low or Medium Confidence Helper Banner */}
-        {item.confidenceLevel !== 'high' && (
-          <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-300 space-y-1.5">
-            <div className="flex items-center gap-1.5 font-semibold">
-              <HelpCircle className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-              <span>Not quite right? Tap &ldquo;Change&rdquo; or choose an alternative:</span>
+        {/* Smart Similar Candidates / Multi-Option Swap Bar */}
+        <div className="p-3 rounded-2xl bg-slate-950/80 border border-slate-800 space-y-2">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-400">
+              <HelpCircle className="w-3.5 h-3.5" />
+              <span>Similar candidates (Tap to choose):</span>
             </div>
-            {item.suggestions && item.suggestions.length > 0 && (
-              <div className="flex flex-wrap gap-1 pt-0.5">
-                {item.suggestions.map((sug) => (
-                  <button
-                    key={sug}
-                    type="button"
-                    onClick={() => {
-                      const match = NUTRITION_DATABASE.find(
-                        (f) =>
-                          f.name.toLowerCase() === sug.toLowerCase() ||
-                          f.englishName?.toLowerCase() === sug.toLowerCase() ||
-                          f.bengaliName === sug ||
-                          f.id === sug
-                      );
-                      if (match) {
-                        onReplaceFood(item.id, match);
-                      } else {
-                        setIsSearchOpen(true);
-                      }
-                    }}
-                    className="px-2 py-0.5 rounded-md bg-slate-900 border border-amber-500/30 text-[10px] text-slate-200 hover:text-amber-300 hover:border-amber-400 transition-colors cursor-pointer"
-                  >
-                    + {sug}
-                  </button>
-                ))}
-              </div>
-            )}
+            <span className="text-[10px] text-slate-500 font-medium">1-Tap AI Swap</span>
           </div>
-        )}
+
+          <div className="flex flex-wrap gap-1.5 pt-0.5">
+            {/* Dynamic Candidates based on item or suggestions */}
+            {(() => {
+              const candidates: DatabaseFoodItem[] = [];
+
+              // Add from item.suggestions first
+              if (item.suggestions && item.suggestions.length > 0) {
+                for (const sug of item.suggestions) {
+                  const m = NUTRITION_DATABASE.find(
+                    (f) =>
+                      f.name.toLowerCase() === sug.toLowerCase() ||
+                      f.englishName?.toLowerCase() === sug.toLowerCase() ||
+                      f.bengaliName === sug ||
+                      f.id === sug ||
+                      f.aliases.some((a) => a.toLowerCase() === sug.toLowerCase())
+                  );
+                  if (m && m.id !== item.foodId && !candidates.some((c) => c.id === m.id)) {
+                    candidates.push(m);
+                  }
+                }
+              }
+
+              // Color / category context additions
+              const nameLower = (item.name || '').toLowerCase();
+              if (nameLower.includes('pepper') || nameLower.includes('capsicum') || nameLower.includes('tomato') || nameLower.includes('apple')) {
+                const redGroup = ['veg_tomato', 'veg_capsicum_red', 'food_fresh_apple', 'veg_cherry_tomato', 'veg_capsicum_green'];
+                for (const gid of redGroup) {
+                  const m = NUTRITION_DATABASE.find((f) => f.id === gid);
+                  if (m && m.id !== item.foodId && !candidates.some((c) => c.id === m.id)) {
+                    candidates.push(m);
+                  }
+                }
+              } else if (nameLower.includes('gourd') || nameLower.includes('lau') || nameLower.includes('potol')) {
+                const gourdGroup = ['veg_lau', 'veg_potol', 'veg_korola', 'veg_jhinge', 'veg_chal_kumra'];
+                for (const gid of gourdGroup) {
+                  const m = NUTRITION_DATABASE.find((f) => f.id === gid);
+                  if (m && m.id !== item.foodId && !candidates.some((c) => c.id === m.id)) {
+                    candidates.push(m);
+                  }
+                }
+              }
+
+              // Fallback general popular staples if needed
+              if (candidates.length < 3) {
+                const fallbacks = ['veg_tomato', 'veg_alu', 'veg_gajor', 'veg_shosha', 'veg_palong_shak'];
+                for (const fid of fallbacks) {
+                  const m = NUTRITION_DATABASE.find((f) => f.id === fid);
+                  if (m && m.id !== item.foodId && !candidates.some((c) => c.id === m.id)) {
+                    candidates.push(m);
+                  }
+                }
+              }
+
+              return candidates.slice(0, 5).map((food) => (
+                <button
+                  key={food.id}
+                  type="button"
+                  onClick={() => onReplaceFood(item.id, food)}
+                  className="px-2.5 py-1 rounded-xl bg-slate-900 border border-slate-700 hover:border-emerald-500 hover:bg-emerald-950/30 text-[11px] text-slate-200 hover:text-emerald-300 transition-all flex items-center gap-1.5 cursor-pointer shadow-sm"
+                >
+                  <span className="font-semibold">{food.name.split('(')[0].trim()}</span>
+                  {food.bengaliName && (
+                    <span className="text-[10px] text-slate-400 font-mono">({food.bengaliName})</span>
+                  )}
+                  <span className="text-[10px] text-emerald-400 font-mono font-bold">
+                    {food.caloriesPer100g} kcal
+                  </span>
+                </button>
+              ));
+            })()}
+
+            <button
+              type="button"
+              onClick={() => setIsSearchOpen(true)}
+              className="px-2.5 py-1 rounded-xl bg-slate-900/60 border border-dashed border-slate-700 hover:border-slate-500 text-[11px] text-slate-400 hover:text-white transition-colors cursor-pointer"
+            >
+              + Search Other...
+            </button>
+          </div>
+        </div>
 
         {/* Portion Controls & Live Macro Breakdown */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1 border-t border-slate-800/80">
+
           <div className="space-y-1">
             <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
               Adjust Portion Size

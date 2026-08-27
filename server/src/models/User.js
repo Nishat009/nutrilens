@@ -74,7 +74,19 @@ const UserSchema = new mongoose.Schema(
     },
     dietaryPreferences: {
       type: [String],
-      default: ['High Protein / Gym', 'Mediterranean'],
+      default: ['pcos_hormone_balance'],
+    },
+    activeDietId: {
+      type: String,
+      default: 'pcos_hormone_balance',
+    },
+    medicalConditions: {
+      type: [String],
+      default: [],
+    },
+    medications: {
+      type: [String],
+      default: [],
     },
     allergies: {
       type: [String],

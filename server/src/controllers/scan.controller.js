@@ -215,3 +215,46 @@ exports.getLearnedMatches = async (req, res) => {
   }
 };
 
+// @desc    Evaluate scanned food against user profile, active diet, and medical safety
+// @route   POST /api/scans/evaluate
+exports.evaluateScanFood = async (req, res) => {
+  try {
+    const { evaluateFoodScan } = require('../services/nutrition-intelligence');
+    let { foodName, foodId, portionG = 100, userId, activeDiet, medicalConditions, allergies, medications } = req.body;
+
+    // Fetch user context if userId is provided and conditions/diet are not passed explicitly
+    if (userId) {
+      const resolvedId = await resolveUserId(userId);
+      const user = resolvedId ? await User.findById(resolvedId) : null;
+      if (user) {
+        activeDiet = activeDiet || user.activeDietId || (user.dietaryPreferences && user.dietaryPreferences[0]);
+        medicalConditions = medicalConditions || user.medicalConditions;
+        allergies = allergies || user.allergies;
+        medications = medications || user.medications;
+      }
+    }
+
+    const evaluation = evaluateFoodScan(foodId || foodName, portionG, {
+      activeDiet,
+      medicalConditions,
+      allergies,
+      medications,
+    });
+
+    res.status(200).json({
+      success: true,
+      code: 200,
+      message: 'Food clinical evaluation completed',
+      data: evaluation,
+    });
+  } catch (error) {
+    res.status(422).json({
+      success: false,
+      code: 422,
+      errors: [error.message || 'Failed to evaluate food safety'],
+    });
+  }
+};
+
+
+

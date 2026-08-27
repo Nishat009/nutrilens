@@ -15,6 +15,9 @@ export interface UserProfile {
   activityLevel: ActivityLevel;
   dietaryPreferences: string[];
   allergies: string[];
+  medicalConditions?: string[];
+  medications?: string[];
+  activeDietId?: string;
   targetWeightKg?: number;
   avatarUrl?: string;
 }
@@ -133,30 +136,111 @@ export interface WeightLog {
   notes?: string;
 }
 
+export interface DietPlanSuitability {
+  recommendedFor: string[];
+  contraindications: string[];
+}
+
+export interface EvidenceProfile {
+  mechanism_summary: string;
+  potential_benefits: string[];
+  evidence_level: 'strong' | 'moderate' | 'limited' | 'emerging' | 'traditional';
+}
+
+export interface ClinicalProfile {
+  primary_goals: string[];
+  suitable_conditions: string[];
+  requires_professional_review: string[];
+}
+
+export interface Eligibility {
+  minimum_age: number;
+  maximum_age?: number | null;
+  bmi: string[];
+  activity_levels: string[];
+}
+
+export interface NutritionStrategy {
+  calorie_mode: string;
+  protein: string;
+  carbohydrate: string;
+  fat: string;
+  fiber: string;
+  sodium: string;
+}
+
+export interface MacroRange {
+  min: number;
+  max: number;
+}
+
 export interface DietPlan {
-  id: string;
+  id?: string;
+  _id?: string;
   slug: string;
   name: string;
+  category?: string;
+  status?: string;
   tagline: string;
   description: string;
   fullOverview: string;
   icon: string;
-  difficulty: 'Easy' | 'Moderate' | 'Challenging';
+  difficulty: 'Easy' | 'Moderate' | 'Advanced' | 'Challenging';
+  targetAudience?: string;
+  targetWeightCategory?: string;
+  clinical_profile?: ClinicalProfile;
+  eligibility?: Eligibility;
+  nutrition_strategy?: NutritionStrategy;
+  evidence_profile?: EvidenceProfile;
+  safety?: {
+    automatic_recommendation: boolean;
+    medical_review_required: boolean;
+  };
   macroRatio: {
+    mode?: string;
     protein: number; // percentage (0-100)
     carbs: number;
     fat: number;
+    protein_percent?: MacroRange;
+    carbohydrate_percent?: MacroRange;
+    fat_percent?: MacroRange;
   };
   keyBenefits: string[];
   allowedFoods: string[];
   foodsToLimit: string[];
   forbiddenKeywords?: string[];
   guidelines?: string[];
+  pcosAndThyroidBenefits?: string;
+  suitability?: DietPlanSuitability;
   sampleMealDay: {
     breakfast: string;
     lunch: string;
     dinner: string;
     snack: string;
+  };
+  isFeatured?: boolean;
+}
+
+export type ComplianceStatus = 'SAFE' | 'CAUTION' | 'LIMIT' | 'AVOID' | 'PROFESSIONAL_REVIEW';
+
+export interface DietComplianceEvaluation {
+  status: ComplianceStatus;
+  isCompatible?: boolean;
+  isViolation?: boolean;
+  tag: string;
+  badgeVariant: 'emerald' | 'amber' | 'orange' | 'rose' | 'indigo';
+  clinicalFeedback: string;
+  recommendation: string;
+  alternativeSuggestions: string[];
+  professionalReviewRequired?: boolean;
+  portionG?: number;
+  nutrition?: {
+    calories: number;
+    protein_g: number;
+    carbs_g: number;
+    fat_g: number;
+    fiber_g: number;
+    sodium_mg: number;
   };
 }
 
@@ -181,3 +265,4 @@ export interface Recommendation {
   severity: 'info' | 'success' | 'warning';
   createdAt: string;
 }
+

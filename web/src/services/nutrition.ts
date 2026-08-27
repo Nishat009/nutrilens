@@ -280,120 +280,201 @@ export function calculate30DayWeightProjection(
 }
 
 import { MOCK_DIETS } from '../data/mock/diets';
-
-export interface DietComplianceEvaluation {
-  isCompatible: boolean;
-  isViolation: boolean;
-  tag: string;
-  badgeVariant: 'emerald' | 'amber' | 'rose';
-  clinicalFeedback: string;
-  recommendation: string;
-  alternativeSuggestions: string[];
-}
+import { DietComplianceEvaluation, ComplianceStatus } from '../lib/types';
 
 /**
- * Validates a food against the user's active diet plan with clinical nutritionist reasoning.
+ * Validates a food against the user's active diet plan and medical profile with clinical nutritionist reasoning.
  */
 export function checkDietPlanCompatibility(
   foodName: string,
   category: string,
-  activeDietName?: string
+  activeDietName?: string,
+  portionG: number = 100,
+  medicalConditions: string[] = [],
+  allergies: string[] = []
 ): DietComplianceEvaluation {
-  if (!activeDietName) {
-    return {
-      isCompatible: true,
-      isViolation: false,
-      tag: '✅ Nutritious Whole Food',
-      badgeVariant: 'emerald',
-      clinicalFeedback: 'Wholesome natural food source supporting overall health.',
-      recommendation: 'Incorporate as part of a balanced nutritional plate.',
-      alternativeSuggestions: [],
-    };
-  }
-
   const nameLower = foodName.toLowerCase();
+  const conditionsLower = (medicalConditions || []).map((c) => c.toLowerCase().trim());
+  const allergiesLower = (allergies || []).map((a) => a.toLowerCase().trim());
+
   const matchedDiet =
     MOCK_DIETS.find(
       (d) =>
-        d.name.toLowerCase() === activeDietName.toLowerCase() ||
-        d.slug.toLowerCase() === activeDietName.toLowerCase()
+        d.id === activeDietName ||
+        d.name.toLowerCase() === (activeDietName || '').toLowerCase() ||
+        d.slug.toLowerCase() === (activeDietName || '').toLowerCase()
     ) || MOCK_DIETS[0];
 
-  const forbiddenWords = matchedDiet.forbiddenKeywords || [];
+  // 1. Allergy Check (Immediate AVOID)
+  if (allergiesLower.length > 0) {
+    if (allergiesLower.some((a) => nameLower.includes(a) || (a === 'peanuts' && nameLower.includes('badam')))) {
+      return {
+        status: 'AVOID',
+        isCompatible: false,
+        isViolation: true,
+        tag: '🚫 Allergen Conflict Alert',
+        badgeVariant: 'rose',
+        clinicalFeedback: `"${foodName}" contains verified allergens in your profile. Strict avoidance is advised.`,
+        recommendation: 'Do not consume. Select allergen-free alternatives.',
+        alternativeSuggestions: ['Safe Whole Vegetables', 'Non-Allergenic Proteins'],
+        portionG,
+      };
+    }
+  }
 
-  // Check if any forbidden keyword matches
+  // 2. CKD / Renal Check (Aggressive Professional Review)
+  if (conditionsLower.some((c) => c.includes('ckd') || c.includes('kidney'))) {
+    if (category.toLowerCase().includes('meat') || category.toLowerCase().includes('poultry') || nameLower.includes('chicken breast')) {
+      return {
+        status: 'PROFESSIONAL_REVIEW',
+        isCompatible: false,
+        isViolation: false,
+        tag: '🏥 Professional Review Recommended',
+        badgeVariant: 'indigo',
+        clinicalFeedback: 'NutriLens cannot safely determine automated suitability for high-protein foods in CKD without clinical lab context (eGFR, stage).',
+        recommendation: 'Consult your treating nephrologist or clinical renal dietitian.',
+        alternativeSuggestions: ['Consult Healthcare Provider for Individualized Protein Target'],
+        professionalReviewRequired: true,
+        portionG,
+      };
+    }
+  }
+
+  // 3. Diabetes / Prediabetes + White Rice / Refined Carbs (CAUTION default, LIMIT if large portion)
+  if (conditionsLower.some((c) => c.includes('diabet') || c.includes('insulin'))) {
+    if (nameLower.includes('white rice') || nameLower.includes('bhaat') || nameLower.includes('rice') && !nameLower.includes('red') && !nameLower.includes('brown')) {
+      if (portionG >= 200) {
+        return {
+          status: 'LIMIT',
+          isCompatible: false,
+          isViolation: true,
+          tag: '⚠️ High Glycemic Load (Large Portion)',
+          badgeVariant: 'orange',
+          clinicalFeedback: `A ${portionG}g serving of cooked white rice carries a high glycemic load. Consider reducing to 100-120g or pairing with non-starchy greens.`,
+          recommendation: 'Scale down portion or substitute with Red rice (Lal chal) / Steel-cut oats.',
+          alternativeSuggestions: ['Red Rice (Lal chal)', 'Palong Shak', 'Chickpeas / Dal', 'Steel-cut Oats'],
+          portionG,
+        };
+      }
+      return {
+        status: 'CAUTION',
+        isCompatible: true,
+        isViolation: false,
+        tag: 'ℹ️ Mindful Portion & Plate Balance',
+        badgeVariant: 'amber',
+        clinicalFeedback: `Refined carbohydrate with potentially higher glycemic impact; portion (${portionG}g) and pairing with leafy greens/protein matter.`,
+        recommendation: 'Enjoy mindfully; ensure half your plate has non-starchy vegetables.',
+        alternativeSuggestions: ['Red Rice (Lal chal)', 'Lentil Dal', 'Steamed Vegetables'],
+        portionG,
+      };
+    }
+  }
+
+  // 4. Gout / Hyperuricemia + Purine Food (CAUTION if small, LIMIT if large)
+  if (conditionsLower.some((c) => c.includes('gout') || c.includes('uric'))) {
+    if (nameLower.includes('fish') || nameLower.includes('rui') || nameLower.includes('meat') || nameLower.includes('beef') || nameLower.includes('mutton')) {
+      if (nameLower.includes('beef') || nameLower.includes('liver') || nameLower.includes('kolija') || nameLower.includes('shutki')) {
+        return {
+          status: 'LIMIT',
+          isCompatible: false,
+          isViolation: true,
+          tag: '⚠️ High Purine Density',
+          badgeVariant: 'orange',
+          clinicalFeedback: `"${foodName}" contains high purine density which degrades into uric acid. Moderation and high fluid intake are advised.`,
+          recommendation: 'Choose low-purine proteins like whole boiled eggs or low-fat Tok doi.',
+          alternativeSuggestions: ['Whole Boiled Eggs', 'Low-fat Tok doi (Yogurt)', 'Fresh Cucumber', 'Bottle Gourd (Lau)'],
+          portionG,
+        };
+      }
+      if (portionG > 120) {
+        return {
+          status: 'LIMIT',
+          isCompatible: false,
+          isViolation: true,
+          tag: '⚠️ Moderate Purine (Large Serving)',
+          badgeVariant: 'orange',
+          clinicalFeedback: `Portion size (${portionG}g) supplies moderate purines. In active hyperuricemia, portions under 80-100g with ample water are recommended.`,
+          recommendation: 'Scale portion down to ~80g and drink plenty of water.',
+          alternativeSuggestions: ['Boiled Eggs', 'Low-fat Tok doi', 'Bottle Gourd curry'],
+          portionG,
+        };
+      }
+      return {
+        status: 'CAUTION',
+        isCompatible: true,
+        isViolation: false,
+        tag: 'ℹ️ Moderate Purine (Mind Hydration)',
+        badgeVariant: 'amber',
+        clinicalFeedback: `"${foodName}" has moderate purines. Enjoy with ample hydration (>3.0L daily).`,
+        recommendation: 'Standard portion is acceptable alongside plenty of water.',
+        alternativeSuggestions: ['Boiled Eggs', 'Low-fat Tok doi'],
+        portionG,
+      };
+    }
+  }
+
+  // 5. Hypothyroidism + Goitrogens (Raw = CAUTION, Cooked = SAFE)
+  if (conditionsLower.some((c) => c.includes('thyroid') || c.includes('hashimoto'))) {
+    if (nameLower.includes('cabbage') || nameLower.includes('cauliflower') || nameLower.includes('broccoli')) {
+      return {
+        status: 'CAUTION',
+        isCompatible: true,
+        isViolation: false,
+        tag: 'ℹ️ Cook Thoroughly (Goitrogen Care)',
+        badgeVariant: 'amber',
+        clinicalFeedback: `Raw cruciferous vegetables contain goitrogenic compounds; thorough cooking deactivates myrosinase and makes them safe.`,
+        recommendation: 'Ensure vegetables are well-cooked or steamed before eating.',
+        alternativeSuggestions: ['Cooked Spinach (Palong Shak)', 'Bottle Gourd (Lau)', 'Sea Fish (Rupchanda)'],
+        portionG,
+      };
+    }
+  }
+
+  // 6. Active Diet Plan Forbidden Words Check
+  const forbiddenWords = matchedDiet.forbiddenKeywords || [];
   const matchedForbidden = forbiddenWords.find((keyword) => nameLower.includes(keyword.toLowerCase()));
 
   if (matchedForbidden) {
-    // Determine diet-specific violation message
-    if (matchedDiet.slug === 'ketogenic') {
+    if (matchedDiet.slug.includes('keto')) {
       return {
+        status: 'LIMIT',
         isCompatible: false,
         isViolation: true,
-        tag: '🚫 Keto Protocol Violation',
-        badgeVariant: 'rose',
-        clinicalFeedback: `"${foodName}" is high in net carbohydrates and will kick your body out of nutritional ketosis.`,
-        recommendation: 'Replace with low-carb leafy greens or healthy fat sources.',
-        alternativeSuggestions: ['Steamed Broccoli', 'Cauliflower Rice', 'Sautéed Spinach', 'Hass Avocado'],
-      };
-    }
-
-    if (matchedDiet.slug === 'plant-based') {
-      return {
-        isCompatible: false,
-        isViolation: true,
-        tag: '🚫 Non-Plant Food Alert',
-        badgeVariant: 'rose',
-        clinicalFeedback: `"${foodName}" contains animal-derived ingredients which are not permitted on the Whole-Food Plant-Based protocol.`,
-        recommendation: 'Opt for plant protein and botanical alternatives.',
-        alternativeSuggestions: ['Organic Tofu', 'Boiled Chickpeas (Chola)', 'Lentil Dal', 'Edamame'],
-      };
-    }
-
-    if (matchedDiet.slug === 'low-gi-diabetes') {
-      return {
-        isCompatible: false,
-        isViolation: true,
-        tag: '⚠️ High Glycemic Spike Alert',
-        badgeVariant: 'amber',
-        clinicalFeedback: `"${foodName}" has a high Glycemic Index (>60) that can trigger rapid post-meal blood sugar surges.`,
-        recommendation: 'Switch to slow-digesting resistant starches or high-fiber vegetables.',
-        alternativeSuggestions: ['Steel-Cut Oats', 'Boiled Bitter Gourd (Karela)', 'Pointed Gourd (Potol)', 'Chia Seeds'],
-      };
-    }
-
-    if (matchedDiet.slug === 'dash') {
-      return {
-        isCompatible: false,
-        isViolation: true,
-        tag: '⚠️ High Sodium / Pressure Warning',
-        badgeVariant: 'amber',
-        clinicalFeedback: `"${foodName}" contains elevated sodium levels that counter DASH arterial relaxation goals.`,
-        recommendation: 'Choose unsalted potassium-rich fresh produce.',
-        alternativeSuggestions: ['Fresh Beetroot Salad', 'Steamed Spinach', 'Raw Almonds', 'Sweet Potato Cubes'],
+        tag: '🚫 Keto Carbohydrate Limit',
+        badgeVariant: 'orange',
+        clinicalFeedback: `"${foodName}" is high in net carbohydrates and may interrupt nutritional ketosis.`,
+        recommendation: 'Replace with low-carb leafy greens or healthy deshi fats.',
+        alternativeSuggestions: ['Palong Shak', 'Cauliflower Rice', 'Pure Deshi Ghee', 'Boiled Eggs'],
+        portionG,
       };
     }
 
     return {
+      status: 'LIMIT',
       isCompatible: false,
       isViolation: true,
-      tag: `⚠️ Non-Compliant for ${matchedDiet.name}`,
-      badgeVariant: 'amber',
-      clinicalFeedback: `"${foodName}" contains ultra-processed elements or excessive refined sugars not recommended on ${matchedDiet.name}.`,
+      tag: `⚠️ Limited on ${matchedDiet.name}`,
+      badgeVariant: 'orange',
+      clinicalFeedback: `"${foodName}" contains elements not encouraged on the ${matchedDiet.name} protocol.`,
       recommendation: 'Select whole-food unrefined ingredients instead.',
-      alternativeSuggestions: ['Fresh Rainbow Vegetables', 'Grilled Clean Protein', 'Extra Virgin Olive Oil'],
+      alternativeSuggestions: ['Fresh Leafy Greens', 'Deshi Fish / Chicken', 'Cold-pressed Mustard Oil'],
+      portionG,
     };
   }
 
-  // If compatible:
+  // 7. Default SAFE Status
   return {
+    status: 'SAFE',
     isCompatible: true,
     isViolation: false,
     tag: `✅ ${matchedDiet.name} Approved`,
     badgeVariant: 'emerald',
-    clinicalFeedback: `"${foodName}" aligns with your ${matchedDiet.name} protocol, supplying beneficial micronutrients and satiety.`,
-    recommendation: 'Great choice! Track your portion accurately.',
+    clinicalFeedback: `"${foodName}" aligns well with your ${matchedDiet.name} protocol, supplying valuable micronutrients and satiety.`,
+    recommendation: 'Nutritious choice! Track your portion accurately.',
     alternativeSuggestions: [],
+    portionG,
   };
 }
+
+
 

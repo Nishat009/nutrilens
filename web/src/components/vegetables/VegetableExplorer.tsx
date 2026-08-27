@@ -38,19 +38,34 @@ const CATEGORIES: VegetableCategory[] = [
 
 export function VegetableExplorer() {
   const [vegetables, setVegetables] = useState<Vegetable[]>([]);
+  const [categories, setCategories] = useState<string[]>(['All']);
   const [totalCount, setTotalCount] = useState<number>(0);
-  const [selectedCategory, setSelectedCategory] = useState<VegetableCategory>('All');
+  const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [sortBy, setSortBy] = useState<'name' | 'calories' | 'protein' | 'fiber' | 'carbs'>('name');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [selectedVegetable, setSelectedVegetable] = useState<Vegetable | null>(null);
 
+  useEffect(() => {
+    vegetableApi
+      .getCategories()
+      .then((catList) => {
+        if (catList && catList.length > 0) {
+          const names = ['All', ...catList.map((c) => c.category)];
+          setCategories(Array.from(new Set(names)));
+        }
+      })
+      .catch(() => {
+        // keep fallback categories
+      });
+  }, []);
+
   const fetchVegetables = async () => {
     setIsLoading(true);
     try {
       const data = await vegetableApi.getVegetables({
-        category: selectedCategory,
+        category: selectedCategory as any,
         search: searchQuery,
         sortBy,
         order: sortOrder,
@@ -68,6 +83,7 @@ export function VegetableExplorer() {
   useEffect(() => {
     fetchVegetables();
   }, [selectedCategory, sortBy, sortOrder, searchQuery]);
+
 
   return (
     <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-300">
@@ -110,7 +126,7 @@ export function VegetableExplorer() {
       <div className="space-y-4">
         {/* Category Filter Horizontal Scroll */}
         <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
-          {CATEGORIES.map((cat) => (
+          {categories.map((cat) => (
             <button
               key={cat}
               onClick={() => setSelectedCategory(cat)}
@@ -125,6 +141,7 @@ export function VegetableExplorer() {
             </button>
           ))}
         </div>
+
 
         {/* Filter and Sort Bar */}
         <div className="flex flex-wrap items-center justify-between gap-4 bg-slate-900/60 border border-slate-800/80 rounded-2xl p-4">

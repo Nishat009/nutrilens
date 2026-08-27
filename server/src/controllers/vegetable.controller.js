@@ -205,12 +205,13 @@ exports.getVegetableByIdOrSlug = async (req, res) => {
     }
 
     if (!vegetable) {
-      return res.status(404).json({
+      return res.status(422).json({
         success: false,
-        code: 404,
+        code: 422,
         errors: [`Vegetable '${idOrSlug}' not found in database`],
       });
     }
+
 
     res.status(200).json({
       success: true,
@@ -356,12 +357,13 @@ exports.calculateNutrition = async (req, res) => {
     }
 
     if (!vegetable) {
-      return res.status(404).json({
+      return res.status(422).json({
         success: false,
-        code: 404,
+        code: 422,
         errors: [`Vegetable '${idOrSlug}' not found`],
       });
     }
+
 
     const factor = grams / 100;
     const calculated = {
