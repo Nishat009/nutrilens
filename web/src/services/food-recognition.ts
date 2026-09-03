@@ -84,29 +84,28 @@ export async function recognizeFoodFromImage(
 
     if (response.ok) {
       const data = await response.json();
-      if (data.success && data.result) {
-        return data.result;
+      if (data.success && (data.data || data.result)) {
+        return data.data || data.result;
       }
     }
   } catch (err) {
     console.warn('Backend food recognition call error:', err);
   }
 
-  // 3. Fallback to default healthy vegetable item from 100+ DB
-  const defaultFood = NUTRITION_DATABASE.find((f) => f.id === 'veg_alu') || NUTRITION_DATABASE[0];
-  const detected = buildResultItem(defaultFood, 0.88, defaultFood.defaultPortion || 100);
+  // 3. Do not turn an unavailable model into a confident nutrition claim.
+  const detected = buildResultItem(NUTRITION_DATABASE[0], 0.1, 0);
 
   return {
     scanId,
-    status: 'completed',
-    isDemoMode: false,
-    modelName: '100+ Vegetable Database Matcher',
+    status: 'low_confidence',
+    isDemoMode: true,
+    modelName: 'Manual Review Required',
     detectedFoods: [detected],
-    overallConfidence: 0.88,
-    overallConfidenceLevel: 'high',
-    topSuggestions: NUTRITION_DATABASE.slice(1, 5).map((f) => f.name),
+    overallConfidence: 0.1,
+    overallConfidenceLevel: 'low',
+    topSuggestions: NUTRITION_DATABASE.slice(0, 5).map((f) => f.name),
     suggestedMealType: customMealType || 'lunch',
-    analysisNotes: `Matched ${defaultFood.name} from your 100+ vegetable database.`,
+    analysisNotes: 'Food recognition was unavailable. Please select the food manually before logging nutrition.',
     disclaimer: MEDICAL_DISCLAIMER,
   };
 }

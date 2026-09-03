@@ -21,11 +21,34 @@ exports.analyzeFoodScan = async (req, res) => {
       colorProfile,
       fileName,
     });
+    const scan = await FoodScan.create({
+      userId: req.user._id,
+      imageUrl: image,
+      suggestedMealType: result.suggestedMealType,
+      analysisNotes: result.analysisNotes,
+      totalCalories: result.detectedFoods.reduce((sum, item) => sum + item.calories, 0),
+      totalProtein: result.detectedFoods.reduce((sum, item) => sum + item.protein, 0),
+      totalCarbs: result.detectedFoods.reduce((sum, item) => sum + item.carbs, 0),
+      totalFat: result.detectedFoods.reduce((sum, item) => sum + item.fat, 0),
+      totalFiber: result.detectedFoods.reduce((sum, item) => sum + item.fiber, 0),
+      detectedItems: result.detectedFoods.map((item) => ({
+        name: item.name,
+        confidence: item.confidence,
+        estimatedQuantity: item.quantity,
+        unit: item.unit,
+        calories: item.calories,
+        protein: item.protein,
+        carbs: item.carbs,
+        fat: item.fat,
+        fiber: item.fiber,
+        foodId: item.foodId,
+      })),
+    });
     res.status(200).json({
       success: true,
       code: 200,
       message: 'Food analysis completed successfully',
-      result,
+      data: { ...result, persistedScanId: scan._id },
     });
   } catch (error) {
     res.status(422).json({
@@ -50,16 +73,7 @@ async function resolveUserId(rawId) {
 // @route   GET /api/scans
 exports.getScans = async (req, res) => {
   try {
-    const { userId } = req.query;
-    const filter = {};
-    if (userId && userId !== 'current' && userId !== 'default') {
-      if (mongoose.Types.ObjectId.isValid(userId)) {
-        filter.userId = userId;
-      } else {
-        const resolved = await resolveUserId(userId);
-        if (resolved) filter.userId = resolved;
-      }
-    }
+    const filter = { userId: req.user._id };
 
     const scans = await FoodScan.find(filter).sort({ createdAt: -1 });
     res.status(200).json({
@@ -82,7 +96,7 @@ exports.getScans = async (req, res) => {
 // @route   GET /api/scans/:id
 exports.getScanById = async (req, res) => {
   try {
-    const scan = await FoodScan.findById(req.params.id);
+    const scan = await FoodScan.findOne({ _id: req.params.id, userId: req.user._id });
     if (!scan) {
       return res.status(422).json({
         success: false,
@@ -109,13 +123,7 @@ exports.getScanById = async (req, res) => {
 // @route   POST /api/scans
 exports.createScan = async (req, res) => {
   try {
-    let { userId } = req.body;
-    userId = await resolveUserId(userId);
-
-    if (!userId) {
-      const defaultUser = await User.findOne();
-      userId = defaultUser ? defaultUser._id : null;
-    }
+    const userId = req.user._id;
 
     const scan = await FoodScan.create({
       ...req.body,

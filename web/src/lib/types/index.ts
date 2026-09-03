@@ -1,8 +1,67 @@
 export type Gender = 'male' | 'female' | 'other';
 export type ActivityLevel = 'sedentary' | 'lightly_active' | 'moderately_active' | 'very_active' | 'extra_active';
-export type GoalType = 'lose_weight' | 'maintain' | 'gain_muscle';
-export type MealType = 'breakfast' | 'lunch' | 'dinner' | 'snack';
+export type GoalType =
+  | 'lose_weight'
+  | 'reduce_belly_fat'
+  | 'gain_muscle'
+  | 'body_recomposition'
+  | 'maintain'
+  | 'general_health'
+  | 'blood_sugar'
+  | 'blood_pressure';
+
+export type WeightLossPace = 'slow_sustainable' | 'moderate' | 'faster';
+
+export type HealthCondition =
+  | 'diabetes'
+  | 'prediabetes'
+  | 'hypertension'
+  | 'pcos'
+  | 'thyroid'
+  | 'high_cholesterol'
+  | 'fatty_liver'
+  | 'kidney_disease'
+  | 'liver_disease'
+  | 'gerd'
+  | 'ibs'
+  | 'anemia'
+  | 'pregnancy_breastfeeding'
+  | 'none'
+  | 'other';
+
+export type FoodPreferenceType =
+  | 'no_preference'
+  | 'balanced'
+  | 'high_protein'
+  | 'low_carb'
+  | 'vegetarian'
+  | 'vegan'
+  | 'pescatarian'
+  | 'traditional_bangladeshi'
+  | 'flexible';
+
+export type AllergyType =
+  | 'dairy'
+  | 'egg'
+  | 'fish'
+  | 'seafood'
+  | 'peanut'
+  | 'treenut'
+  | 'gluten'
+  | 'soy'
+  | 'other'
+  | 'none';
+
+export type MealType = 'breakfast' | 'morning_snack' | 'lunch' | 'afternoon_snack' | 'dinner' | 'snack';
 export type ScanStatus = 'uploading' | 'identifying' | 'estimating' | 'calculating' | 'completed' | 'failed';
+
+export interface LifestyleProfile {
+  sleepHours: 'less_than_5' | '5_to_6' | '6_to_8' | '8_plus';
+  workType: 'desk_job' | 'mixed' | 'physical_labor';
+  mealFrequency: 2 | 3 | 4 | 5;
+  cookingHabit: 'self_cook' | 'family_cooks' | 'mostly_takeaway';
+  budgetLevel: 'low' | 'medium' | 'flexible';
+}
 
 export interface UserProfile {
   id: string;
@@ -12,10 +71,17 @@ export interface UserProfile {
   dob: string;
   heightCm: number;
   weightKg: number;
-  activityLevel: ActivityLevel;
-  dietaryPreferences: string[];
-  allergies: string[];
   targetWeightKg?: number;
+  waistCm?: number;
+  activityLevel: ActivityLevel;
+  primaryGoal?: GoalType;
+  goalPace?: WeightLossPace;
+  healthConditions?: HealthCondition[];
+  foodPreferences?: FoodPreferenceType[];
+  commonFoodsEaten?: string[];
+  allergies: string[];
+  lifestyle?: LifestyleProfile;
+  dietaryPreferences: string[];
   avatarUrl?: string;
 }
 
@@ -141,7 +207,7 @@ export interface DietPlan {
   description: string;
   fullOverview: string;
   icon: string;
-  difficulty: 'Easy' | 'Moderate' | 'Challenging';
+  difficulty: 'Easy' | 'Moderate' | 'Challenging' | 'Advanced';
   macroRatio: {
     protein: number; // percentage (0-100)
     carbs: number;
@@ -158,6 +224,14 @@ export interface DietPlan {
     dinner: string;
     snack: string;
   };
+  isFeatured?: boolean;
+  suitableFor?: string[];
+  goalCompatibility?: Record<string, number>;
+  healthCompatibility?: Record<string, number>;
+  foodStyle?: string[];
+  flexibility?: 'high' | 'moderate' | 'strict';
+  requiresProfessionalReview?: string[];
+  restrictions?: string[];
 }
 
 export interface PlannedMealSlot {
@@ -180,4 +254,113 @@ export interface Recommendation {
   actionUrl?: string;
   severity: 'info' | 'success' | 'warning';
   createdAt: string;
+}
+
+// ==================== PERSONALIZED RECOMMENDATION & 7-DAY PLAN TYPES ====================
+
+export interface DietMatchScore {
+  slug: string;
+  name: string;
+  tagline: string;
+  icon: string;
+  score: number; // 0 - 100
+  tier: 'Best Match' | 'Good Match' | 'Alternative';
+  macroRatio: { protein: number; carbs: number; fat: number };
+  reasons: string[];
+  cautionReasons: string[];
+  requiresDoctorConsult: boolean;
+  doctorConsultReasons: string[];
+}
+
+export interface PersonalizedMealItem {
+  id: string;
+  foodId: string;
+  name: string;
+  bengaliName?: string;
+  portion: string;
+  grams: number;
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+  fiber: number;
+  substitutionGroup: string;
+  notes?: string;
+}
+
+export interface PersonalizedMealSlot {
+  mealType: MealType;
+  title: string;
+  time: string;
+  items: PersonalizedMealItem[];
+  slotCalories: number;
+  slotProtein: number;
+  slotCarbs: number;
+  slotFat: number;
+  slotFiber: number;
+}
+
+export interface PersonalizedMealDay {
+  dayNumber: number; // 1 to 7
+  dayName: string; // e.g. "Day 1 (Monday)"
+  focusTitle: string;
+  meals: PersonalizedMealSlot[];
+  dayCalories: number;
+  dayProtein: number;
+  dayCarbs: number;
+  dayFat: number;
+  dayFiber: number;
+}
+
+export interface FoodSwapOption {
+  foodId: string;
+  name: string;
+  bengaliName: string;
+  portion: string;
+  grams: number;
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+  fiber: number;
+  reason: string;
+}
+
+export interface PersonalizedDietPlan {
+  id: string;
+  createdAt: string;
+  summary: {
+    bmi: number;
+    bmiCategory: string;
+    currentWeightKg: number;
+    targetWeightKg: number;
+    weightDifferenceKg: number;
+    bmr: number;
+    tdee: number;
+    targetCalories: number;
+    targetProteinG: number;
+    targetCarbsG: number;
+    targetFatG: number;
+    targetFiberG: number;
+    targetWaterMl: number;
+    paceLabel: string;
+  };
+  topMatches: DietMatchScore[];
+  selectedDiet: DietMatchScore;
+  safetyAlerts: {
+    requiresDoctorConsult: boolean;
+    messages: string[];
+  };
+  behavioralTips: string[];
+  sevenDayPlan: PersonalizedMealDay[];
+}
+
+export interface AdaptivePlanReview {
+  weightChangeKg: number;
+  status: 'optimal_progress' | 'slower_progress' | 'rapid_loss' | 'high_hunger' | 'low_energy';
+  headline: string;
+  recommendations: string[];
+  adjustedCalories?: number;
+  adjustedProteinG?: number;
+  adjustedFiberG?: number;
 }

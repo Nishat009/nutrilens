@@ -81,9 +81,9 @@ app.use('/api/planner', require('./routes/planner.routes'));
 
 // 404 handler
 app.use((req, res) => {
-  res.status(404).json({
+  res.status(422).json({
     success: false,
-    code: 404,
+    code: 422,
     errors: [`Route ${req.originalUrl} not found`],
   });
 });

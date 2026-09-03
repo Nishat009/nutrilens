@@ -51,7 +51,7 @@ const DietPlanSchema = new mongoose.Schema(
     },
     difficulty: {
       type: String,
-      enum: ['Easy', 'Moderate', 'Advanced'],
+      enum: ['Easy', 'Moderate', 'Challenging', 'Advanced'],
       default: 'Moderate',
     },
     macroRatio: {
@@ -77,6 +77,41 @@ const DietPlanSchema = new mongoose.Schema(
     isFeatured: {
       type: Boolean,
       default: false,
+    },
+    suitableFor: {
+      type: [String],
+      default: [],
+    },
+    goalCompatibility: {
+      type: Map,
+      of: Number,
+      default: {},
+    },
+    healthCompatibility: {
+      type: Map,
+      of: Number,
+      default: {},
+    },
+    foodStyle: {
+      type: [String],
+      default: [],
+    },
+    flexibility: {
+      type: String,
+      enum: ['high', 'moderate', 'strict'],
+      default: 'moderate',
+    },
+    requiresProfessionalReview: {
+      type: [String],
+      default: [],
+    },
+    restrictions: {
+      type: [String],
+      default: [],
+    },
+    guidelines: {
+      type: [String],
+      default: [],
     },
   },
   {

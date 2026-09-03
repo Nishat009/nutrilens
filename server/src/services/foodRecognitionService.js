@@ -179,7 +179,8 @@ Return ONLY a valid JSON object in this exact schema with no markdown backticks 
     modelName = 'NutriLens Adaptive Vision Engine';
 
     const lower = (imageBase64 || '').toLowerCase();
-    const dominant = analyzeDominantColor(imageBase64);
+    const isImageData = /^data:image\/[a-zA-Z0-9.+-]+;base64,/.test(imageBase64 || '');
+    const dominant = isImageData ? analyzeDominantColor(imageBase64) : 'unknown';
 
     if (
       lower.includes('carrot') ||
@@ -247,12 +248,10 @@ Return ONLY a valid JSON object in this exact schema with no markdown backticks 
       analysisNotes = 'Identified high-protein breakfast with seasoned egg omelette and whole wheat flatbread.';
     } else {
       detectedFoodConfigs = [
-        { food: NUTRITION_DATABASE.find((f) => f.id === 'food_chicken_curry') || NUTRITION_DATABASE[0], portion: 200, confidence: 0.95 },
-        { food: NUTRITION_DATABASE.find((f) => f.id === 'food_white_rice') || NUTRITION_DATABASE[1], portion: 200, confidence: 0.96 },
-        { food: NUTRITION_DATABASE.find((f) => f.id === 'food_masoor_dal') || NUTRITION_DATABASE[2], portion: 150, confidence: 0.91 },
+        { food: { id: 'unknown', name: 'Unidentified food', category: 'Unknown', defaultPortion: 100, unit: 'g', caloriesPer100g: 0, proteinPer100g: 0, carbsPer100g: 0, fatPer100g: 0, fiberPer100g: 0 }, portion: 100, confidence: 0.1 },
       ];
       suggestedMealType = customMealType || 'dinner';
-      analysisNotes = 'Detected balanced home-cooked meal: Chicken curry, steamed rice, and masoor dal.';
+      analysisNotes = 'The image could not be identified reliably. Please select the food manually before logging nutrition.';
     }
   }
 

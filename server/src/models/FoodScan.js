@@ -10,7 +10,7 @@ const DetectedItemSchema = new mongoose.Schema({
   carbs: { type: Number, required: true },
   fat: { type: Number, required: true },
   fiber: { type: Number, default: 0 },
-  foodId: { type: mongoose.Schema.Types.ObjectId, ref: 'Food' },
+  foodId: { type: String },
 });
 
 const FoodScanSchema = new mongoose.Schema(

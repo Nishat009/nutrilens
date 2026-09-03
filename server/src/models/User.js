@@ -3,7 +3,16 @@ const mongoose = require('mongoose');
 const UserGoalSchema = new mongoose.Schema({
   type: {
     type: String,
-    enum: ['lose_weight', 'maintain', 'gain_muscle'],
+    enum: [
+      'lose_weight',
+      'reduce_belly_fat',
+      'gain_muscle',
+      'body_recomposition',
+      'maintain',
+      'general_health',
+      'blood_sugar',
+      'blood_pressure',
+    ],
     default: 'lose_weight',
   },
   targetCalories: { type: Number, default: 2150 },
@@ -37,7 +46,7 @@ const UserSchema = new mongoose.Schema(
     },
     password: {
       type: String,
-      default: 'password123', // In production, hash with bcrypt
+      default: 'password123',
       select: false,
     },
     gender: {
@@ -61,6 +70,9 @@ const UserSchema = new mongoose.Schema(
       type: Number,
       default: 72.0,
     },
+    waistCm: {
+      type: Number,
+    },
     activityLevel: {
       type: String,
       enum: [
@@ -72,13 +84,41 @@ const UserSchema = new mongoose.Schema(
       ],
       default: 'moderately_active',
     },
-    dietaryPreferences: {
+    primaryGoal: {
+      type: String,
+      default: 'lose_weight',
+    },
+    goalPace: {
+      type: String,
+      enum: ['slow_sustainable', 'moderate', 'faster'],
+      default: 'moderate',
+    },
+    healthConditions: {
       type: [String],
-      default: ['High Protein / Gym', 'Mediterranean'],
+      default: [],
+    },
+    foodPreferences: {
+      type: [String],
+      default: ['balanced', 'traditional_bangladeshi'],
+    },
+    commonFoodsEaten: {
+      type: [String],
+      default: ['Rice', 'Roti', 'Dal', 'Fish', 'Chicken', 'Egg', 'Vegetables'],
     },
     allergies: {
       type: [String],
       default: [],
+    },
+    lifestyle: {
+      sleepHours: { type: String, default: '6_to_8' },
+      workType: { type: String, default: 'desk_job' },
+      mealFrequency: { type: Number, default: 3 },
+      cookingHabit: { type: String, default: 'family_cooks' },
+      budgetLevel: { type: String, default: 'medium' },
+    },
+    dietaryPreferences: {
+      type: [String],
+      default: ['High Protein / Gym', 'Mediterranean'],
     },
     avatarUrl: {
       type: String,
@@ -88,6 +128,9 @@ const UserSchema = new mongoose.Schema(
     goal: {
       type: UserGoalSchema,
       default: () => ({}),
+    },
+    personalizedPlan: {
+      type: mongoose.Schema.Types.Mixed,
     },
   },
   {

@@ -50,6 +50,11 @@ export const GOAL_OPTIONS: Record<GoalType, { label: string; desc: string; calor
     desc: 'Controlled caloric surplus (~300 kcal/day) high in bioavailable protein',
     calorieOffset: 300,
   },
+  reduce_belly_fat: { label: 'Waist Reduction', desc: 'Reduce waist circumference through sustainable fat loss', calorieOffset: -400 },
+  body_recomposition: { label: 'Body Recomposition', desc: 'Build lean mass while reducing body fat', calorieOffset: -200 },
+  general_health: { label: 'General Health', desc: 'Improve nutrition quality and daily wellbeing', calorieOffset: 0 },
+  blood_sugar: { label: 'Blood Sugar Support', desc: 'Prioritize steady energy and lower glycemic foods', calorieOffset: -300 },
+  blood_pressure: { label: 'Blood Pressure Support', desc: 'Emphasize heart-friendly, lower-sodium nutrition', calorieOffset: -300 },
 };
 
 export const MEAL_TYPE_CONFIG: Record<MealType, { label: string; icon: string; defaultTime: string; color: string }> = {
@@ -77,6 +82,8 @@ export const MEAL_TYPE_CONFIG: Record<MealType, { label: string; icon: string; d
     defaultTime: '16:00',
     color: '#06b6d4',
   },
+  morning_snack: { label: 'Morning Snack', icon: 'Apple', defaultTime: '10:30', color: '#22c55e' },
+  afternoon_snack: { label: 'Afternoon Snack', icon: 'Apple', defaultTime: '16:00', color: '#06b6d4' },
 };
 
 export const DIETARY_PREFERENCES_LIST = [

@@ -9,9 +9,10 @@ This document provides a comprehensive technical specification for the **NutriLe
 
 ### 1.2 Scope
 - **Vision Engine**: Client-side TensorFlow.js MobileNetV2 with fallback chromatic color analysis and 64-bit perceptual difference hashing (`dHash`) for continuous self-learning.
-- **Nutritional Database**: 100+ items calibrated with ICMR and USDA standards including traditional Bengali bazaar vegetables and global fitness staples.
+- **Personalized Diet & 7-Day Plan Engine**: 8-step onboarding assessment, Mifflin-St Jeor BMR/TDEE with safety floors (1,200/1,500 kcal), multi-factor diet ranking, Bangladeshi food adaptation, household portion guides, 1-click food swaps, and 2–3 week adaptive reviews.
+- **Nutritional Database**: 100+ items calibrated with ICMR and USDA standards including authentic Bangladeshi staples (Lal Chal, Atta Roti, Rui, Katla, Ilish, Desi Murgi, Dal, Shak/Bhaji, Tok Doi, Mustard Oil).
 - **Clinical Protocols**: 7 evidence-based dietary regimens (Mediterranean, Keto, High-Protein, Intermittent Fasting, Low-GI Diabetes Care, DASH, Plant-Based).
-- **Personalized Metabolism**: Mifflin-St Jeor TDEE, dynamic 30-day fat loss projections, hydration prescription (weight/height based), and NEAT non-exercise activity alternatives.
+- **Personalized Metabolism**: Dynamic 30-day fat loss projections, hydration prescription (weight/height based), and NEAT non-exercise activity alternatives.
 
 ---
 
@@ -23,26 +24,32 @@ This document provides a comprehensive technical specification for the **NutriLe
 - **Client Vision**: TensorFlow.js in-browser execution with zero mandatory external API keys.
 
 ### 2.2 System Features & Modules
-1. **Multimodal Food Scanner (`/scan`)**:
+1. **Personalized Diet Recommendation & 7-Day Planner (`/onboarding`, `/diets`)**:
+   - 8-step onboarding flow (Biometrics, 8 Goals + Pacing, Activity, 15+ Health Conditions & Safety Alerts, Food Preferences, Hard Allergy Exclusions, Lifestyle).
+   - Multi-factor clinical protocol ranking with "Why selected" and "Why ranked lower" rationale.
+   - Interactive 7-Day meal plan with household measurements (*cups*, *palm-sized pieces*, *bowls*, *rotis*, *teaspoons*).
+   - Instant food swap modal with macro-aligned, allergy-safe local alternatives.
+   - 2–3 week adaptive progress check-in modal.
+   - 1-click adoption to Weekly Planner (`/planner`) and user nutrition goals.
+2. **Multimodal Food Scanner (`/scan`)**:
    - Camera capture & image upload.
-   - On-device classification + visual memory matching.
+   - On-device classification + visual memory matching (`dHash`).
    - Direct manual vegetable search and instant auto-teaching.
    - Real-time macro calculations and portion sliders.
-2. **Clinical AI Nutritionist Dashboard (`/dashboard`)**:
+3. **Clinical AI Nutritionist Dashboard (`/dashboard`)**:
    - Zero fake data clean initial state for new users.
    - 30-day dynamic predictive weight loss engine ($7,700 \text{ kcal} = 1\text{ kg fat}$).
    - Hydration tracker with ml and 250ml glasses count.
    - Physical activity and NEAT no-gym habits toggle.
    - Active diet protocol status and superfood suggestions.
-3. **Diet Protocol Explorer (`/diets`, `/diets/[slug]`)**:
+4. **Diet Protocol Explorer (`/diets`, `/diets/[slug]`)**:
    - 7 evidence-based protocols with full clinical mechanisms.
-   - 1-click adoption updating user profile and macro target ratios.
-   - Real-time diet violation detection and healthy alternative suggestions.
-4. **Meal Logs & History (`/meals`, `/meals/[id]`)**:
+   - Switcher between personalized plan and full scientific protocols catalog.
+5. **Meal Logs & History (`/meals`, `/meals/[id]`)**:
    - Complete CRUD tracking for Breakfast, Lunch, Dinner, Snacks.
-5. **Weekly Meal Planner (`/planner`)**:
+6. **Weekly Meal Planner (`/planner`)**:
    - 7-day schedule with planned meal slots and macronutrient tallies.
-6. **Health Trends & Analytics (`/progress`)**:
+7. **Health Trends & Analytics (`/progress`)**:
    - Weight logging, trend graphs, and 30-day aggregated macro adherence.
 
 ---
@@ -64,6 +71,12 @@ This document provides a comprehensive technical specification for the **NutriLe
 ---
 
 ## 4. Non-Functional Requirements
-- **Responsiveness**: 100% responsive across Mobile, Tablet, and Desktop (Mobile Slide-in Drawer, TopBar Hamburger Menu, Mobile Bottom Bar).
+- **Responsive Breakpoints**: 100% responsive and verified across `320px`, `375px`, `390px`, `430px`, `768px`, `1024px`, `1280px`, `1366px`, `1440px`, and `1920px`.
 - **Privacy & Performance**: On-device vision processing ensures image privacy and ultra-fast offline fallback.
 - **Data Integrity**: MongoDB ObjectId resolution and schema validation across all collections.
+
+## 5. Implemented Runtime Constraints
+- Authentication is required for dashboard and user-owned data endpoints. Passwords are hashed with Node.js `crypto.scrypt`, and sessions use signed bearer tokens with a seven-day expiry.
+- All documented success responses use HTTP `200`; validation, authentication, and application errors use HTTP `422`.
+- Scan analysis is stored as a `FoodScan` record after successful analysis. Unknown or unavailable recognition returns low confidence and requires manual review.
+- User-owned meals, scans, planner slots, progress logs, profiles, and personalized plans are filtered by the authenticated user identity.

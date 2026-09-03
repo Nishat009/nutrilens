@@ -205,9 +205,9 @@ exports.getVegetableByIdOrSlug = async (req, res) => {
     }
 
     if (!vegetable) {
-      return res.status(404).json({
+      return res.status(422).json({
         success: false,
-        code: 404,
+        code: 422,
         errors: [`Vegetable '${idOrSlug}' not found in database`],
       });
     }
@@ -356,9 +356,9 @@ exports.calculateNutrition = async (req, res) => {
     }
 
     if (!vegetable) {
-      return res.status(404).json({
+      return res.status(422).json({
         success: false,
-        code: 404,
+        code: 422,
         errors: [`Vegetable '${idOrSlug}' not found`],
       });
     }

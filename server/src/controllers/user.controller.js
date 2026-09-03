@@ -41,12 +41,7 @@ exports.getUserProfile = async (req, res) => {
       });
     }
 
-    let user;
-    if (req.params.id === 'current' || req.params.id === 'default') {
-      user = await User.findOne();
-    } else {
-      user = await User.findById(req.params.id);
-    }
+    const user = req.user;
 
     if (!user) {
       // Auto-provision default user if DB is connected but not seeded yet
@@ -83,12 +78,7 @@ exports.getUserProfile = async (req, res) => {
 // @route   PUT /api/users/:id
 exports.updateUserProfile = async (req, res) => {
   try {
-    let user;
-    if (req.params.id === 'current' || req.params.id === 'default') {
-      user = await User.findOne();
-    } else {
-      user = await User.findById(req.params.id);
-    }
+    const user = req.user;
 
     if (!user) {
       return res.status(422).json({
@@ -124,12 +114,7 @@ exports.updateUserProfile = async (req, res) => {
 // @route   PUT /api/users/:id/goal
 exports.updateUserGoal = async (req, res) => {
   try {
-    let user;
-    if (req.params.id === 'current' || req.params.id === 'default') {
-      user = await User.findOne();
-    } else {
-      user = await User.findById(req.params.id);
-    }
+    const user = req.user;
 
     if (!user) {
       return res.status(422).json({

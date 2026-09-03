@@ -89,7 +89,9 @@ export default function ScanResultDetailPage() {
     overallConfidence: 0.94,
     overallConfidenceLevel: 'high',
     topSuggestions: NUTRITION_DATABASE.slice(0, 5).map((f) => f.name),
-    suggestedMealType: scan.suggestedMealType || 'lunch',
+    suggestedMealType: ['breakfast', 'lunch', 'dinner', 'snack'].includes(scan.suggestedMealType)
+      ? scan.suggestedMealType as 'breakfast' | 'lunch' | 'dinner' | 'snack'
+      : 'lunch',
     analysisNotes: scan.analysisNotes || 'AI Food Vision recognized ingredients with high semantic confidence.',
     disclaimer:
       'Nutrition values are estimates based on standard recipe averages and may vary depending on exact ingredients, preparation method, and portion size. Not intended for medical diagnosis.',

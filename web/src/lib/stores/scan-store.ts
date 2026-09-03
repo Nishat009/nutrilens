@@ -119,7 +119,10 @@ export const useScanStore = create<ScanState>((set, get) => ({
 
     try {
       const { recognizeFoodFromImage } = await import('../../services/food-recognition');
-      const result = await recognizeFoodFromImage(imageUrl, suggestedMealType);
+      const mealType = ['breakfast', 'lunch', 'dinner', 'snack'].includes(suggestedMealType)
+        ? suggestedMealType as 'breakfast' | 'lunch' | 'dinner' | 'snack'
+        : 'lunch';
+      const result = await recognizeFoodFromImage(imageUrl, mealType);
 
       const totalCalories = result.detectedFoods.reduce((acc: number, item: any) => acc + item.calories, 0);
       const totalProtein = Math.round(result.detectedFoods.reduce((acc: number, item: any) => acc + item.protein, 0) * 10) / 10;

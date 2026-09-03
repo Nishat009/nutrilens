@@ -32,6 +32,11 @@ async function request<T>(
   const url = `${BASE_URL}${endpoint}`;
   const headers = new Headers(options.headers || {});
 
+  if (typeof window !== 'undefined') {
+    const token = window.localStorage.getItem('nutrilens_token');
+    if (token) headers.set('Authorization', `Bearer ${token}`);
+  }
+
   if (!headers.has('Content-Type') && !(options.body instanceof FormData)) {
     headers.set('Content-Type', 'application/json');
   }
@@ -70,27 +75,27 @@ export const authApi = {
     heightCm?: number;
     weightKg?: number;
     activityLevel?: string;
-  }): Promise<UserProfile> {
+  }): Promise<{ user: UserProfile; token: string }> {
     const res = await request<any>('/api/auth/register', {
       method: 'POST',
       body: JSON.stringify(body),
     });
-    return normalizeUser(res);
+    return { user: normalizeUser(res.user), token: res.token };
   },
 
-  async login(body: { email: string; password?: string }): Promise<UserProfile> {
+  async login(body: { email: string; password?: string }): Promise<{ user: UserProfile; token: string }> {
     const res = await request<any>('/api/auth/login', {
       method: 'POST',
       body: JSON.stringify(body),
     });
-    return normalizeUser(res);
+    return { user: normalizeUser(res.user), token: res.token };
   },
 
   async getMe(): Promise<{ user: UserProfile; goal: UserGoal }> {
     const res = await request<any>('/api/auth/me');
     return {
-      user: normalizeUser(res),
-      goal: normalizeGoal(res.goal, res._id || res.id),
+      user: normalizeUser(res.user || res),
+      goal: normalizeGoal((res.user || res).goal, (res.user || res)._id || (res.user || res).id),
     };
   },
 };
@@ -274,6 +279,37 @@ export const dietApi = {
     });
     return normalizeUser(res);
   },
+
+  async getPersonalizedRecommendation(userProfile: Partial<UserProfile>): Promise<any> {
+    const res = await request<any>('/api/diets/recommend', {
+      method: 'POST',
+      body: JSON.stringify(userProfile),
+    });
+    return res;
+  },
+
+  async swapMealFood(foodId: string, allergies: string[] = [], dietType: string = 'balanced'): Promise<any[]> {
+    const res = await request<any[]>('/api/diets/swap-food', {
+      method: 'POST',
+      body: JSON.stringify({ foodId, allergies, dietType }),
+    });
+    return res || [];
+  },
+
+  async submitAdaptiveReview(reviewInput: {
+    startingWeightKg: number;
+    currentWeightKg: number;
+    weeksElapsed?: number;
+    hungerRating?: number;
+    energyRating?: number;
+    adherenceRating?: number;
+  }): Promise<any> {
+    const res = await request<any>('/api/diets/adaptive-review', {
+      method: 'POST',
+      body: JSON.stringify(reviewInput),
+    });
+    return res;
+  },
 };
 
 // ----------------------------------------------------
@@ -352,9 +388,16 @@ function normalizeUser(doc: any): UserProfile {
     heightCm: doc.heightCm || 178,
     weightKg: doc.weightKg || 74.5,
     targetWeightKg: doc.targetWeightKg || 72.0,
+    waistCm: doc.waistCm,
     activityLevel: doc.activityLevel || 'moderately_active',
-    dietaryPreferences: doc.dietaryPreferences || [],
+    primaryGoal: doc.primaryGoal || 'lose_weight',
+    goalPace: doc.goalPace || 'moderate',
+    healthConditions: doc.healthConditions || [],
+    foodPreferences: doc.foodPreferences || [],
+    commonFoodsEaten: doc.commonFoodsEaten || [],
     allergies: doc.allergies || [],
+    lifestyle: doc.lifestyle,
+    dietaryPreferences: doc.dietaryPreferences || [],
     avatarUrl: doc.avatarUrl,
   };
 }
@@ -492,5 +535,14 @@ function normalizeDiet(doc: any): DietPlan {
       dinner: '',
       snack: '',
     },
+    isFeatured: doc.isFeatured,
+    suitableFor: doc.suitableFor || [],
+    goalCompatibility: doc.goalCompatibility || {},
+    healthCompatibility: doc.healthCompatibility || {},
+    foodStyle: doc.foodStyle || [],
+    flexibility: doc.flexibility || 'moderate',
+    requiresProfessionalReview: doc.requiresProfessionalReview || [],
+    restrictions: doc.restrictions || [],
+    guidelines: doc.guidelines || [],
   };
 }

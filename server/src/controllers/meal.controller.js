@@ -62,7 +62,7 @@ exports.getMeals = async (req, res) => {
 // @route   GET /api/meals/:id
 exports.getMealById = async (req, res) => {
   try {
-    const meal = await Meal.findById(req.params.id);
+    const meal = await Meal.findOne({ _id: req.params.id, userId: req.user._id });
     if (!meal) {
       return res.status(422).json({
         success: false,
@@ -89,14 +89,8 @@ exports.getMealById = async (req, res) => {
 // @route   POST /api/meals
 exports.createMeal = async (req, res) => {
   try {
-    let { userId, type, date, time, items, imageUrl, notes } = req.body;
-
-    userId = await resolveUserId(userId);
-
-    if (!userId) {
-      const newUser = await User.create({ name: 'User', email: 'user@nutrilens.ai' });
-      userId = newUser._id;
-    }
+    let { type, date, time, items, imageUrl, notes } = req.body;
+    const userId = req.user._id;
 
     // Compute totals if items array provided and totals not explicitly set
     let totalCalories = req.body.totalCalories || 0;
@@ -151,7 +145,7 @@ exports.createMeal = async (req, res) => {
 // @route   DELETE /api/meals/:id
 exports.deleteMeal = async (req, res) => {
   try {
-    const meal = await Meal.findByIdAndDelete(req.params.id);
+    const meal = await Meal.findOneAndDelete({ _id: req.params.id, userId: req.user._id });
     if (!meal) {
       return res.status(422).json({
         success: false,

@@ -14,11 +14,8 @@ async function resolveUserId(rawId) {
 // @route   GET /api/planner
 exports.getPlannedMeals = async (req, res) => {
   try {
-    const { userId, dayOfWeek } = req.query;
-    const filter = {};
-
-    const resolved = await resolveUserId(userId);
-    if (resolved) filter.userId = resolved;
+    const { dayOfWeek } = req.query;
+    const filter = { userId: req.user._id };
 
     if (dayOfWeek !== undefined && dayOfWeek !== '') {
       filter.dayOfWeek = parseInt(dayOfWeek, 10);
@@ -48,7 +45,7 @@ exports.getPlannedMeals = async (req, res) => {
 // @route   POST /api/planner
 exports.addPlannedMeal = async (req, res) => {
   try {
-    let { userId, dayOfWeek, mealType, foodName, calories, protein, carbs, fat } =
+    let { dayOfWeek, mealType, foodName, calories, protein, carbs, fat } =
       req.body;
 
     if (!foodName) {
@@ -67,7 +64,7 @@ exports.addPlannedMeal = async (req, res) => {
       });
     }
 
-    userId = await resolveUserId(userId);
+    const userId = req.user._id;
 
     const plannedMeal = await PlannedMeal.create({
       userId,
@@ -103,7 +100,7 @@ exports.addPlannedMeal = async (req, res) => {
 // @route   DELETE /api/planner/:id
 exports.deletePlannedMeal = async (req, res) => {
   try {
-    const plannedMeal = await PlannedMeal.findByIdAndDelete(req.params.id);
+    const plannedMeal = await PlannedMeal.findOneAndDelete({ _id: req.params.id, userId: req.user._id });
     if (!plannedMeal) {
       return res.status(422).json({
         success: false,

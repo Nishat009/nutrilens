@@ -15,16 +15,7 @@ async function resolveUserId(rawId) {
 // @route   GET /api/progress/weight
 exports.getWeightLogs = async (req, res) => {
   try {
-    const { userId } = req.query;
-    const filter = {};
-    if (userId && userId !== 'current' && userId !== 'default') {
-      if (mongoose.Types.ObjectId.isValid(userId)) {
-        filter.userId = userId;
-      } else {
-        const resolved = await resolveUserId(userId);
-        if (resolved) filter.userId = resolved;
-      }
-    }
+    const filter = { userId: req.user._id };
 
     const logs = await WeightLog.find(filter).sort({ date: 1 });
     res.status(200).json({
@@ -47,7 +38,7 @@ exports.getWeightLogs = async (req, res) => {
 // @route   POST /api/progress/weight
 exports.logWeight = async (req, res) => {
   try {
-    let { userId, date, weightKg, notes } = req.body;
+    let { date, weightKg, notes } = req.body;
 
     if (!weightKg) {
       return res.status(422).json({
@@ -57,7 +48,7 @@ exports.logWeight = async (req, res) => {
       });
     }
 
-    userId = await resolveUserId(userId);
+    const userId = req.user._id;
 
     const logDate = date || new Date().toISOString().split('T')[0];
 
@@ -96,22 +87,14 @@ exports.logWeight = async (req, res) => {
 // @route   GET /api/progress/nutrition
 exports.getNutritionHistory = async (req, res) => {
   try {
-    const { userId, days = 30 } = req.query;
+    const { days = 30 } = req.query;
     const daysCount = parseInt(days, 10) || 30;
 
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - daysCount);
     const startDateStr = startDate.toISOString().split('T')[0];
 
-    const filter = { date: { $gte: startDateStr } };
-    if (userId && userId !== 'current' && userId !== 'default') {
-      if (mongoose.Types.ObjectId.isValid(userId)) {
-        filter.userId = userId;
-      } else {
-        const resolved = await resolveUserId(userId);
-        if (resolved) filter.userId = resolved;
-      }
-    }
+    const filter = { userId: req.user._id, date: { $gte: startDateStr } };
 
     const meals = await Meal.find(filter).sort({ date: 1 });
 
@@ -127,7 +110,7 @@ exports.getNutritionHistory = async (req, res) => {
           totalFat: 0,
           totalFiber: 0,
           mealsLoggedCount: 0,
-          waterIntakeMl: 2400,
+          waterIntakeMl: 0,
         };
       }
       historyMap[meal.date].totalCalories += meal.totalCalories;
@@ -160,9 +143,7 @@ exports.getNutritionHistory = async (req, res) => {
 // @route   GET /api/progress
 exports.getProgressSummary = async (req, res) => {
   try {
-    const { userId } = req.query;
-    const filter = {};
-    if (userId) filter.userId = userId;
+    const filter = { userId: req.user._id };
 
     const [weightLogs, meals] = await Promise.all([
       WeightLog.find(filter).sort({ date: 1 }),

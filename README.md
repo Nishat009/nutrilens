@@ -7,7 +7,7 @@
 [![MongoDB](https://img.shields.io/badge/MongoDB-Mongoose%208-green?style=flat&logo=mongodb)](https://www.mongodb.com/)
 [![Gemini](https://img.shields.io/badge/Google%20Gemini-1.5%20Flash-orange?style=flat&logo=google)](https://ai.google.dev/)
 
-**NutriLens** is an AI-powered health-tech SaaS web application that enables users to photograph meals, instantly break down calories & macronutrients using multimodal computer vision, track daily nutrition, follow curated diet protocols, plan weekly meals, and monitor health analytics.
+**NutriLens** is a comprehensive, clinically grounded AI health-tech SaaS web application. It combines multimodal computer vision for instant meal breakdown, evidence-based scientific diet protocols, an authentic Bangladeshi food adaptation engine, an 8-step personalized nutrition recommendation engine, interactive 7-day meal schedules with household portion guides, one-click food swaps, and a 2–3 week adaptive progress check-in system.
 
 ---
 
@@ -17,27 +17,29 @@
 graph TB
     subgraph Client ["Frontend (Next.js 15 App Router - Port 3000)"]
         LP["Landing Page (/)"]
-        AUTH["Auth & Onboarding"]
+        AUTH["Auth & 8-Step Onboarding (/onboarding)"]
         DASH["Dashboard (/dashboard)"]
         SCAN["AI Scanner (/scan)"]
         MEALS["Meal Logs (/meals)"]
-        DIETS["Diet Protocols (/diets)"]
+        DIETS["Personalized & 7 Protocols (/diets)"]
         PLANNER["Weekly Planner (/planner)"]
         PROGRESS["Analytics (/progress)"]
         PROFILE["User Profile (/profile)"]
     end
 
     subgraph Server ["Backend (Express.js - Port 5000)"]
-        API["REST API Routes"]
+        API["REST API Routes (/api/*)"]
+        DIET_ENG["Diet Recommendation & Swap Engine"]
+        ADAPT_ENG["Adaptive Review Engine"]
         RECOG["Food Recognition Service"]
-        NUTRI["Nutrition Engine"]
-        SEED["DB Seeder"]
+        NUTRI["Nutrition & BMR/TDEE Calculator"]
+        SEED["DB Seeder (7 Protocols & Bengali Foods)"]
     end
 
     subgraph AI ["AI Vision Pipeline"]
         GEMINI["Google Gemini 1.5 Flash Vision"]
-        HF["Hugging Face Food-101 (ViT)"]
-        HEURISTIC["Chromatic Heuristic Engine"]
+        TFJS["TensorFlow.js MobileNetV2 (On-Device)"]
+        DHASH["64-Bit Visual Memory (dHash)"]
     end
 
     subgraph DB ["Database"]
@@ -47,212 +49,130 @@ graph TB
     Client -->|API Rewrites /api/*| Server
     Server --> MONGO
     RECOG --> GEMINI
-    RECOG --> HF
-    RECOG --> HEURISTIC
+    RECOG --> TFJS
+    RECOG --> DHASH
+    DIET_ENG --> MONGO
 ```
 
 ---
 
-## ✨ Features Completed (কি কি কাজ করা হয়েছে)
+## ✨ Features & Capabilities
 
-### 1. 📸 Zero API Key On-Device Vision + 100+ Vegetable Database & Active Visual Memory
-* **On-Device Vision**: Runs browser-native TensorFlow.js MobileNetV2 + chromatic pixel extractor without needing external paid API keys.
-* **100+ Vegetable Nutrition Dataset**: USDA & ICMR calibrated nutritional database with bilingual (Bengali & English) names and aliases.
-* **🧠 Active Visual Memory (dHash)**: If a user corrects or types a vegetable name manually, the system computes a 64-bit gradient perceptual difference hash and stores it in MongoDB and local cache. Future scans of this picture match instantly with 100% confidence!
+### 1. 🧬 Personalized Diet Recommendation Engine & 7-Day Meal Planner
+- **8-Step Comprehensive Onboarding Flow (`/onboarding`)**:
+  1. *Basic Profile*: Age, Biological Sex, Height (with instant cm/ft unit toggle), Current Weight, Target Weight, Optional Waist circumference.
+  2. *Primary Goal & Pacing*: 8 primary goals (Lose Weight, Reduce Waist / Belly Fat, Build Muscle, Body Recomp, Maintain, General Health, Blood Sugar, Blood Pressure) + Pacing (Slow & Sustainable, Moderate, Faster).
+  3. *Physical Activity Level*: Sedentary to Heavy Athlete with TDEE multiplier calibration.
+  4. *Health Conditions & Clinical Safety Alerts*: 15+ conditions (Diabetes, Prediabetes, Hypertension, PCOS, Thyroid, High Cholesterol, Fatty Liver, Kidney, Liver, GERD, IBS, Anemia, Pregnancy) with doctor consultation advisories and safe deficit floor enforcement (minimum 1,200 kcal/day for women, 1,500 kcal/day for men).
+  5. *Food Preferences*: Traditional Bangladeshi, Balanced, High Protein, Low Carb, Pescatarian, Vegetarian, Vegan, Flexible + Commonly eaten staples checklist.
+  6. *Food Allergies & Intolerances (Hard Exclusions)*: Strict exclusion of allergens (Dairy, Egg, Fish, Seafood, Peanut, Tree Nut, Gluten, Soy).
+  7. *Lifestyle & Schedule*: Sleep duration, Work type, Daily meal frequency (2, 3, 4, 5+ meals), Cooking arrangement, Grocery budget.
+  8. *Plan Generation*: Instant computation of BMI, BMR, TDEE, Safe Caloric Deficit/Surplus, Macro targets, Fiber, Water, and 7-day schedule.
 
-### 2. 📊 Clinical AI Nutritionist Dashboard
-* **Clean Slate Fresh State**: Initial dashboard starts at clean 0 kcal / 0 dummy meals for new users.
-* **Personalized Hydration**: Body weight & height based daily water target (Liters & glasses) with 1-click water loggers.
-* **Exercise & NEAT Non-Exercise Habits**: Workout durations + 8,000-10,000 steps and post-meal walk alternatives.
-* **30-Day Predictive Fat Loss Forecast**: Live 30-day weight projection based on daily caloric deficit vs TDEE.
-* **Mobile Responsive Drawer**: Accessible Sidebar drawer with hamburger button for small screens and mobile devices.
+- **Multi-Factor Clinical Protocol Ranking**:
+  - Ranks all 7 scientific protocols (`mediterranean`, `ketogenic`, `high-protein`, `intermittent-fasting`, `low-gi-diabetes`, `dash`, `plant-based`) with transparent matching highlights ("Why this plan was selected") and "Why ranked lower" explanations.
+  - Cautious Keto protocol logic (only recommended if explicitly requested without contraindications).
+  - Dedicated targeted boosts for Prediabetes/PCOS (Low-GI Care), Hypertension (DASH Protocol), Muscle Building (High Protein), and Veganism (Plant-Based).
 
-### 3. 🍽️ Comprehensive Meal Logging & Tracking
-* Log breakfast, lunch, dinner, and snacks.
-* Auto-calculation of total calories and macros from individual meal items.
-* Full CRUD endpoints (`GET`, `POST`, `DELETE`) with detailed meal breakdown views (`/meals/[id]`).
+- **Authentic Bangladeshi Food Database & Household Portions**:
+  - Calibrated with local staples: *Lal Chal Bhaat*, *Handmade Atta Roti*, *Oats Khichuri*, *Rui/Katla/Ilish Fish*, *Desi Chicken*, *Lean Beef*, *Masoor/Moong Dal*, *Lal Shak/Palong Shak Bhaji*, *Lau/Korola/Dherosh*, *Bengali Cucumber Tomato Salad*, *Peyara*, *Pepe*, *Tok Doi*, *Cold-Pressed Mustard Oil*, and *Badam*.
+  - Measured in familiar household units: *"1 controlled cup cooked"*, *"1 palm-sized piece (120g)"*, *"1 generous bowl cooked bhaji (150g)"*, *"2 handmade rotis (~70g)"*, *"1 measured teaspoon oil"*.
 
-### 4. 🥗 Curated Diet Protocols
-* 7 built-in scientific diet plans (Mediterranean, High Protein Gym, Ketogenic, Intermittent Fasting, Clean Eating, DASH, Plant-Based).
-* Deep breakdown: macro ratios, health benefits, allowed foods, foods to limit, and a sample meal day plan.
-* **"Adopt Protocol"** capability to customize user profile targets.
+- **Interactive Food Swaps (`FoodSwapModal`)**:
+  - Click **[Swap]** on any dish across the 7-day schedule to view 3+ culturally suitable, macro-aligned, allergy-safe alternatives.
 
-### 5. 📅 Weekly Meal Planner
-* Drag-and-plan meal schedule for Monday through Sunday.
-* Add planned meal slots with preset or custom calories and macros.
-* Integrated with user goals.
+- **2–3 Week Adaptive Progress Check-In (`AdaptivePlanModal`)**:
+  - Progress check-in tracking weight trajectory, waist, daily hunger level (1–5), energy level (1–5), and plan consistency (1–5) to provide evidence-based, sustainable micro-adjustments.
 
-### 6. 📈 Progress, Weight & Nutrition Analytics
-* Interactive Recharts visualizations for weight tracking over time.
-* Upsert weight logs per date with automatic profile synchronization.
-* 30-day nutrition history aggregation from meal history.
-
-### 7. 👤 User Profile & Custom Nutrition Targets
-* Detailed physical metrics (height, weight, target weight, activity level, dietary preferences, allergies).
-* Dynamic macro and calorie goal setting (calories, protein, carbs, fat, fiber, water targets).
-
-### 8. 🔐 Authentication & Onboarding
-* Email login, registration with body metrics, and password recovery pages.
-* Interactive multi-step onboarding wizard for personalized goal calculation.
-* Global state management powered by **Zustand**.
-
-### 9. 🎨 Premium Glassmorphic UI/UX Design System
-* Modern dark-mode health-tech aesthetic with subtle emerald/teal glows.
-* 11+ reusable custom UI components: Button, Card, Badge, Input, Select, Modal, ProgressBar, ProgressRing, Skeleton, EmptyState, ErrorState.
-* 100% responsive: Desktop Sidebar + Mobile Bottom Navigation Bar + TopBar.
-
-### 10. 📦 Massive Seed Data Script
-* Comprehensive 727-line seeder (`npm run seed`) populating demo users, comprehensive food items, sample meals, scans, weight logs, and diet plans.
+- **1-Click Synchronization**:
+  - **[Adopt to Weekly Planner]** button automatically updates user daily goals and populates the 7-day weekly planner (`/planner`).
 
 ---
 
-## 💻 Tech Stack
-
-| Domain | Technology |
-|---|---|
-| **Frontend** | [Next.js 15](https://nextjs.org/) (App Router), [React 19](https://react.dev/), [TypeScript](https://www.typescriptlang.org/) |
-| **Styling** | [Tailwind CSS v4](https://tailwindcss.com/), Glassmorphism, CSS Variables |
-| **State Management** | [Zustand 5](https://github.com/pmndrs/zustand) |
-| **Icons & Charts** | [Lucide React](https://lucide.dev/), [Recharts](https://recharts.org/) |
-| **Backend** | [Node.js](https://nodejs.org/), [Express.js](https://expressjs.com/) |
-| **Database** | [MongoDB](https://www.mongodb.com/) & [Mongoose 8](https://mongoosejs.com/) |
-| **AI Vision Models** | Google Gemini 1.5 Flash Vision, Hugging Face Food-101 |
-| **Deployment** | [Vercel](https://vercel.com/) (Frontend) + [Render](https://render.com/) (Backend) + [MongoDB Atlas](https://www.mongodb.com/atlas) (Cloud DB) |
+### 2. 📸 Multimodal Computer Vision & Active Visual Memory (dHash)
+- **On-Device Vision**: Runs browser-native TensorFlow.js MobileNetV2 with zero mandatory paid API keys.
+- **Active Visual Memory (dHash)**: Computes 64-bit gradient perceptual difference hashes from user corrections to remember local foods with 100% confidence on subsequent scans.
+- **100+ Vegetable Nutrition Dataset**: Calibrated with USDA and ICMR standards.
 
 ---
 
-## 🗄️ Database Models (Mongoose Schemas)
-
-1. **`User`**: Profile information, biometrics, activity level, dietary preferences, allergies, and embedded `goal` object.
-2. **`Food`**: Global nutrition database items with serving sizes, macros, tags, and category.
-3. **`Meal`**: Logged meals with embedded `items[]`, timestamps, total calories/macros, and photos.
-4. **`FoodScan`**: AI vision analysis history, confidence levels, detected item breakdowns, and notes.
-5. **`DietPlan`**: Complete diet protocols with macro ratios, descriptions, benefits, and sample days.
-6. **`PlannedMeal`**: Day-of-week (0-6) planned meal slots with macro targets.
-7. **`WeightLog`**: Daily weight entries with date index and notes.
+### 3. 📊 Clinical AI Nutritionist Dashboard (`/dashboard`)
+- **Clean Slate Initial State**: Fresh accounts start with 0 kcal and zero dummy data.
+- **Hydration Tracker**: Weight/height-based water target in Liters and 250ml glasses with 1-click loggers.
+- **30-Day Dynamic Fat Loss Forecast**: Dynamic trajectory based on daily caloric deficit vs TDEE ($7,700 \text{ kcal} = 1\text{ kg fat}$).
+- **Exercise & NEAT Habits**: Track workouts and non-exercise daily activity (e.g. 10,000 steps, post-meal walks).
 
 ---
 
-## 🔌 API Endpoints Summary
+### 4. 📱 Full Responsive Breakpoint Support
+Engineered and verified across all standard responsive viewport widths:
+- **Mobile**: `320px` (iPhone SE/compact), `375px`, `390px`, `430px` (Pro Max / modern phones)
+- **Tablet**: `768px` (iPad portrait)
+- **Desktop & Laptops**: `1024px`, `1280px`, `1366px` (HD), `1440px` (FHD monitor)
+- **Large Screens**: `1920px` (Full HD widescreen)
 
-| Method | Route | Description |
+---
+
+## 📡 REST API Specifications
+
+All endpoints strictly follow the unified response convention:
+- **Success Status**: `200 OK`
+- **Validation / Error Status**: `422 Unprocessable Entity`
+
+### Diet Recommendation Endpoints
+| Method | Endpoint | Description |
 |---|---|---|
-| `GET` | `/api/health` | Service health & MongoDB connection status |
-| `POST` | `/api/auth/register` | Register new user profile |
-| `POST` | `/api/auth/login` | Email-based login |
-| `GET` | `/api/auth/me` | Fetch active user profile |
-| `GET` | `/api/users/:id` | Get user details (`/api/users/current` supported) |
-| `PUT` | `/api/users/:id` | Update profile information |
-| `PUT` | `/api/users/:id/goal` | Update calorie and macro goals |
-| `GET` | `/api/meals` | List meals (supports `userId` & `date` filters) |
-| `GET` | `/api/meals/:id` | Get meal by ID |
-| `POST` | `/api/meals` | Create meal (auto-calculates item totals) |
-| `DELETE` | `/api/meals/:id` | Delete meal log |
-| `GET` | `/api/foods` | Search food items with category and text filters |
-| `POST` | `/api/foods` | Create new food item |
-| `POST` | `/api/scans/analyze` | Run AI vision food recognition on image base64 |
-| `GET` | `/api/scans` | Get scan history |
-| `POST` | `/api/scans` | Save scan result |
-| `GET` | `/api/progress/weight` | Get weight history |
-| `POST` | `/api/progress/weight` | Log weight entry |
-| `GET` | `/api/progress/nutrition` | Get aggregated nutrition history |
-| `GET` | `/api/diets` | List all diet protocols |
-| `GET` | `/api/diets/:slug` | Get single diet plan details |
-| `POST` | `/api/diets/adopt` | Adopt diet protocol to user profile |
-| `GET` | `/api/planner` | Get weekly planned meals |
-| `POST` | `/api/planner` | Add planned meal slot |
-| `DELETE` | `/api/planner/:id` | Remove planned meal slot |
+| `GET` | `/api/diets` | Retrieve all 7 scientific diet protocols |
+| `GET` | `/api/diets/:slug` | Retrieve single protocol by slug |
+| `POST` | `/api/diets/adopt` | Adopt protocol into active user profile |
+| `POST` | `/api/diets/recommend` | Generate complete personalized diet & 7-day meal plan |
+| `POST` | `/api/diets/swap-food` | Get macro-matched, allergy-safe food substitutes |
+| `POST` | `/api/diets/adaptive-review` | Calculate 2-3 week progress adjustments & feedback |
 
 ---
 
-## 📱 Frontend Pages (15 Routes)
-
-| Page | Path | Description |
-|---|---|---|
-| **Landing** | `/` | Hero section, feature previews, protocol showcase |
-| **Login** | `/login` | Authentication form |
-| **Register** | `/register` | Full biometric registration |
-| **Forgot Password** | `/forgot-password` | Password recovery page |
-| **Onboarding** | `/onboarding` | Interactive setup wizard |
-| **Dashboard** | `/dashboard` | Daily calorie, macro ring & meal log overview |
-| **AI Scanner** | `/scan` | Live camera / file upload AI food scanner |
-| **Scan Detail** | `/scan/[id]` | Historical scan breakdown view |
-| **Meals List** | `/meals` | Complete meal history with date filtering |
-| **Meal Detail** | `/meals/[id]` | Individual meal breakdown |
-| **Diet Plans** | `/diets` | Browse 7 scientific diet plans |
-| **Diet Detail** | `/diets/[slug]` | Full diet protocol breakdown & adoption |
-| **Weekly Planner** | `/planner` | Mon-Sun weekly meal scheduling |
-| **Progress** | `/progress` | Weight & macro charts via Recharts |
-| **Profile** | `/profile` | Profile info & nutrition goal manager |
-
----
-
-## 🚀 Getting Started (Local Development)
+## 🚀 Getting Started
 
 ### 1. Prerequisites
-- **Node.js** v18+ & **npm**
-- **MongoDB** running locally on port `27017` (or MongoDB Atlas URI)
+- Node.js (v18+ recommended)
+- MongoDB (running locally on port 27017 or MongoDB Atlas URI)
 
-### 2. Clone & Install Dependencies
-```bash
-git clone https://github.com/Nishat009/nutrilens.git
-cd nutrilens
-
-# Install root, server, and web dependencies
-npm install
-npm --prefix server install
-npm --prefix web install
-```
-
-### 3. Configure Environment Variables
-
-**Server Environment** (`server/.env`):
+### 2. Environment Configuration
+Create `.env` inside `server/`:
 ```env
 PORT=5000
-MONGODB_URI=mongodb://127.0.0.1:27017/nutrilens
 NODE_ENV=development
-
-# Optional AI Vision keys
-GEMINI_API_KEY=your_gemini_api_key_here
-HF_TOKEN=your_huggingface_token_here
+  MONGODB_URI=mongodb://127.0.0.1:27017/nutrilens
+JWT_SECRET=nutrilens_super_secret_jwt_key_2026
 ```
 
-**Web Environment** (`web/.env.local` - Optional for local dev):
-```env
-NEXT_PUBLIC_API_URL=http://localhost:5000
-```
-
-### 4. Seed Database (Optional but Recommended)
-Populate the database with sample users, nutrition database, diet protocols, and sample logs:
+### 3. Install & Run
+From the root workspace directory:
 ```bash
+# Install root dependencies
+npm install
+
+# Run backend seed (seeds 7 diet protocols & food datasets)
 npm run seed
-```
 
-### 5. Run Concurrently (Frontend + Backend)
-```bash
+# Run both Server & Client concurrently
 npm run dev
 ```
 
-* **Frontend**: [http://localhost:3000](http://localhost:3000)
-* **Backend API**: [http://localhost:5000](http://localhost:5000)
-* **API Health Check**: [http://localhost:5000/api/health](http://localhost:5000/api/health)
+- **Frontend App**: `http://localhost:3000`
+- **Backend API**: `http://localhost:5000`
 
 ---
 
-## ☁️ Deployment
+## 🔐 Current Runtime Guarantees
+- Authentication uses password hashing and signed 7-day bearer tokens. Dashboard and user data APIs require an authenticated session.
+- Meal, scan, planner, progress, profile, and diet-personalization data is scoped to the authenticated user.
+- Scan analysis is persisted when analysis succeeds. Unrecognized images are marked low-confidence and require manual review instead of receiving fabricated nutrition values.
+- API success responses use `200`; validation, authentication, and application errors use `422`.
 
-Check out the full step-by-step production deployment guide in [DEPLOYMENT.md](DEPLOYMENT.md).
-
-* **Frontend**: Deploy `web/` to **Vercel** with environment variable `NEXT_PUBLIC_API_URL`.
-* **Backend**: Deploy `server/` to **Render** using the provided `render.yaml`.
-* **Database**: **MongoDB Atlas** M0 Cluster.
-
----
-
-## 🔮 Future Roadmap / Next Improvements
-
-- [ ] **JWT Authentication & Bcrypt**: Secure token-based auth and password hashing.
-- [ ] **Auth Middleware**: Route-level protection on backend endpoints.
-- [ ] **Cloud Image Storage**: Direct upload to Cloudinary / AWS S3 instead of Base64 strings.
-- [ ] **Live Barcode Scanning**: OpenFoodFacts API integration for packaged foods.
-- [ ] **Automated Testing**: Unit & integration tests with Jest/Supertest/Playwright.
+## 🧪 Automated Testing
+Run the automated test suite for the diet recommendation engine:
+```bash
+node server/src/test-diet-engine.js
+```
+Validates 8 comprehensive clinical scenarios (Bangladeshi weight loss, Prediabetes, Hypertension, Muscle building, Vegan, Hard allergy exclusions, Food swaps, and Adaptive review).

@@ -9,31 +9,35 @@ NutriLens addresses the primary barrier to long-term health and weight managemen
 ---
 
 ## 2. Business Objectives & Value Proposition
+- **Personalized Cultural Adaptation**: Generate tailored diet plans with authentic Bangladeshi food staples (*Lal Chal*, *Atta Roti*, *Rui/Katla fish*, *Dal*, *Lal Shak*, *Tok Doi*, *Mustard oil*) instead of unrealistic foreign meal replacements.
+- **Evidence-Based Medical Safety**: Enforce physiological safe calorie floors (1,200 kcal for women, 1,500 kcal for men) and clinical contraindication warnings for conditions like kidney disease and pregnancy.
 - **Zero API Dependency**: Eliminate expensive third-party vision API costs by providing browser-native neural networks and localized vegetable databases.
-- **Continuous Retention Loop**: Visual memory (`dHash`) learns from user corrections, increasing recognition accuracy with every use.
-- **Clinical Personalization**: Dynamic macro target alignment based on selected medical diet protocols (Keto, Mediterranean, Low-GI Diabetes Care, etc.).
-- **Actionable Metabolic Guidance**: Concrete non-exercise activity (NEAT) alternatives for users without time for gym workouts.
+- **Continuous Retention Loop**: Visual memory (`dHash`) and 2–3 week adaptive plan check-ins increase long-term user adherence.
+- **Actionable Metabolic Guidance**: Concrete household portion measurements (*cups*, *palm-sized pieces*, *bowls*, *teaspoons*) and NEAT no-gym habits.
 
 ---
 
 ## 3. Target Audience & Personas
-1. **Health-Conscious Individuals & Fat Loss Seekers**:
-   - Want effortless meal logging and clear forecasts of weight changes over 30 days.
+1. **Bangladeshi Health & Weight Loss Seekers**:
+   - Want sustainable fat loss without completely eliminating rice or home-cooked meals.
 2. **Clinical Diet Adherents (Keto, Diabetes, PCOS, Heart Health)**:
-   - Need strict real-time warnings when a scanned food violates their protocol.
+   - Need strict real-time warnings and protocol matching (Low-GI Diabetes Care, DASH).
 3. **Gym Enthusiasts & Athletes**:
-   - Require high-protein macro precision ($2.0\text{g} - 2.4\text{g/kg}$) and weekly meal planning.
+   - Require high-protein macro precision ($1.6\text{g} - 2.2\text{g/kg}$) and weekly meal planning.
+4. **Plant-Based / Vegan Eaters**:
+   - Need complete amino acid profile botanical meal schedules.
 
 ---
 
 ## 4. Key Performance Indicators (KPIs)
+- **Onboarding Completion**: > 80% completion through intuitive 8-step wizard.
 - **Log Friction Reduction**: < 3 seconds from photo capture to nutritional breakdown.
-- **Diet Compliance Rate**: > 85% adherence through instant violation warnings.
-- **Active Engagement**: Daily hydration logging and NEAT alternative habit completion.
+- **Diet Compliance Rate**: > 85% adherence through 1-click food swaps.
+- **Active Engagement**: Weekly adaptive check-in participation and planner synchronization.
 
 ---
 
 ## 5. Security, Compliance & Deployment
-- **Client Security**: Modern responsive layout with glassmorphic UI tokens.
-- **Server Deployment**: Express API ready for Render with trust proxy support.
+- **Client Security**: Modern responsive layout tested across 320px–1920px viewports with glassmorphic UI tokens.
+- **Server Deployment**: Express API ready for Render with trust proxy support and strict 200/422 status codes.
 - **Database**: MongoDB Atlas M0 / Local MongoDB 8 with Mongoose schemas.

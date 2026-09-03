@@ -4,7 +4,8 @@ import React from 'react';
 import { cn } from '../../lib/utils/format';
 
 export interface ProgressBarProps {
-  value: number; // current value
+  value?: number;
+  progress?: number;
   max?: number; // max value
   variant?: 'emerald' | 'purple' | 'amber' | 'rose' | 'blue' | 'cyan' | 'gradient';
   size?: 'xs' | 'sm' | 'md' | 'lg';
@@ -13,7 +14,8 @@ export interface ProgressBarProps {
 }
 
 export function ProgressBar({
-  value,
+  progress,
+  value = progress ?? 0,
   max = 100,
   variant = 'emerald',
   size = 'md',

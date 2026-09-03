@@ -10,7 +10,7 @@ export interface ModalProps {
   title?: string;
   description?: string;
   children: React.ReactNode;
-  maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | '2xl';
+  maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '600px' | '620px';
   className?: string;
 }
 
@@ -45,6 +45,8 @@ export function Modal({
     lg: 'max-w-lg',
     xl: 'max-w-xl',
     '2xl': 'max-w-2xl',
+    '600px': 'max-w-[600px]',
+    '620px': 'max-w-[620px]',
   };
 
   return (
