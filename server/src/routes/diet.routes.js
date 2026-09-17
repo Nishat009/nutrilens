@@ -8,6 +8,7 @@ const {
   getPersonalizedRecommendation,
   getFoodSwapAlternatives,
   submitAdaptiveReview,
+  getRecommendations,
 } = require('../controllers/diet.controller');
 
 // Personalized recommendation & tools
@@ -18,6 +19,8 @@ router.post('/adopt', requireAuth, adoptDiet);
 
 // Diet protocols catalogue
 router.get('/', getDiets);
+router.get('/recommendations', getRecommendations);
 router.get('/:slug', getDietBySlug);
 
 module.exports = router;
+

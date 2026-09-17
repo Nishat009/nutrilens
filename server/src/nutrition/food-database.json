@@ -1,0 +1,295 @@
+{
+  "database_version": "2.0.0",
+  "source_metadata": {
+    "primary": "verified_food_composition_database",
+    "regional_reference": "Bangladesh_and_South_Asian_food_composition_tables",
+    "last_verified": "2026-08-27"
+  },
+  "foods": [
+    {
+      "food_id": "rice_white_cooked",
+      "name": "White Rice (Cooked)",
+      "bangla_name": "ভাত (সাদা চাল)",
+      "category": "grains",
+      "serving_state": "cooked",
+      "serving_size_g": 150,
+      "nutrition_per_100g": {
+        "calories": 130,
+        "protein": 2.7,
+        "carbs": 28.2,
+        "fat": 0.3,
+        "fiber": 0.4,
+        "sodium_mg": 1
+      },
+      "glycemic_index": {
+        "value": 73,
+        "category": "high"
+      },
+      "purine_level": "low",
+      "goitrogen": {
+        "contains": false
+      },
+      "allergens": [],
+      "suitable_diets": ["mediterranean_fusion", "weight_gain_amenorrhea", "dash_cardio_care"],
+      "limiting_diets": ["deshi_keto", "deshi_low_gi_insulin_resistance", "pcos_hormone_balance"],
+      "confidence": "high"
+    },
+    {
+      "food_id": "rice_red_cooked",
+      "name": "Red Rice (Lal Chal - Cooked)",
+      "bangla_name": "লাল চালের ভাত",
+      "category": "grains",
+      "serving_state": "cooked",
+      "serving_size_g": 150,
+      "nutrition_per_100g": {
+        "calories": 111,
+        "protein": 2.6,
+        "carbs": 23.0,
+        "fat": 0.9,
+        "fiber": 2.1,
+        "sodium_mg": 2
+      },
+      "glycemic_index": {
+        "value": 55,
+        "category": "low"
+      },
+      "purine_level": "low",
+      "goitrogen": {
+        "contains": false
+      },
+      "allergens": [],
+      "suitable_diets": ["pcos_hormone_balance", "deshi_low_gi_insulin_resistance", "dash_cardio_care", "anti_inflammatory_fertility"],
+      "limiting_diets": ["deshi_keto"],
+      "confidence": "high"
+    },
+    {
+      "food_id": "fish_rohu_curry",
+      "name": "Rohu Fish (Rui Macher Jhol)",
+      "bangla_name": "রুই মাছের ঝোল",
+      "category": "fish_seafood",
+      "serving_state": "cooked",
+      "serving_size_g": 150,
+      "nutrition_per_100g": {
+        "calories": 128,
+        "protein": 19.5,
+        "carbs": 1.2,
+        "fat": 5.2,
+        "fiber": 0.2,
+        "sodium_mg": 68
+      },
+      "glycemic_index": {
+        "value": 0,
+        "category": "low"
+      },
+      "purine_level": "moderate",
+      "goitrogen": {
+        "contains": false
+      },
+      "allergens": ["fish"],
+      "suitable_diets": ["pcos_hormone_balance", "hypothyroidism_metabolic_boost", "muscle_recomp", "mediterranean_fusion", "dash_cardio_care"],
+      "limiting_diets": ["low_purine_uric_acid_gout"],
+      "confidence": "high"
+    },
+    {
+      "food_id": "egg_whole_boiled",
+      "name": "Whole Boiled Egg",
+      "bangla_name": "সিদ্ধ ডিম",
+      "category": "poultry_eggs",
+      "serving_state": "cooked",
+      "serving_size_g": 50,
+      "nutrition_per_100g": {
+        "calories": 155,
+        "protein": 13.0,
+        "carbs": 1.1,
+        "fat": 11.0,
+        "fiber": 0.0,
+        "sodium_mg": 124
+      },
+      "glycemic_index": {
+        "value": 0,
+        "category": "low"
+      },
+      "purine_level": "low",
+      "goitrogen": {
+        "contains": false
+      },
+      "allergens": ["eggs"],
+      "suitable_diets": ["pcos_hormone_balance", "hypothyroidism_metabolic_boost", "deshi_keto", "muscle_recomp", "low_purine_uric_acid_gout"],
+      "limiting_diets": [],
+      "confidence": "high"
+    },
+    {
+      "food_id": "spinach_cooked",
+      "name": "Cooked Spinach (Palong Shak)",
+      "bangla_name": "পালং শাক ভাজি",
+      "category": "vegetables",
+      "serving_state": "cooked",
+      "serving_size_g": 100,
+      "nutrition_per_100g": {
+        "calories": 23,
+        "protein": 3.0,
+        "carbs": 3.8,
+        "fat": 0.4,
+        "fiber": 2.4,
+        "sodium_mg": 79
+      },
+      "glycemic_index": {
+        "value": 15,
+        "category": "low"
+      },
+      "purine_level": "moderate",
+      "goitrogen": {
+        "contains": true,
+        "risk_context": "context_dependent",
+        "raw_vs_cooked": true
+      },
+      "allergens": [],
+      "suitable_diets": ["pcos_hormone_balance", "hypothyroidism_metabolic_boost", "dash_cardio_care", "anemia_iron_boost", "gut_healing_anti_bloat"],
+      "limiting_diets": [],
+      "confidence": "high"
+    },
+    {
+      "food_id": "cabbage_raw",
+      "name": "Raw Cabbage (Bandhakopi)",
+      "bangla_name": "কাঁচা বাঁধাকপি",
+      "category": "vegetables",
+      "serving_state": "raw",
+      "serving_size_g": 85,
+      "nutrition_per_100g": {
+        "calories": 25,
+        "protein": 1.3,
+        "carbs": 5.8,
+        "fat": 0.1,
+        "fiber": 2.5,
+        "sodium_mg": 18
+      },
+      "glycemic_index": {
+        "value": 15,
+        "category": "low"
+      },
+      "purine_level": "low",
+      "goitrogen": {
+        "contains": true,
+        "risk_context": "high_if_raw_and_iodine_deficient",
+        "raw_vs_cooked": true
+      },
+      "allergens": [],
+      "suitable_diets": ["deshi_low_gi_insulin_resistance", "gut_healing_anti_bloat"],
+      "limiting_diets": ["hypothyroidism_metabolic_boost"],
+      "confidence": "high"
+    },
+    {
+      "food_id": "yogurt_plain_tok_doi",
+      "name": "Plain Sour Yogurt (Tok Doi)",
+      "bangla_name": "টক দই",
+      "category": "dairy",
+      "serving_state": "raw",
+      "serving_size_g": 150,
+      "nutrition_per_100g": {
+        "calories": 59,
+        "protein": 3.8,
+        "carbs": 4.7,
+        "fat": 3.3,
+        "fiber": 0.0,
+        "sodium_mg": 46
+      },
+      "glycemic_index": {
+        "value": 35,
+        "category": "low"
+      },
+      "purine_level": "low",
+      "goitrogen": {
+        "contains": false
+      },
+      "allergens": ["dairy"],
+      "suitable_diets": ["gut_healing_anti_bloat", "low_purine_uric_acid_gout", "pms_pmdd_mood_care", "perimenopause_bone_care"],
+      "limiting_diets": [],
+      "confidence": "high"
+    },
+    {
+      "food_id": "peanut_roasted",
+      "name": "Roasted Peanuts (Chinabadam)",
+      "bangla_name": "ভাজা চীনাবাদাম",
+      "category": "nuts_seeds",
+      "serving_state": "cooked",
+      "serving_size_g": 30,
+      "nutrition_per_100g": {
+        "calories": 585,
+        "protein": 24.0,
+        "carbs": 21.0,
+        "fat": 49.0,
+        "fiber": 8.0,
+        "sodium_mg": 6
+      },
+      "glycemic_index": {
+        "value": 14,
+        "category": "low"
+      },
+      "purine_level": "moderate",
+      "goitrogen": {
+        "contains": false
+      },
+      "allergens": ["peanuts"],
+      "suitable_diets": ["weight_gain_amenorrhea", "deshi_keto"],
+      "limiting_diets": [],
+      "confidence": "high"
+    },
+    {
+      "food_id": "lentils_masoor_dal_cooked",
+      "name": "Red Lentil Dal (Masoor Dal)",
+      "bangla_name": "মসুর ডাল",
+      "category": "legumes",
+      "serving_state": "cooked",
+      "serving_size_g": 150,
+      "nutrition_per_100g": {
+        "calories": 116,
+        "protein": 9.0,
+        "carbs": 20.1,
+        "fat": 0.4,
+        "fiber": 7.9,
+        "sodium_mg": 2
+      },
+      "glycemic_index": {
+        "value": 29,
+        "category": "low"
+      },
+      "purine_level": "moderate",
+      "goitrogen": {
+        "contains": false
+      },
+      "allergens": [],
+      "suitable_diets": ["pcos_hormone_balance", "deshi_low_gi_insulin_resistance", "dash_cardio_care", "anemia_iron_boost"],
+      "limiting_diets": ["deshi_keto"],
+      "confidence": "high"
+    },
+    {
+      "food_id": "green_coconut_water",
+      "name": "Green Coconut Water (Daaber Pani)",
+      "bangla_name": "ডাবের পানি",
+      "category": "beverages",
+      "serving_state": "raw",
+      "serving_size_g": 240,
+      "nutrition_per_100g": {
+        "calories": 19,
+        "protein": 0.7,
+        "carbs": 3.7,
+        "fat": 0.2,
+        "fiber": 1.1,
+        "sodium_mg": 105
+      },
+      "glycemic_index": {
+        "value": 54,
+        "category": "low"
+      },
+      "purine_level": "low",
+      "goitrogen": {
+        "contains": false
+      },
+      "allergens": [],
+      "suitable_diets": ["dash_cardio_care", "low_purine_uric_acid_gout", "cortisol_adrenal_reset"],
+      "limiting_diets": ["ckd_kidney_disease"],
+      "confidence": "high"
+    }
+  ]
+}
+

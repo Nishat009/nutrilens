@@ -1,0 +1,142 @@
+{
+  "rules_version": "2.0.0",
+  "last_updated": "2026-08-27",
+  "guidelines_reference": {
+    "diabetes": "American Diabetes Association (ADA) Standards of Care",
+    "cardiovascular": "American Heart Association (AHA) Lifestyle & Sodium Guidelines",
+    "kidney": "Kidney Disease: Improving Global Outcomes (KDIGO) Clinical Practice Guidelines"
+  },
+  "conditions": {
+    "type_2_diabetes": {
+      "name": "Type 2 Diabetes / Prediabetes",
+      "category": "metabolic",
+      "carbohydrate_guidance": {
+        "approach": "individualized_plate_method",
+        "refined_carbs_default_status": "CAUTION",
+        "high_portion_threshold_g": 180,
+        "high_portion_status": "LIMIT",
+        "rationale": "ADA recommends individualized carbohydrate intake emphasizing fiber-rich whole grains, non-starchy vegetables, and lean proteins rather than rigid elimination."
+      },
+      "preferred_carbohydrate_sources": [
+        "red_rice",
+        "brown_rice",
+        "steel_cut_oats",
+        "barley",
+        "dal",
+        "chickpeas",
+        "vegetables"
+      ],
+      "requires_professional_review": false
+    },
+    "gout_hyperuricemia": {
+      "name": "Gout & Hyperuricemia",
+      "category": "metabolic",
+      "purine_scoring": {
+        "model": "multi_factor",
+        "factors": ["purine_density", "portion_size_g", "frequency", "hydration_status"],
+        "low_purine_status": "SAFE",
+        "moderate_purine_small_portion_status": "CAUTION",
+        "moderate_purine_large_portion_status": "LIMIT",
+        "high_purine_status": "LIMIT",
+        "rationale": "Purine management requires balancing portion and frequency alongside adequate hydration, rather than a universal hard threshold."
+      },
+      "preferred_foods": [
+        "cucumber",
+        "bottle_gourd",
+        "low_fat_yogurt",
+        "eggs",
+        "water",
+        "cherries"
+      ],
+      "requires_professional_review": false
+    },
+    "hypertension": {
+      "name": "Hypertension / Cardiovascular Health",
+      "category": "cardiovascular",
+      "sodium_guidelines": {
+        "general_upper_limit_mg": 2300,
+        "ideal_target_mg": 1500,
+        "individualized": true,
+        "high_sodium_food_status": "LIMIT",
+        "rationale": "AHA recommends working toward an ideal sodium target of ≤1,500 mg/day where clinically appropriate, with a general upper limit of 2,300 mg/day."
+      },
+      "preferred_foods": [
+        "green_coconut_water",
+        "spinach",
+        "bananas",
+        "raw_almonds",
+        "sweet_potatoes",
+        "deshi_fish"
+      ],
+      "requires_professional_review": false
+    },
+    "ckd_kidney_disease": {
+      "name": "Chronic Kidney Disease (CKD)",
+      "category": "renal",
+      "automatic_restrictive_diet": false,
+      "status": "PROFESSIONAL_REVIEW",
+      "requires_professional_review": true,
+      "contraindicated_diets": ["muscle_recomp", "deshi_keto"],
+      "required_context": [
+        "ckd_stage",
+        "dialysis_status",
+        "recent_labs_eGFR_potassium_phosphorus",
+        "fluid_restriction",
+        "medications"
+      ],
+      "rationale": "KDIGO guidelines mandate individualized medical nutrition therapy for CKD based on stage, eGFR, electrolyte levels, and dialysis status. Automated high-protein or severe electrolyte restrictions require clinical supervision."
+    },
+    "hypothyroidism": {
+      "name": "Hypothyroidism / Hashimoto's",
+      "category": "endocrine",
+      "goitrogen_policy": {
+        "raw_brassicas_status": "CAUTION",
+        "cooked_brassicas_status": "SAFE",
+        "rationale": "Thorough cooking substantially deactivates myrosinase and reduces goitrogenic activity. Normal cooked portions of cruciferous vegetables with adequate iodine are safe and nutritious."
+      },
+      "preferred_foods": [
+        "cooked_spinach",
+        "pumpkin_seeds",
+        "eggs",
+        "sea_fish_rupchanda",
+        "chia_seeds"
+      ],
+      "requires_professional_review": false
+    },
+    "pregnancy_lactation": {
+      "name": "Pregnancy & Lactation",
+      "category": "maternal",
+      "weight_loss_diets_status": "PROFESSIONAL_REVIEW",
+      "requires_professional_review": true,
+      "rationale": "Aggressive caloric deficits or restrictive ketogenic protocols during pregnancy and active breastfeeding can compromise fetal growth or milk supply."
+    }
+  },
+  "safety_status_definitions": {
+    "SAFE": {
+      "code": "SAFE",
+      "badge_variant": "emerald",
+      "description": "Generally compatible with the user's active diet, metabolic goals, and medical profile."
+    },
+    "CAUTION": {
+      "code": "CAUTION",
+      "badge_variant": "amber",
+      "description": "Suitable for consumption with mindful attention to portion size, preparation method, or meal balance."
+    },
+    "LIMIT": {
+      "code": "LIMIT",
+      "badge_variant": "orange",
+      "description": "Consumable in moderation; large portions or high frequency are not recommended for this condition/diet."
+    },
+    "AVOID": {
+      "code": "AVOID",
+      "badge_variant": "rose",
+      "description": "Incompatible with the user's verified food allergies or strict clinical contraindications."
+    },
+    "PROFESSIONAL_REVIEW": {
+      "code": "PROFESSIONAL_REVIEW",
+      "badge_variant": "indigo",
+      "description": "NutriLens cannot safely determine suitability automatically. Personalized evaluation by a qualified healthcare professional is recommended."
+    }
+  }
+}
+

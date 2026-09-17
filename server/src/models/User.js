@@ -105,6 +105,9 @@ const UserSchema = new mongoose.Schema(
       type: [String],
       default: ['Rice', 'Roti', 'Dal', 'Fish', 'Chicken', 'Egg', 'Vegetables'],
     },
+    activeDietId: { type: String },
+    medicalConditions: { type: [String], default: [] },
+    medications: { type: [String], default: [] },
     allergies: {
       type: [String],
       default: [],

@@ -114,7 +114,21 @@ export async function classifyFoodImageLocally(
   let modelPredictions: Array<{ className: string; probability: number }> = [];
   let modelName = 'Local AI Vision Engine (0 API Key)';
 
-  // 1. Attempt TensorFlow.js MobileNet Inference
+  // 1. Always run Smart Canvas Chromatic Analysis
+  let chromaticMatches: Array<{ item: DatabaseFoodItem; score: number }> = [];
+  let isDominantRed = false;
+  let isDominantGreen = false;
+  let isDominantOrange = false;
+  let isDominantPurple = false;
+
+  if (typeof window !== 'undefined') {
+    chromaticMatches = analyzeImageCanvasColor(imageDataUrl);
+    if (chromaticMatches.some((m) => m.item.id === 'veg_tomato' || m.item.id === 'veg_capsicum_red' || m.item.id === 'food_fresh_apple')) {
+      isDominantRed = true;
+    }
+  }
+
+  // 2. Attempt TensorFlow.js MobileNet Inference
   if (typeof window !== 'undefined' && typeof Image !== 'undefined') {
     try {
       const model = await loadMobileNetModel();
@@ -138,7 +152,7 @@ export async function classifyFoodImageLocally(
     }
   }
 
-  // 2. Map predictions to our 100+ Vegetable Database
+  // 3. Map predictions to our 100+ Vegetable Database with chromatic color awareness
   let matchedFoods: Array<{ item: DatabaseFoodItem; score: number }> = [];
 
   if (modelPredictions.length > 0) {
@@ -147,6 +161,17 @@ export async function classifyFoodImageLocally(
       const labels = className.split(/,\s*/);
 
       for (const label of labels) {
+        // Special case: if neural net sees bell pepper or apple/tomato on a RED image
+        if (isDominantRed && (label.includes('bell pepper') || label.includes('pepper') || label.includes('capsicum'))) {
+          const redPepper = NUTRITION_DATABASE.find((f) => f.id === 'veg_capsicum_red');
+          const tomato = NUTRITION_DATABASE.find((f) => f.id === 'veg_tomato');
+          const apple = NUTRITION_DATABASE.find((f) => f.id === 'food_fresh_apple');
+          if (tomato) matchedFoods.push({ item: tomato, score: 0.95 });
+          if (redPepper) matchedFoods.push({ item: redPepper, score: 0.92 });
+          if (apple) matchedFoods.push({ item: apple, score: 0.88 });
+          continue;
+        }
+
         const dbMatch = findFoodInDatabase(label);
         if (dbMatch) {
           const combinedScore = Math.min(0.99, Math.max(0.7, pred.probability * dbMatch.weight));
@@ -161,19 +186,25 @@ export async function classifyFoodImageLocally(
     }
   }
 
-  // 3. If Neural predictions didn't match specific vegetables, run Smart Canvas Chromatic Analysis
-  if (matchedFoods.length === 0 && typeof window !== 'undefined') {
-    const chromaticMatches = analyzeImageCanvasColor(imageDataUrl);
-    matchedFoods = chromaticMatches;
-    modelName = 'NutriLens Adaptive Pixel Vision Engine';
+  // Merge chromatic matches into matchedFoods
+  if (chromaticMatches.length > 0) {
+    for (const cm of chromaticMatches) {
+      const existing = matchedFoods.find((f) => f.item.id === cm.item.id);
+      if (!existing) {
+        matchedFoods.push({ item: cm.item, score: cm.score * 0.95 });
+      } else {
+        existing.score = Math.max(existing.score, cm.score);
+      }
+    }
   }
 
-  // 4. Default fallback to common healthy staple if nothing else matched
+  // 4. Default fallback if nothing matched
   if (matchedFoods.length === 0) {
     matchedFoods = [
-      { item: NUTRITION_DATABASE.find((f) => f.id === 'veg_alu') || NUTRITION_DATABASE[0], score: 0.85 },
-      { item: NUTRITION_DATABASE.find((f) => f.id === 'veg_begun') || NUTRITION_DATABASE[1], score: 0.80 },
-      { item: NUTRITION_DATABASE.find((f) => f.id === 'veg_tomato') || NUTRITION_DATABASE[2], score: 0.78 },
+      { item: NUTRITION_DATABASE.find((f) => f.id === 'veg_tomato') || NUTRITION_DATABASE[0], score: 0.90 },
+      { item: NUTRITION_DATABASE.find((f) => f.id === 'veg_capsicum_red') || NUTRITION_DATABASE[1], score: 0.85 },
+      { item: NUTRITION_DATABASE.find((f) => f.id === 'food_fresh_apple') || NUTRITION_DATABASE[2], score: 0.82 },
+      { item: NUTRITION_DATABASE.find((f) => f.id === 'veg_alu') || NUTRITION_DATABASE[3], score: 0.80 },
     ];
   }
 
@@ -184,16 +215,27 @@ export async function classifyFoodImageLocally(
   const primaryScore = matchedFoods[0].score;
   const portion = primary.defaultPortion || 100;
 
-  // Build top suggestions from the 100+ database
+  // Build top suggestions containing ALL relevant similar candidates
   const topSuggestions: DatabaseFoodItem[] = matchedFoods
-    .slice(1, 4)
+    .slice(1, 6)
     .map((m) => m.item);
 
-  // If we don't have 3 suggestions yet, add related category items
-  if (topSuggestions.length < 3) {
+  // If chromatic red, make sure Tomato, Red Bell Pepper, Apple are in suggestions if not primary
+  if (isDominantRed) {
+    const redCandidates = ['veg_tomato', 'veg_capsicum_red', 'food_fresh_apple', 'veg_cherry_tomato', 'veg_beetroot'];
+    for (const cid of redCandidates) {
+      const item = NUTRITION_DATABASE.find((f) => f.id === cid);
+      if (item && item.id !== primary.id && !topSuggestions.some((s) => s.id === item.id)) {
+        topSuggestions.push(item);
+      }
+    }
+  }
+
+  // If we don't have at least 4 suggestions, add related category items
+  if (topSuggestions.length < 4) {
     const additional = NUTRITION_DATABASE.filter(
       (f) => f.id !== primary.id && !topSuggestions.some((s) => s.id === f.id)
-    ).slice(0, 3 - topSuggestions.length);
+    ).slice(0, 4 - topSuggestions.length);
     topSuggestions.push(...additional);
   }
 
@@ -202,14 +244,14 @@ export async function classifyFoodImageLocally(
   else if (primaryScore < 0.82) confidenceLevel = 'medium';
 
   const mealType = customMealType || determineMealTypeFromCategory(primary.category);
-  const notes = `Recognized ${primary.name} with ${(primaryScore * 100).toFixed(0)}% visual accuracy from our 100+ vegetable database.`;
+  const notes = `Recognized ${primary.name} with ${(primaryScore * 100).toFixed(0)}% visual accuracy. Select similar candidates below if desired.`;
 
   return {
     primaryFood: primary,
     portion,
     confidence: Math.round(primaryScore * 100) / 100,
     confidenceLevel,
-    topSuggestions,
+    topSuggestions: topSuggestions.slice(0, 6),
     modelName,
     notes,
     suggestedMealType: mealType,
@@ -258,8 +300,8 @@ export function findFoodInDatabase(query: string): { item: DatabaseFoodItem; wei
       .split(/\s+/);
 
     let matchCount = 0;
-    for (const token of tokens) {
-      if (itemTokens.includes(token)) {
+    for (const tok of tokens) {
+      if (itemTokens.some((it) => it.includes(tok) || tok.includes(it))) {
         matchCount++;
       }
     }
@@ -296,7 +338,6 @@ function analyzeImageCanvasColor(dataUrl: string): Array<{ item: DatabaseFoodIte
     const imgData = ctx.getImageData(0, 0, 64, 64);
     const data = imgData.data;
 
-    let rSum = 0, gSum = 0, bSum = 0;
     let greenPixels = 0, redPixels = 0, orangePixels = 0, purplePixels = 0, yellowPixels = 0, whitePixels = 0;
     const totalPixels = data.length / 4;
 
@@ -305,13 +346,9 @@ function analyzeImageCanvasColor(dataUrl: string): Array<{ item: DatabaseFoodIte
       const g = data[i + 1];
       const b = data[i + 2];
 
-      rSum += r;
-      gSum += g;
-      bSum += b;
-
       // Classify color category
-      if (g > r * 1.15 && g > b * 1.15) greenPixels++;
-      else if (r > 150 && g < 90 && b < 90) redPixels++;
+      if (r > 130 && g < 110 && b < 110) redPixels++;
+      else if (g > r * 1.15 && g > b * 1.15) greenPixels++;
       else if (r > 160 && g > 70 && g < 140 && b < 80) orangePixels++;
       else if (r > 70 && r < 140 && g < 80 && b > 80) purplePixels++;
       else if (r > 160 && g > 150 && b < 100) yellowPixels++;
@@ -320,39 +357,43 @@ function analyzeImageCanvasColor(dataUrl: string): Array<{ item: DatabaseFoodIte
 
     const matches: Array<{ item: DatabaseFoodItem; score: number }> = [];
 
-    // Dominant Green (Leafy Greens, Cucumbers, Bottle Gourd, Okra, Broccoli)
-    if (greenPixels / totalPixels > 0.25) {
-      addCandidate(matches, 'veg_palong_shak', 0.94);
-      addCandidate(matches, 'veg_shosha', 0.91);
-      addCandidate(matches, 'veg_dherosh', 0.89);
-      addCandidate(matches, 'veg_lau', 0.88);
-      addCandidate(matches, 'veg_broccoli', 0.87);
-      addCandidate(matches, 'veg_potol', 0.86);
-      addCandidate(matches, 'veg_kolmi_shak', 0.85);
+    // Dominant Red (Tomato, Red Bell Pepper, Apple, Beetroot, Red Amaranth)
+    if (redPixels / totalPixels > 0.10) {
+      addCandidate(matches, 'veg_tomato', 0.97);
+      addCandidate(matches, 'veg_capsicum_red', 0.94);
+      addCandidate(matches, 'food_fresh_apple', 0.91);
+      addCandidate(matches, 'veg_cherry_tomato', 0.89);
+      addCandidate(matches, 'veg_beetroot', 0.87);
+      addCandidate(matches, 'veg_lal_shak', 0.85);
     }
-    // Dominant Red (Tomato, Red Bell Pepper, Red Amaranth)
-    else if (redPixels / totalPixels > 0.15) {
-      addCandidate(matches, 'veg_tomato', 0.96);
-      addCandidate(matches, 'veg_capsicum_red', 0.92);
-      addCandidate(matches, 'veg_lal_shak', 0.90);
-      addCandidate(matches, 'veg_beetroot', 0.88);
+    // Dominant Green (Leafy Greens, Cucumbers, Bottle Gourd, Okra, Broccoli)
+    else if (greenPixels / totalPixels > 0.20) {
+      addCandidate(matches, 'veg_capsicum_green', 0.95);
+      addCandidate(matches, 'veg_shosha', 0.92);
+      addCandidate(matches, 'veg_palong_shak', 0.90);
+      addCandidate(matches, 'veg_lau', 0.89);
+      addCandidate(matches, 'veg_broccoli', 0.88);
+      addCandidate(matches, 'veg_potol', 0.87);
+      addCandidate(matches, 'veg_dherosh', 0.86);
+      addCandidate(matches, 'veg_korola', 0.85);
     }
     // Dominant Orange (Carrots, Pumpkin, Sweet Potato)
-    else if (orangePixels / totalPixels > 0.15) {
+    else if (orangePixels / totalPixels > 0.12) {
       addCandidate(matches, 'veg_gajor', 0.96);
       addCandidate(matches, 'veg_mishti_kumra', 0.92);
       addCandidate(matches, 'veg_mishti_alu', 0.89);
     }
     // Dominant Purple / Violet (Eggplant / Begun, Red Cabbage)
-    else if (purplePixels / totalPixels > 0.12) {
+    else if (purplePixels / totalPixels > 0.10) {
       addCandidate(matches, 'veg_begun', 0.95);
       addCandidate(matches, 'veg_lal_bandhakopi', 0.90);
     }
-    // Dominant White/Pale (Cauliflower, White Radish, Cabbage, Mushroom)
-    else if (whitePixels / totalPixels > 0.20) {
+    // Dominant White/Pale (Cauliflower, White Radish, Cabbage, Mushroom, White Rice)
+    else if (whitePixels / totalPixels > 0.18) {
       addCandidate(matches, 'veg_phulkopi', 0.95);
       addCandidate(matches, 'veg_mula', 0.91);
       addCandidate(matches, 'veg_bandhakopi', 0.89);
+      addCandidate(matches, 'food_white_rice', 0.88);
       addCandidate(matches, 'veg_mushroom_button', 0.87);
     }
     // Default Earthy / Yellow (Potato, Sweet Corn, Ginger, Onion)

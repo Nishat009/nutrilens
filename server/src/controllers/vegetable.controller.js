@@ -212,6 +212,7 @@ exports.getVegetableByIdOrSlug = async (req, res) => {
       });
     }
 
+
     res.status(200).json({
       success: true,
       code: 200,
@@ -362,6 +363,7 @@ exports.calculateNutrition = async (req, res) => {
         errors: [`Vegetable '${idOrSlug}' not found`],
       });
     }
+
 
     const factor = grams / 100;
     const calculated = {

@@ -1,0 +1,1528 @@
+{
+  "diet_catalog_version": "2.0.0",
+  "source": "NutriLens Clinical and Hormonal Nutrition Protocols",
+  "last_updated": "2026-08-27",
+  "diet_plans": [
+    {
+      "id": "pcos_hormone_balance",
+      "slug": "pcos-hormone-balance",
+      "name": "PCOS & Hormone Balance Diet",
+      "category": "hormonal",
+      "status": "active",
+      "tagline": "Evidence-informed nutrition for insulin sensitivity and androgen balance",
+      "description": "Helps manage insulin resistance, support ovulatory health, and moderate androgen influence using local Bangladeshi anti-inflammatory foods.",
+      "fullOverview": "Polycystic Ovary Syndrome (PCOS) involves underlying hyperinsulinemia driving excess ovarian androgen production. This protocol prioritizes complex low-GI carbohydrates (Red rice, Besan, Lentils), anti-inflammatory local fish, and spearmint tea to support endocrine balance.",
+      "icon": "Leaf",
+      "difficulty": "Easy",
+      "targetAudience": "Individuals with PCOS or metabolic-hormonal irregularity",
+      "targetWeightCategory": "55kg - 85kg",
+      "clinical_profile": {
+        "primary_goals": ["insulin_sensitivity", "androgen_balance", "ovulatory_support"],
+        "suitable_conditions": ["pcos", "insulin_resistance", "irregular_cycles"],
+        "requires_professional_review": ["pregnancy_with_gestational_diabetes", "severe_eating_disorder"]
+      },
+      "eligibility": {
+        "minimum_age": 16,
+        "maximum_age": null,
+        "bmi": ["normal", "overweight", "obesity"],
+        "activity_levels": ["sedentary", "light", "moderate", "high"]
+      },
+      "nutrition_strategy": {
+        "calorie_mode": "individualized",
+        "protein": "moderate_high",
+        "carbohydrate": "moderate_low_gi",
+        "fat": "moderate_unsaturated",
+        "fiber": "high",
+        "sodium": "standard"
+      },
+      "macroRatio": {
+        "mode": "target_range",
+        "protein": 30,
+        "carbs": 35,
+        "fat": 35,
+        "protein_percent": { "min": 25, "max": 35 },
+        "carbohydrate_percent": { "min": 30, "max": 40 },
+        "fat_percent": { "min": 30, "max": 40 }
+      },
+      "food_rules": {
+        "prefer": ["red_rice", "deshi_fish", "spearmint_tea", "flaxseeds", "palong_shak", "boiled_eggs"],
+        "limit": ["refined_flour", "bakery_sweets", "sugar_sweetened_beverages", "ultra_processed_snacks"],
+        "avoid_if_allergic": true
+      },
+      "evidence_profile": {
+        "mechanism_summary": "Low-GI complex carbohydrates reduce postprandial insulin surges, lowering insulin-mediated ovarian androgen synthesis. Spearmint and flaxseeds provide mild anti-androgenic and phytoestrogenic support.",
+        "potential_benefits": ["Supports normal menstrual regularity", "Assists in hirsutism management", "Aids abdominal fat reduction"],
+        "evidence_level": "moderate"
+      },
+      "keyBenefits": [
+        "Low glycemic load prevents acute insulin surges",
+        "Rich in omega-3 and plant lignans for hormone balance",
+        "High dietary fiber promotes satiety and gut clearance of metabolites"
+      ],
+      "allowedFoods": ["Red rice (Lal chal)", "Deshi fish (Rui, Katla, Tengra)", "Spearmint tea", "Flaxseeds (Tisi)", "Green leafy vegetables", "Boiled eggs"],
+      "foodsToLimit": ["Sugar and bakery sweets", "Refined flour (Maida)", "Sweetened milk tea", "Deep-fried street snacks (Singara, Puri)"],
+      "forbiddenKeywords": ["maida", "sugar", "pastry", "syrup", "sweetmeat", "jilapi", "chanachur"],
+      "guidelines": [
+        "Begin mornings with a warm cup of spearmint tea and soaked chia or flaxseeds.",
+        "Ensure half your lunch plate consists of fiber-rich cooked vegetables or shak.",
+        "Avoid skipping breakfast to maintain stable morning cortisol and insulin levels."
+      ],
+      "sampleMealDay": {
+        "breakfast": "2 Besan/oats chillas with grated bottle gourd + 1 boiled egg + unsweetened spearmint tea",
+        "lunch": "1 small cup Red rice (Lal chal) + Palong shak bhaji + Rui fish curry with light gravy + Cucumber salad",
+        "dinner": "1 handmade multigrain roti + Boiled mixed dal + Stir-fried pointed gourd (potol) and chicken breast",
+        "snack": "A handful of roasted pumpkin seeds + 1 cup warm green tea with cinnamon"
+      },
+      "safety": {
+        "automatic_recommendation": true,
+        "medical_review_required": false
+      },
+      "isFeatured": true
+    },
+    {
+      "id": "hypothyroidism_metabolic_boost",
+      "slug": "hypothyroidism-metabolic-boost",
+      "name": "Hypothyroidism Metabolic Nutrition Protocol",
+      "category": "thyroid",
+      "status": "active",
+      "tagline": "Micronutrient-targeted nutrition to support thyroid hormone synthesis and metabolic rate",
+      "description": "Supplies bioavailable Selenium, Zinc, and Iodine while minimizing raw goitrogens to support resting metabolic energy.",
+      "fullOverview": "Hypothyroidism can lower basal metabolic rate and impair gut motility. This protocol incorporates marine fish, pumpkin seeds, and cooked leafy greens to support deiodinase enzyme conversion of T4 to active T3.",
+      "icon": "Flame",
+      "difficulty": "Easy",
+      "targetAudience": "Individuals with underactive thyroid (elevated TSH) or low metabolic rate",
+      "targetWeightCategory": "60kg - 95kg",
+      "clinical_profile": {
+        "primary_goals": ["thyroid_support", "metabolic_boost", "constipation_relief"],
+        "suitable_conditions": ["hypothyroidism", "hashimotos", "sluggish_metabolism"],
+        "requires_professional_review": ["uncontrolled_hyperthyroidism", "thyrotoxicosis"]
+      },
+      "eligibility": {
+        "minimum_age": 18,
+        "maximum_age": null,
+        "bmi": ["normal", "overweight", "obesity"],
+        "activity_levels": ["sedentary", "light", "moderate", "high"]
+      },
+      "nutrition_strategy": {
+        "calorie_mode": "individualized",
+        "protein": "moderate_high",
+        "carbohydrate": "moderate",
+        "fat": "moderate",
+        "fiber": "high",
+        "sodium": "standard"
+      },
+      "macroRatio": {
+        "mode": "target_range",
+        "protein": 30,
+        "carbs": 40,
+        "fat": 30,
+        "protein_percent": { "min": 25, "max": 35 },
+        "carbohydrate_percent": { "min": 35, "max": 45 },
+        "fat_percent": { "min": 25, "max": 35 }
+      },
+      "food_rules": {
+        "prefer": ["sea_fish", "pumpkin_seeds", "eggs", "cooked_spinach", "chia_seeds"],
+        "limit": ["raw_cabbage", "raw_cauliflower", "unfermented_soy", "gluten_heavy_bakery"],
+        "avoid_if_allergic": true
+      },
+      "evidence_profile": {
+        "mechanism_summary": "Selenium and Zinc act as essential cofactors for 5'-deiodinase enzymes that convert T4 to active T3. Cooking cruciferous vegetables inactivates myrosinase, ensuring safe intake.",
+        "potential_benefits": ["Supports cellular metabolic rate", "Aids gut motility and fluid clearance", "Helps reduce fatigue"],
+        "evidence_level": "moderate"
+      },
+      "keyBenefits": [
+        "Rich in bioavailable Selenium and Zinc for enzymatic conversion",
+        "High soluble fiber to support sluggish bowel transit",
+        "Guidance on separating meals from Levothyroxine medication by 60 minutes"
+      ],
+      "allowedFoods": ["Rupchanda / Loitta sea fish", "Pumpkin seeds (Misti kumrar bichi)", "Cooked spinach and bottle gourd", "Whole boiled eggs", "Brazil nuts or walnuts", "Papaya"],
+      "foodsToLimit": ["Raw cabbage and cauliflower (cook thoroughly instead)", "Unfermented soy chunks", "Excessive bakery gluten", "Cold sugary drinks"],
+      "forbiddenKeywords": ["raw cabbage", "raw broccoli", "maida", "soy milk", "sweetened tea"],
+      "guidelines": [
+        "Take thyroid medication on an empty stomach with plain water at least 45-60 minutes before breakfast.",
+        "Always cook cruciferous vegetables (cabbage, cauliflower) thoroughly to neutralize goitrogenic activity.",
+        "Snack on a tablespoon of roasted pumpkin seeds for daily zinc and magnesium."
+      ],
+      "sampleMealDay": {
+        "breakfast": "2 whole eggs scrambled with tomatoes + 1 slice whole-wheat toast + 1 glass lukewarm lemon water",
+        "lunch": "1 cup Red rice + Cooked loitta or rupchanda fish with ginger turmeric gravy + Lau shak + Cucumber salad",
+        "dinner": "Vegetable and chicken soup with bottle gourd and carrots + 1 small handmade roti",
+        "snack": "1 cup Tok doi (yogurt) sprinkled with 1 tbsp roasted pumpkin seeds"
+      },
+      "safety": {
+        "automatic_recommendation": true,
+        "medical_review_required": false
+      },
+      "isFeatured": true
+    },
+    {
+      "id": "deshi_low_gi_insulin_resistance",
+      "slug": "insulin-resistant-weight-loss",
+      "name": "Deshi Low-GI Insulin Resistance Protocol",
+      "category": "metabolic",
+      "status": "active",
+      "tagline": "Controlled glycemic load nutrition to improve insulin sensitivity and energy balance",
+      "description": "Focuses on high-amylose grains, legumes, and lean protein to prevent rapid postprandial glycemic excursions.",
+      "fullOverview": "Insulin resistance impairs cellular glucose uptake and promotes visceral fat accumulation. This protocol utilizes fiber-dense Bangladeshi staples like Lal atta, chola, and bitter gourd (karela) to smooth glucose curves.",
+      "icon": "Activity",
+      "difficulty": "Easy",
+      "targetAudience": "Individuals with prediabetes, central adiposity, or elevated fasting insulin",
+      "targetWeightCategory": "60kg - 100kg",
+      "clinical_profile": {
+        "primary_goals": ["glycemic_control", "insulin_sensitivity", "visceral_fat_reduction"],
+        "suitable_conditions": ["prediabetes", "type_2_diabetes", "metabolic_syndrome"],
+        "requires_professional_review": ["type_1_diabetes", "hypoglycemia_unawareness"]
+      },
+      "eligibility": {
+        "minimum_age": 18,
+        "maximum_age": null,
+        "bmi": ["overweight", "obesity"],
+        "activity_levels": ["sedentary", "light", "moderate", "high"]
+      },
+      "nutrition_strategy": {
+        "calorie_mode": "individualized",
+        "protein": "moderate_high",
+        "carbohydrate": "controlled_low_gi",
+        "fat": "moderate",
+        "fiber": "high",
+        "sodium": "standard"
+      },
+      "macroRatio": {
+        "mode": "target_range",
+        "protein": 30,
+        "carbs": 40,
+        "fat": 30,
+        "protein_percent": { "min": 25, "max": 35 },
+        "carbohydrate_percent": { "min": 35, "max": 45 },
+        "fat_percent": { "min": 25, "max": 35 }
+      },
+      "food_rules": {
+        "prefer": ["red_atta_roti", "chickpeas", "karela", "deshi_chicken", "dal"],
+        "limit": ["white_rice_large_portions", "paratha", "sugar", "sweetened_yogurt"],
+        "avoid_if_allergic": true
+      },
+      "evidence_profile": {
+        "mechanism_summary": "High-fiber complex carbohydrates and resistant starches slow gastric emptying and enzymatic starch hydrolysis, moderating postprandial glucose excursions.",
+        "potential_benefits": ["Supports stable energy levels throughout the day", "Reduces reactive sugar cravings", "Assists visceral waist circumference reduction"],
+        "evidence_level": "strong"
+      },
+      "keyBenefits": [
+        "Reduces glycemic excursions without severe carbohydrate starvation",
+        "High satiety indices preventing late-night binge eating",
+        "Cardio-metabolic support with bioactive polyphenols"
+      ],
+      "allowedFoods": ["Lal atta handmade roti", "Boiled chickpeas (Chola)", "Bitter gourd (Karela)", "Deshi chicken breast", "Masoor and Mug dal", "Cucumbers and leafy greens"],
+      "foodsToLimit": ["Excessive white rice (>200g per meal)", "Maida paratha and fried snacks", "Refined sweets and carbonated drinks"],
+      "forbiddenKeywords": ["paratha", "suger", "sweet", "maida", "cake", "pepsi", "coke"],
+      "guidelines": [
+        "Follow the Plate Method: 1/2 non-starchy vegetables, 1/4 lean protein, 1/4 quality low-GI carbohydrate.",
+        "Incorporate a 10-minute gentle post-meal walk to activate GLUT-4 glucose uptake without insulin.",
+        "Drink a glass of water with 1 tsp soaked isabgol 15 minutes before lunch."
+      ],
+      "sampleMealDay": {
+        "breakfast": "2 small Lal atta rotis + Boiled chickpeas with tomato and cucumber + 1 boiled egg",
+        "lunch": "1 cup Red rice or 2 rotis + Karela bhaji + Katla fish curry + Thick dal + Lemon salad",
+        "dinner": "Grilled deshi chicken breast + Steamed mixed vegetables (potol, dharosh, lau) + 1 small roti",
+        "snack": "1 cup black coffee or green tea + 15 roasted unsalted almonds"
+      },
+      "safety": {
+        "automatic_recommendation": true,
+        "medical_review_required": false
+      },
+      "isFeatured": true
+    },
+    {
+      "id": "dash_cardio_care",
+      "slug": "dash-hypertension-cardio",
+      "name": "DASH Cardio Care & Blood Pressure Protocol",
+      "category": "cardiovascular",
+      "status": "active",
+      "tagline": "Potassium-rich, mineral-balanced protocol supporting arterial elasticity and cardiovascular health",
+      "description": "Emphasizes dietary potassium, magnesium, and calcium while moderating sodium to support blood pressure management.",
+      "fullOverview": "Modeled after the Dietary Approaches to Stop Hypertension (DASH) framework, this protocol integrates local potassium sources like green coconut water, bananas, and leafy greens to support vascular tone.",
+      "icon": "HeartPulse",
+      "difficulty": "Easy",
+      "targetAudience": "Individuals managing high blood pressure or prioritizing cardiovascular health",
+      "targetWeightCategory": "Any Weight",
+      "clinical_profile": {
+        "primary_goals": ["blood_pressure_support", "heart_health", "vascular_tone"],
+        "suitable_conditions": ["hypertension", "high_cholesterol", "cardiovascular_risk"],
+        "requires_professional_review": ["advanced_kidney_disease_ckd", "heart_failure_fluid_restriction"]
+      },
+      "eligibility": {
+        "minimum_age": 18,
+        "maximum_age": null,
+        "bmi": ["underweight", "normal", "overweight", "obesity"],
+        "activity_levels": ["sedentary", "light", "moderate", "high"]
+      },
+      "nutrition_strategy": {
+        "calorie_mode": "individualized",
+        "protein": "moderate",
+        "carbohydrate": "moderate_whole",
+        "fat": "moderate_low_saturated",
+        "fiber": "high",
+        "sodium": "reduced"
+      },
+      "macroRatio": {
+        "mode": "target_range",
+        "protein": 25,
+        "carbs": 50,
+        "fat": 25,
+        "protein_percent": { "min": 20, "max": 30 },
+        "carbohydrate_percent": { "min": 45, "max": 55 },
+        "fat_percent": { "min": 20, "max": 30 }
+      },
+      "food_rules": {
+        "prefer": ["vegetables", "fruits", "whole_grains", "dal", "beans", "fish", "unsalted_nuts", "green_coconut_water"],
+        "limit": ["processed_meat", "high_sodium_food", "chips", "pickles", "instant_noodles", "table_salt"],
+        "avoid_if_allergic": true
+      },
+      "evidence_profile": {
+        "mechanism_summary": "High dietary potassium and magnesium intake promotes vasodilation and natriuresis, mitigating the hypertensive effects of excess dietary sodium.",
+        "potential_benefits": ["Supports healthy systolic and diastolic blood pressure", "Aids arterial flexibility", "Improves overall heart health markers"],
+        "evidence_level": "strong"
+      },
+      "keyBenefits": [
+        "AHA-aligned sodium management working toward ≤1,500 mg/day when appropriate",
+        "Rich in potassium, magnesium, and calcium from natural foods",
+        "Zero artificial trans-fats or high-sodium seasonings"
+      ],
+      "allowedFoods": ["Green coconut water (Daaber pani)", "Spinach (Palong shak)", "Ripe bananas (Shobri kola)", "Fresh Rui/Katla fish", "Low-fat milk/yogurt", "Sweet potato", "Unsalted almonds"],
+      "foodsToLimit": ["Commercial pickles (Achar with heavy salt)", "Instant noodles and seasoning packets", "Canned meats and processed sausages", "Raw table salt sprinkles"],
+      "forbiddenKeywords": ["achar", "instant noodle", "chanachur", "salty chips", "baking powder snack"],
+      "guidelines": [
+        "Do not add extra table salt to your rice or salad plate.",
+        "Flavor dishes with lemon juice, fresh ginger, garlic, and cumin instead of excess salt.",
+        "Enjoy a glass of fresh green coconut water 2-3 times weekly for natural potassium."
+      ],
+      "sampleMealDay": {
+        "breakfast": "1 bowl oats cooked in low-fat milk + Sliced banana and 10 unsalted almonds + 1 boiled egg white",
+        "lunch": "1 cup brown or red rice + Rui fish cooked with tomato and cumin + Palong shak bhaji with garlic + Sliced cucumber",
+        "dinner": "2 whole wheat rotis + Mixed vegetable curry (beans, carrots, potato) + 1 cup yellow lentil soup (dal)",
+        "snack": "1 glass fresh green coconut water or 1 fresh guava"
+      },
+      "safety": {
+        "automatic_recommendation": true,
+        "medical_review_required": false
+      },
+      "isFeatured": true
+    },
+    {
+      "id": "fatty_liver_nafld",
+      "slug": "detox-fatty-liver-reversal",
+      "name": "Fatty Liver (NAFLD) Lifestyle Nutrition Protocol",
+      "category": "liver_health",
+      "status": "active",
+      "tagline": "Hepatic lipid reduction and antioxidant support through sulfur-rich vegetables and low fructose",
+      "description": "Nutritional lifestyle support designed to reduce hepatic triglyceride accumulation and oxidative stress.",
+      "fullOverview": "Non-Alcoholic Fatty Liver Disease (NAFLD) is characterized by hepatic de novo lipogenesis driven by refined carbohydrates and fructose. This protocol emphasizes cruciferous vegetables, fresh garlic, green tea, and lean fish to support liver cellular health.",
+      "icon": "Shield",
+      "difficulty": "Easy",
+      "targetAudience": "Individuals with Grade 1 or 2 fatty liver, elevated ALT/AST, or metabolic syndrome",
+      "targetWeightCategory": "60kg - 95kg",
+      "clinical_profile": {
+        "primary_goals": ["hepatic_lipid_reduction", "antioxidant_support", "liver_enzyme_normalization"],
+        "suitable_conditions": ["nafld_fatty_liver", "elevated_liver_enzymes", "metabolic_syndrome"],
+        "requires_professional_review": ["decompensated_cirrhosis", "acute_hepatic_failure"]
+      },
+      "eligibility": {
+        "minimum_age": 18,
+        "maximum_age": null,
+        "bmi": ["normal", "overweight", "obesity"],
+        "activity_levels": ["sedentary", "light", "moderate", "high"]
+      },
+      "nutrition_strategy": {
+        "calorie_mode": "mild_deficit",
+        "protein": "moderate_high",
+        "carbohydrate": "moderate_low_sugar",
+        "fat": "moderate_unsaturated",
+        "fiber": "high",
+        "sodium": "standard"
+      },
+      "macroRatio": {
+        "mode": "target_range",
+        "protein": 30,
+        "carbs": 40,
+        "fat": 30,
+        "protein_percent": { "min": 25, "max": 35 },
+        "carbohydrate_percent": { "min": 35, "max": 45 },
+        "fat_percent": { "min": 25, "max": 35 }
+      },
+      "food_rules": {
+        "prefer": ["garlic", "green_tea", "broccoli", "steamed_fish", "olive_oil", "mustard_oil", "tok_doi"],
+        "limit": ["high_fructose_corn_syrup", "soft_drinks", "alcohol", "deep_fried_foods", "refined_sugar"],
+        "avoid_if_allergic": true
+      },
+      "evidence_profile": {
+        "mechanism_summary": "Limiting refined carbohydrates and fructose reduces hepatic substrate availability for de novo lipogenesis, while sulfur compounds (allicin, sulforaphane) support Phase II liver detox pathways.",
+        "potential_benefits": ["Supports reduction of intrahepatic fat accumulation", "Helps normalize ALT and AST transaminases", "Improves systemic insulin sensitivity"],
+        "evidence_level": "moderate"
+      },
+      "keyBenefits": [
+        "Eliminates high-fructose corn syrup and refined sweeteners",
+        "Rich in sulfur-rich allicin (garlic) and sulforaphane (crucifers)",
+        "Supplies EGCG from green tea to support hepatic lipid oxidation"
+      ],
+      "allowedFoods": ["Fresh garlic cloves", "Unsweetened green tea", "Steamed cauliflower and cabbage", "Deshi fish (Rui, Tengra, Shing)", "Cold-pressed mustard oil", "Plain Tok doi"],
+      "foodsToLimit": ["Commercial fruit juices and soft drinks", "Alcohol", "Deep-fried parathas and moglai", "Bakery ghee sweets"],
+      "forbiddenKeywords": ["soda", "coke", "alcohol", "syrup", "deep fried", "jilapi"],
+      "guidelines": [
+        "Drink 2 cups of freshly brewed unsweetened green tea daily for antioxidant EGCG.",
+        "Include 1-2 crushed fresh garlic cloves in your daily meals for allicin benefits.",
+        "Eliminate all packaged juices, sweetened drinks, and artificial syrups."
+      ],
+      "sampleMealDay": {
+        "breakfast": "2 scrambled egg whites + 1 slice whole wheat bread + 1 cup green tea with lemon",
+        "lunch": "1 cup Red rice + Steamed Rui fish with garlic turmeric sauce + Cooked broccoli and cauliflower + Lemon salad",
+        "dinner": "Clear chicken and vegetable soup with ginger and garlic + 1 small roti",
+        "snack": "1/2 cup Tok doi with a pinch of black pepper and roasted cumin"
+      },
+      "safety": {
+        "automatic_recommendation": true,
+        "medical_review_required": false
+      },
+      "isFeatured": false
+    },
+    {
+      "id": "low_purine_uric_acid_gout",
+      "slug": "anti-uric-acid-gout-care",
+      "name": "Low-Purine Uric Acid & Gout Care Protocol",
+      "category": "metabolic",
+      "status": "active",
+      "tagline": "Purine-conscious nutrition and alkaline hydration to support healthy uric acid clearance",
+      "description": "Balances portion sizes of purine-containing foods while providing alkalizing vegetables and ample hydration.",
+      "fullOverview": "Hyperuricemia occurs when uric acid production exceeds renal excretion. This protocol replaces high-purine organ meats and selected seafood with moderate proteins like eggs and low-fat dairy while encouraging high water intake.",
+      "icon": "Droplets",
+      "difficulty": "Easy",
+      "targetAudience": "Individuals managing high blood uric acid (>6.0 mg/dL in females, >7.0 mg/dL in males) or gouty flare-ups",
+      "targetWeightCategory": "55kg - 90kg",
+      "clinical_profile": {
+        "primary_goals": ["uric_acid_clearance", "gout_flare_prevention", "alkaline_hydration"],
+        "suitable_conditions": ["gout_hyperuricemia", "uric_acid_stones", "joint_stiffness"],
+        "requires_professional_review": ["end_stage_renal_disease", "severe_hyperuricemia_with_tophi"]
+      },
+      "eligibility": {
+        "minimum_age": 18,
+        "maximum_age": null,
+        "bmi": ["normal", "overweight", "obesity"],
+        "activity_levels": ["sedentary", "light", "moderate", "high"]
+      },
+      "nutrition_strategy": {
+        "calorie_mode": "individualized",
+        "protein": "moderate_low_purine",
+        "carbohydrate": "moderate",
+        "fat": "moderate",
+        "fiber": "high",
+        "sodium": "standard"
+      },
+      "macroRatio": {
+        "mode": "target_range",
+        "protein": 20,
+        "carbs": 55,
+        "fat": 25,
+        "protein_percent": { "min": 18, "max": 25 },
+        "carbohydrate_percent": { "min": 50, "max": 60 },
+        "fat_percent": { "min": 20, "max": 30 }
+      },
+      "food_rules": {
+        "prefer": ["cucumber", "bottle_gourd", "low_fat_yogurt", "eggs", "water", "cherries", "papaya"],
+        "limit": ["red_meat", "organ_meat_liver_kidney", "hilsa_ilish_fish", "shrimp_prawn", "high_fructose_beverages"],
+        "avoid_if_allergic": true
+      },
+      "evidence_profile": {
+        "mechanism_summary": "Limiting high-purine cellular substrates reduces exogenous xanthine oxidase degradation into uric acid, while low-fat dairy and vitamin C promote renal urate clearance.",
+        "potential_benefits": ["Helps reduce the frequency of painful joint flare-ups", "Supports urinary uric acid solubility", "Maintains healthy joint mobility"],
+        "evidence_level": "strong"
+      },
+      "keyBenefits": [
+        "Portion-aware management of moderate-purine fresh fish",
+        "High dietary hydration target (>3,000 ml/day) to prevent crystal crystallization",
+        "Emphasis on eggs and low-fat dairy for safe protein"
+      ],
+      "allowedFoods": ["Fresh cucumber (Shosha)", "Bottle gourd (Lau)", "Low-fat Tok doi (Yogurt)", "Whole boiled eggs", "Papaya and guava", "Red rice and Lal atta roti"],
+      "foodsToLimit": ["Beef, mutton, and organ meats (Liver/Gurda/Mogoj)", "Hilsa (Ilish) and Shrimp (Chingri)", "Dried fish (Shutki)", "Sweetened soft drinks"],
+      "forbiddenKeywords": ["kolija", "gurda", "beef", "mutton", "shutki", "shrimp", "chingri", "ilish"],
+      "guidelines": [
+        "Drink at least 3.0 to 3.5 liters of clean water daily to facilitate renal uric acid clearance.",
+        "Rely on whole eggs, low-fat yogurt, and light fish portions (under 100g) for protein.",
+        "Avoid red meat, beef liver, and dried fish (shutki) during active joint swelling."
+      ],
+      "sampleMealDay": {
+        "breakfast": "2 whole boiled eggs + 2 slices brown bread + Cucumber and tomato slices + 1 large glass water with lemon",
+        "lunch": "1 cup Red rice + Bottle gourd (Lau) curry + 1 small piece Rui fish (approx 80g) + 1 cup Tok doi",
+        "dinner": "2 handmade rotis + Steamed pointed gourd and pumpkin curry + 1 bowl light vegetable soup",
+        "snack": "1 fresh guava or apple + 2 glasses of water"
+      },
+      "safety": {
+        "automatic_recommendation": true,
+        "medical_review_required": false
+      },
+      "isFeatured": false
+    },
+    {
+      "id": "anti_inflammatory_fertility",
+      "slug": "anti-inflammatory-fertility",
+      "name": "Anti-Inflammatory Fertility Prep Diet",
+      "category": "fertility",
+      "status": "active",
+      "tagline": "Micronutrient-dense protocol to support ovulatory function and cellular health",
+      "description": "Enriched with dietary Folate, Omega-3 fatty acids, and antioxidants to support reproductive vitality.",
+      "fullOverview": "Chronic low-grade inflammation can affect reproductive health. This protocol utilizes pomegranate, walnuts, golden turmeric milk, and local greens to provide comprehensive micronutrient nourishment.",
+      "icon": "Sparkles",
+      "difficulty": "Moderate",
+      "targetAudience": "Individuals planning pregnancy or seeking reproductive nutritional support",
+      "targetWeightCategory": "50kg - 75kg",
+      "clinical_profile": {
+        "primary_goals": ["ovulatory_health", "antioxidant_status", "folate_enrichment"],
+        "suitable_conditions": ["preconception_planning", "unexplained_subfertility", "oxidative_stress"],
+        "requires_professional_review": ["high_risk_pregnancy", "active_ivf_medication_adjustments"]
+      },
+      "eligibility": {
+        "minimum_age": 18,
+        "maximum_age": 45,
+        "bmi": ["normal", "overweight"],
+        "activity_levels": ["light", "moderate", "high"]
+      },
+      "nutrition_strategy": {
+        "calorie_mode": "eucaloric",
+        "protein": "moderate",
+        "carbohydrate": "moderate_unrefined",
+        "fat": "moderate_high_omega3",
+        "fiber": "high",
+        "sodium": "standard"
+      },
+      "macroRatio": {
+        "mode": "target_range",
+        "protein": 25,
+        "carbs": 45,
+        "fat": 30,
+        "protein_percent": { "min": 20, "max": 30 },
+        "carbohydrate_percent": { "min": 40, "max": 50 },
+        "fat_percent": { "min": 25, "max": 35 }
+      },
+      "food_rules": {
+        "prefer": ["pomegranate", "walnuts", "turmeric", "spinach", "eggs", "deshi_fish"],
+        "limit": ["trans_fats", "processed_sugar", "excess_caffeine", "deep_fried_street_foods"],
+        "avoid_if_allergic": true
+      },
+      "evidence_profile": {
+        "mechanism_summary": "Antioxidants (polyphenols, vitamins C and E) mitigate follicular oxidative stress, while omega-3s and folate support cellular division and endometrial receptivity.",
+        "potential_benefits": ["Supports optimal ovulatory function", "Enhances endometrial blood flow", "Improves cellular antioxidant defenses"],
+        "evidence_level": "moderate"
+      },
+      "keyBenefits": [
+        "High dietary folate from natural greens and legumes",
+        "Omega-3 fatty acids for anti-inflammatory eicosanoid balance",
+        "Rich in colorful polyphenols and carotenoids"
+      ],
+      "allowedFoods": ["Pomegranate (Dalim)", "Walnuts and almonds", "Turmeric infused warm milk", "Palong shak and methi shak", "Whole eggs", "Deshi fish"],
+      "foodsToLimit": ["Artificial trans fats and hydrogenated dalda", "Caffeine over 200mg/day", "Refined flour sweets"],
+      "forbiddenKeywords": ["dalda", "hydrogenated", "deep fried", "syrup"],
+      "guidelines": [
+        "Include a handful of pomegranate seeds or fresh guava daily for antioxidant support.",
+        "Ensure daily intake of natural folate from dark leafy greens and boiled lentils.",
+        "Limit commercial coffee and tea to no more than 1 cup daily."
+      ],
+      "sampleMealDay": {
+        "breakfast": "2 whole eggs with spinach omelet + 1 slice whole wheat bread + 1/2 cup pomegranate seeds",
+        "lunch": "1 cup Red rice + Tengra fish curry with tomatoes + Methi shak bhaji + Dal",
+        "dinner": "1 handmade roti + Grilled chicken breast + Steamed broccoli and carrots",
+        "snack": "Warm low-fat milk with a pinch of turmeric and 4 walnuts"
+      },
+      "safety": {
+        "automatic_recommendation": true,
+        "medical_review_required": false
+      },
+      "isFeatured": false
+    },
+    {
+      "id": "deshi_keto",
+      "slug": "deshi-keto-intermittent",
+      "name": "Targeted Deshi Keto Protocol",
+      "category": "low_carb",
+      "status": "active",
+      "tagline": "Controlled low-carbohydrate nutritional protocol utilizing authentic Bangladeshi staples",
+      "description": "Shifts primary metabolic fuel from glucose to ketone bodies through high-quality deshi fats and proteins.",
+      "fullOverview": "A targeted ketogenic approach adapted for Bangladeshi dietary patterns using pure ghee, mustard oil, eggs, deshi fish, and green leafy vegetables while keeping daily net carbohydrates under 30g.",
+      "icon": "Flame",
+      "difficulty": "Advanced",
+      "targetAudience": "Individuals seeking rapid insulin reduction or accustomed to ketogenic eating",
+      "targetWeightCategory": "60kg - 100kg",
+      "clinical_profile": {
+        "primary_goals": ["rapid_glycemic_drop", "ketosis", "appetite_suppression"],
+        "suitable_conditions": ["stubborn_insulin_resistance", "metabolic_syndrome"],
+        "requires_professional_review": ["ckd_kidney_disease", "type_1_diabetes", "pregnancy", "pancreatitis"]
+      },
+      "eligibility": {
+        "minimum_age": 18,
+        "maximum_age": 60,
+        "bmi": ["overweight", "obesity"],
+        "activity_levels": ["sedentary", "light", "moderate"]
+      },
+      "nutrition_strategy": {
+        "calorie_mode": "controlled_deficit",
+        "protein": "moderate",
+        "carbohydrate": "very_low_keto",
+        "fat": "high_quality",
+        "fiber": "moderate",
+        "sodium": "adequate"
+      },
+      "macroRatio": {
+        "mode": "target_range",
+        "protein": 25,
+        "carbs": 5,
+        "fat": 70,
+        "protein_percent": { "min": 20, "max": 30 },
+        "carbohydrate_percent": { "min": 5, "max": 10 },
+        "fat_percent": { "min": 65, "max": 75 }
+      },
+      "food_rules": {
+        "prefer": ["pure_ghee", "mustard_oil", "eggs", "deshi_fish", "cauliflower_rice", "palong_shak"],
+        "limit": ["all_grains", "rice", "roti", "sugar", "sweet_fruits", "potatoes", "dal"],
+        "avoid_if_allergic": true
+      },
+      "evidence_profile": {
+        "mechanism_summary": "Limiting carbohydrate intake below 30g/day depletes hepatic glycogen stores, stimulating beta-oxidation and ketogenesis.",
+        "potential_benefits": ["Rapid reduction in circulating insulin levels", "Significant reduction in hunger and snacking urges", "Efficient fat loss when calories are controlled"],
+        "evidence_level": "moderate"
+      },
+      "keyBenefits": [
+        "Very low net carbohydrate intake (<30g daily)",
+        "Nutritious local healthy fats (Deshi Ghee, Mustard oil)",
+        "Zero starvation or constant hunger pangs"
+      ],
+      "allowedFoods": ["Pure Deshi Ghee", "Cold-pressed mustard oil", "Whole eggs (boiled/fried in ghee)", "Deshi Rui/Katla/Boal fish", "Palong shak and Kolmi shak", "Cauliflower rice", "Cucumbers"],
+      "foodsToLimit": ["All rice and bread", "Dal and chickpeas", "Potatoes and sweet potatoes", "Sugar, milk, and sweet fruits"],
+      "forbiddenKeywords": ["rice", "roti", "bread", "sugar", "dal", "potato", "aloo", "banana"],
+      "guidelines": [
+        "Maintain electrolyte balance by drinking mineralized water with a pinch of Himalayan pink salt.",
+        "Eat plenty of leafy greens (Palong and Kolmi shak) to support digestion and magnesium levels.",
+        "Strictly avoid cheat meals during initial adaptation to maintain nutritional ketosis."
+      ],
+      "sampleMealDay": {
+        "breakfast": "3 whole eggs fried in 1 tbsp pure ghee + Sliced cucumber + Black coffee with 1 tsp ghee/MCT",
+        "lunch": "Rui fish cooked in mustard oil + 1 large bowl sautéed Palong shak with green chillies + Sliced cucumber",
+        "dinner": "Deshi chicken curry in rich spicy ghee gravy + 1 large bowl cauliflower rice + Green salad",
+        "snack": "A handful of roasted salted almonds or walnuts"
+      },
+      "safety": {
+        "automatic_recommendation": false,
+        "medical_review_required": true
+      },
+      "isFeatured": false
+    },
+    {
+      "id": "hormone_safe_fasting_14_10",
+      "slug": "intermittent-fasting-14-10-women",
+      "name": "Hormone-Safe Intermittent Fasting (14/10)",
+      "category": "fasting",
+      "status": "active",
+      "tagline": "Gentle 14-hour fasting protocol designed to protect adrenal and thyroid hormone rhythms",
+      "description": "Improves cellular autophagy and insulin sensitivity without the cortisol spikes associated with extreme 18+ hour fasts.",
+      "fullOverview": "Extreme prolonged fasting can trigger stress responses in sensitive endocrine systems. A moderate 14-hour overnight fast with a 10-hour eating window provides metabolic benefits while keeping cortisol and leptin balanced.",
+      "icon": "Clock",
+      "difficulty": "Easy",
+      "targetAudience": "Individuals seeking sustainable time-restricted eating without adrenal burnout",
+      "targetWeightCategory": "55kg - 85kg",
+      "clinical_profile": {
+        "primary_goals": ["autophagy", "insulin_sensitivity", "circadian_alignment"],
+        "suitable_conditions": ["mild_insulin_resistance", "late_night_snacking_habit"],
+        "requires_professional_review": ["history_of_eating_disorders", "type_1_diabetes", "pregnancy"]
+      },
+      "eligibility": {
+        "minimum_age": 18,
+        "maximum_age": null,
+        "bmi": ["normal", "overweight", "obesity"],
+        "activity_levels": ["light", "moderate", "high"]
+      },
+      "nutrition_strategy": {
+        "calorie_mode": "individualized",
+        "protein": "moderate",
+        "carbohydrate": "moderate_complex",
+        "fat": "moderate",
+        "fiber": "high",
+        "sodium": "standard"
+      },
+      "macroRatio": {
+        "mode": "target_range",
+        "protein": 30,
+        "carbs": 40,
+        "fat": 30,
+        "protein_percent": { "min": 25, "max": 35 },
+        "carbohydrate_percent": { "min": 35, "max": 45 },
+        "fat_percent": { "min": 25, "max": 35 }
+      },
+      "food_rules": {
+        "prefer": ["balanced_whole_foods", "water", "black_tea", "herbal_tea", "vegetables", "deshi_fish"],
+        "limit": ["fast_breaking_with_sugary_drinks", "binge_eating_in_window", "late_night_carbs"],
+        "avoid_if_allergic": true
+      },
+      "evidence_profile": {
+        "mechanism_summary": "A 14-hour overnight fast allows hepatic glycogen mobilization and stimulates mild cellular autophagy while preventing nocturnal cortisol surges.",
+        "potential_benefits": ["Eliminates late-night snacking", "Supports circadian melatonin and insulin rhythm", "Improves morning energy and mental clarity"],
+        "evidence_level": "moderate"
+      },
+      "keyBenefits": [
+        "Gentle 14-hour overnight fasting window (e.g. 8:00 PM to 10:00 AM)",
+        "10-hour feeding window with 2 nourishing meals and 1 snack",
+        "Zero disruption to thyroid or reproductive axes"
+      ],
+      "allowedFoods": ["During Fast: Plain water, Spearmint tea, Black coffee without sugar", "During Window: Red rice, Fish, Eggs, Vegetables, Lentils, Nuts"],
+      "foodsToLimit": ["Breaking fast with high-sugar sweets", "Overeating in the 10-hour window", "Late night snacking after 8:00 PM"],
+      "forbiddenKeywords": ["sugar in fast", "snack after 8pm"],
+      "guidelines": [
+        "Finish your last meal of the day by 8:00 PM.",
+        "Break your fast at 10:00 AM the next morning with protein and healthy fats rather than pure carbs.",
+        "Stay well hydrated with plain water and unsweetened herbal tea during the fasting window."
+      ],
+      "sampleMealDay": {
+        "breakfast": "10:00 AM (Break Fast): 2 boiled eggs + 1 cup warm spearmint tea + 10 almonds",
+        "lunch": "1:30 PM: 1 cup Red rice + Katla fish curry + Palong shak bhaji + Cucumber salad",
+        "dinner": "7:30 PM (Last Meal): 2 multigrain rotis + Chicken curry + Steamed vegetables with lemon",
+        "snack": "4:30 PM: 1 cup Tok doi with chia seeds and cinnamon"
+      },
+      "safety": {
+        "automatic_recommendation": true,
+        "medical_review_required": false
+      },
+      "isFeatured": false
+    },
+    {
+      "id": "gut_healing_anti_bloat",
+      "slug": "gut-healing-bloating-relief",
+      "name": "Gut-Healing & Anti-Bloat Protocol",
+      "category": "gut_health",
+      "status": "active",
+      "tagline": "Gentle digestive nutrition featuring live probiotics, soothing broths, and soluble fibers",
+      "description": "Alleviates abdominal distension, gas, and irregular bowel habits through easily digestible local foods.",
+      "fullOverview": "Dysbiosis, sluggish motility, or IBS can cause persistent bloating. This protocol features traditional Bangladeshi fermented Tok doi (live culture yogurt), green papaya (papain enzymes), bone broths, and isabgol.",
+      "icon": "Smile",
+      "difficulty": "Easy",
+      "targetAudience": "Individuals experiencing abdominal bloating, indigestion, or irritable bowel patterns",
+      "targetWeightCategory": "Any Weight",
+      "clinical_profile": {
+        "primary_goals": ["bloating_reduction", "microbiome_support", "gut_motility"],
+        "suitable_conditions": ["bloating", "indigestion", "mild_ibs", "constipation"],
+        "requires_professional_review": ["inflammatory_bowel_disease_crohns_colitis", "gastrointestinal_bleeding"]
+      },
+      "eligibility": {
+        "minimum_age": 16,
+        "maximum_age": null,
+        "bmi": ["underweight", "normal", "overweight", "obesity"],
+        "activity_levels": ["sedentary", "light", "moderate", "high"]
+      },
+      "nutrition_strategy": {
+        "calorie_mode": "eucaloric",
+        "protein": "moderate",
+        "carbohydrate": "moderate_easily_digestible",
+        "fat": "moderate_low_grease",
+        "fiber": "moderate_soluble",
+        "sodium": "standard"
+      },
+      "macroRatio": {
+        "mode": "target_range",
+        "protein": 25,
+        "carbs": 45,
+        "fat": 30,
+        "protein_percent": { "min": 20, "max": 30 },
+        "carbohydrate_percent": { "min": 40, "max": 50 },
+        "fat_percent": { "min": 25, "max": 35 }
+      },
+      "food_rules": {
+        "prefer": ["tok_doi", "isabgol", "green_papaya", "shing_fish", "bone_broth", "bottle_gourd"],
+        "limit": ["carbonated_drinks", "heavy_fried_street_food", "excessive_raw_onions", "commercial_pastries"],
+        "avoid_if_allergic": true
+      },
+      "evidence_profile": {
+        "mechanism_summary": "Live lactobacilli in Tok doi support microbiome diversity, while soluble fibers (isabgol, pectin) normalize stool form without excessive fermentation gas.",
+        "potential_benefits": ["Reduces postprandial abdominal fullness and bloating", "Promotes smooth, regular bowel movements", "Soothes irritated gastrointestinal mucosa"],
+        "evidence_level": "moderate"
+      },
+      "keyBenefits": [
+        "Natural live probiotic cultures from Bangladeshi Tok doi",
+        "Digestive enzymes from raw/cooked green papaya (Kacha pepe)",
+        "Soothing, low-grease light fish curries (Patla jhol)"
+      ],
+      "allowedFoods": ["Plain Tok doi (Sour yogurt)", "Isabgol (Psyllium husk)", "Green papaya (Kacha pepe)", "Shing / Magur fish light broth", "Bottle gourd (Lau)", "Cooked carrots and pumpkin"],
+      "foodsToLimit": ["Carbonated soft drinks", "Oily spicy beef curry", "Heavy raw cabbage/beans in large quantities", "Ultra-processed spicy chips"],
+      "forbiddenKeywords": ["soda", "coke", "chanachur", "deep fried moglai", "oily kacchi"],
+      "guidelines": [
+        "Consume 1/2 cup of fresh Tok doi with lunch every day for beneficial lactic acid bacteria.",
+        "Eat cooked green papaya (pepe) or bottle gourd (lau) 3-4 times weekly for smooth digestion.",
+        "Take 1 tsp isabgol in a glass of water before bedtime for gentle motility support."
+      ],
+      "sampleMealDay": {
+        "breakfast": "Warm rolled oats cooked in water with 1 tbsp Tok doi and sliced ripe papaya + 1 boiled egg",
+        "lunch": "1 cup soft cooked rice + Light Shing fish and green papaya broth (Pepe diye shing macher patla jhol) + 1/2 cup Tok doi",
+        "dinner": "1 soft handmade roti + Boiled bottle gourd and carrot curry + Shredded boiled chicken",
+        "snack": "1 cup warm ginger mint tea + 1 tsp isabgol in water"
+      },
+      "safety": {
+        "automatic_recommendation": true,
+        "medical_review_required": false
+      },
+      "isFeatured": false
+    },
+    {
+      "id": "muscle_recomp",
+      "slug": "lean-muscle-recomp",
+      "name": "High-Protein Muscle Recomposition Protocol",
+      "category": "body_composition",
+      "status": "active",
+      "tagline": "High-protein nutritional protocol to support lean muscle retention and fat reduction",
+      "description": "Supplies 1.6g - 2.0g protein per kg bodyweight alongside resistance training to reshape body composition.",
+      "fullOverview": "Designed for individuals looking to shed adipose tissue while preserving or building metabolic lean mass. Features lean deshi chicken breast, egg whites, fish, besan, and lentils.",
+      "icon": "Dumbbell",
+      "difficulty": "Moderate",
+      "targetAudience": "Individuals engaging in resistance training or seeking lean body recomposition",
+      "targetWeightCategory": "55kg - 90kg",
+      "clinical_profile": {
+        "primary_goals": ["muscle_protein_synthesis", "fat_loss", "metabolic_rate_preservation"],
+        "suitable_conditions": ["skinny_fat_phenotype", "sarcopenic_obesity", "fitness_goals"],
+        "requires_professional_review": ["ckd_kidney_disease", "elevated_creatinine"]
+      },
+      "eligibility": {
+        "minimum_age": 18,
+        "maximum_age": null,
+        "bmi": ["normal", "overweight"],
+        "activity_levels": ["moderate", "high", "very_active"]
+      },
+      "nutrition_strategy": {
+        "calorie_mode": "slight_deficit_or_eucaloric",
+        "protein": "high_1.6_to_2.0g_per_kg",
+        "carbohydrate": "moderate_timed",
+        "fat": "moderate_low",
+        "fiber": "high",
+        "sodium": "standard"
+      },
+      "macroRatio": {
+        "mode": "target_range",
+        "protein": 40,
+        "carbs": 35,
+        "fat": 25,
+        "protein_percent": { "min": 35, "max": 45 },
+        "carbohydrate_percent": { "min": 30, "max": 40 },
+        "fat_percent": { "min": 20, "max": 30 }
+      },
+      "food_rules": {
+        "prefer": ["chicken_breast", "egg_whites", "tuna_or_sea_fish", "lentils", "besan", "greek_yogurt_tok_doi"],
+        "limit": ["fatty_meat_cuts", "sugary_confectionery", "deep_fried_breads", "heavy_cream"],
+        "avoid_if_allergic": true
+      },
+      "evidence_profile": {
+        "mechanism_summary": "Higher protein intake elevates muscle protein synthesis (MPS) via leucine-mediated mTOR signaling and increases the thermic effect of food (TEF).",
+        "potential_benefits": ["Supports skeletal muscle hypertrophy and retention", "Elevates 24-hour baseline energy expenditure", "Provides superior appetite satiety"],
+        "evidence_level": "strong"
+      },
+      "keyBenefits": [
+        "40% of total calories from quality, high-biological-value protein",
+        "Timed carbohydrates around workout sessions for performance",
+        "Satiety-enhancing fiber from whole vegetables"
+      ],
+      "allowedFoods": ["Chicken breast (skinless)", "Egg whites (with 1-2 whole eggs)", "Rui, Katla, and Tuna fish", "Besan (Chickpea flour)", "Tok doi (hung curd)", "Sprouted moong dal"],
+      "foodsToLimit": ["High-fat mutton and beef cuts", "Fried snacks (Singara, puri)", "Sugary protein bars with artificial syrups"],
+      "forbiddenKeywords": ["mutton fat", "beef fat", "sugar syrup", "fried puri"],
+      "guidelines": [
+        "Distribute your protein evenly across 3-4 meals (25g-35g protein per feeding).",
+        "Consume your primary carbohydrate portion within 2 hours before or after your workout session.",
+        "Drink at least 3.0 liters of water daily to support amino acid metabolism and kidney filtration."
+      ],
+      "sampleMealDay": {
+        "breakfast": "4 egg whites + 1 whole egg scrambled + 2 slices whole wheat toast + Black coffee",
+        "lunch": "150g grilled chicken breast + 1 cup Red rice + 1 bowl mixed dal + Sautéed green beans",
+        "dinner": "150g Rui fish steak + 1 large bowl broccoli and carrot stir-fry + 1 small roti",
+        "snack": "1 cup hung Tok doi (Greek style) with 1 scoop protein powder or 1 tbsp peanut butter"
+      },
+      "safety": {
+        "automatic_recommendation": true,
+        "medical_review_required": false
+      },
+      "isFeatured": false
+    },
+    {
+      "id": "anti_estrogen",
+      "slug": "plant-based-estrogen-balance",
+      "name": "Plant-Forward Estrogen Balance Protocol",
+      "category": "hormonal",
+      "status": "active",
+      "tagline": "Cruciferous compounds and dietary lignans to support Phase I and Phase II estrogen metabolism",
+      "description": "Features cooked Brassica vegetables, ground flaxseeds, and fiber to support normal estrogen clearance.",
+      "fullOverview": "Estrogen dominance can contribute to heavy menstrual bleeding and breast tenderness. This plant-forward protocol supplies indole-3-carbinol (I3C), DIM, and lignans to support 2-hydroxyestrone metabolic clearance.",
+      "icon": "Feather",
+      "difficulty": "Moderate",
+      "targetAudience": "Individuals seeking nutritional support for estrogen metabolism and heavy cycles",
+      "targetWeightCategory": "50kg - 80kg",
+      "clinical_profile": {
+        "primary_goals": ["estrogen_metabolism", "hepatic_phase_2_support", "bowel_regularity"],
+        "suitable_conditions": ["estrogen_dominance", "fibrocystic_breasts", "heavy_periods"],
+        "requires_professional_review": ["hormone_sensitive_malignancies"]
+      },
+      "eligibility": {
+        "minimum_age": 18,
+        "maximum_age": null,
+        "bmi": ["normal", "overweight"],
+        "activity_levels": ["light", "moderate", "high"]
+      },
+      "nutrition_strategy": {
+        "calorie_mode": "individualized",
+        "protein": "moderate_plant_dominant",
+        "carbohydrate": "moderate_high_fiber",
+        "fat": "moderate_flax_olive",
+        "fiber": "very_high",
+        "sodium": "standard"
+      },
+      "macroRatio": {
+        "mode": "target_range",
+        "protein": 25,
+        "carbs": 45,
+        "fat": 30,
+        "protein_percent": { "min": 20, "max": 30 },
+        "carbohydrate_percent": { "min": 40, "max": 50 },
+        "fat_percent": { "min": 25, "max": 35 }
+      },
+      "food_rules": {
+        "prefer": ["flaxseeds", "cooked_broccoli", "cooked_cauliflower", "tofu", "chickpeas", "shak"],
+        "limit": ["commercially_raised_fatty_meats", "unfiltered_plastic_bottled_water", "refined_alcohol"],
+        "avoid_if_allergic": true
+      },
+      "evidence_profile": {
+        "mechanism_summary": "Indole-3-carbinol (I3C) in Brassicas promotes the less estrogenic 2-hydroxyestrone pathway over 16-alpha-hydroxyestrone, while flax lignans bind excess circulating estrogen.",
+        "potential_benefits": ["Supports normal menstrual cycle volume", "Aids in reducing cyclical breast discomfort", "Promotes healthy daily bowel elimination of bound estrogens"],
+        "evidence_level": "moderate"
+      },
+      "keyBenefits": [
+        "Rich in dietary lignans from fresh ground flaxseeds (Tisi)",
+        "Cruciferous phytonutrients (DIM/I3C) for liver cytochrome support",
+        "Very high dietary fiber to prevent intestinal estrogen reabsorption"
+      ],
+      "allowedFoods": ["Ground flaxseeds (Tisi)", "Cooked broccoli and cauliflower", "Shorisha shak and Palong shak", "Organic tofu and edamame", "Chickpeas and lentil dal", "Carrots"],
+      "foodsToLimit": ["Fatty commercial beef and pork", "Excessive dairy with synthetic hormones", "Alcohol and sugary confectionery"],
+      "forbiddenKeywords": ["alcohol", "fatty beef", "sugar syrup"],
+      "guidelines": [
+        "Take 1 tablespoon of freshly ground flaxseeds (tisi) daily with your morning oats or yogurt.",
+        "Eat 1 cup of cooked cruciferous vegetables (broccoli/cauliflower) daily.",
+        "Maintain regular daily bowel movements to prevent beta-glucuronidase deconjugation of estrogen."
+      ],
+      "sampleMealDay": {
+        "breakfast": "1 bowl oats with 1 tbsp ground flaxseeds + 1 cup soy/almond milk + Sliced green apple",
+        "lunch": "1 cup Red rice + Cooked broccoli and chickpea curry + Sautéed Palong shak + Raw grated carrot salad",
+        "dinner": "Grilled tofu or light fish steak + Steamed cauliflower and green beans + 1 small roti",
+        "snack": "A handful of roasted pumpkin seeds + 1 cup unsweetened green tea"
+      },
+      "safety": {
+        "automatic_recommendation": true,
+        "medical_review_required": false
+      },
+      "isFeatured": false
+    },
+    {
+      "id": "anemia_iron_boost",
+      "slug": "anemia-iron-boost",
+      "name": "Deshi Iron & Hemoglobin Booster Protocol",
+      "category": "micronutrient",
+      "status": "active",
+      "tagline": "Bioavailable heme and non-heme iron paired with Vitamin C to support hemoglobin synthesis",
+      "description": "Combines iron-dense deshi foods with natural ascorbic acid enhancers while avoiding iron absorption inhibitors.",
+      "fullOverview": "Iron deficiency anemia leads to chronic fatigue, pallor, and hair thinning. This protocol pairs organic liver, green bananas (Kanchakola), amla (Amroki), and lemon with meals while separating tea/coffee by 2 hours.",
+      "icon": "Feather",
+      "difficulty": "Easy",
+      "targetAudience": "Individuals with low ferritin, borderline hemoglobin (<12 g/dL), or postpartum blood loss",
+      "targetWeightCategory": "45kg - 75kg",
+      "clinical_profile": {
+        "primary_goals": ["ferritin_restoration", "hemoglobin_synthesis", "energy_recovery"],
+        "suitable_conditions": ["iron_deficiency_anemia", "low_serum_ferritin", "chronic_fatigue"],
+        "requires_professional_review": ["hemochromatosis_iron_overload", "thalassemia_major"]
+      },
+      "eligibility": {
+        "minimum_age": 14,
+        "maximum_age": null,
+        "bmi": ["underweight", "normal", "overweight"],
+        "activity_levels": ["sedentary", "light", "moderate", "high"]
+      },
+      "nutrition_strategy": {
+        "calorie_mode": "individualized",
+        "protein": "moderate_high",
+        "carbohydrate": "moderate",
+        "fat": "moderate",
+        "fiber": "moderate",
+        "sodium": "standard"
+      },
+      "macroRatio": {
+        "mode": "target_range",
+        "protein": 30,
+        "carbs": 45,
+        "fat": 25,
+        "protein_percent": { "min": 25, "max": 35 },
+        "carbohydrate_percent": { "min": 40, "max": 50 },
+        "fat_percent": { "min": 20, "max": 30 }
+      },
+      "food_rules": {
+        "prefer": ["chicken_liver", "green_banana", "amla", "fresh_lemon", "spinach", "dates", "pomegranate"],
+        "limit": ["tea_with_meals", "coffee_with_meals", "excess_calcium_with_iron_meals"],
+        "avoid_if_allergic": true
+      },
+      "evidence_profile": {
+        "mechanism_summary": "Ascorbic acid (Vitamin C) reduces non-heme ferric iron (Fe3+) to the soluble ferrous form (Fe2+), facilitating duodenal DMT-1 transporter uptake.",
+        "potential_benefits": ["Supports red blood cell hemoglobin production", "Reduces daytime fatigue and breathlessness", "Aids hair retention and nail strength"],
+        "evidence_level": "strong"
+      },
+      "keyBenefits": [
+        "High heme and non-heme iron from local deshi sources",
+        "Vitamin C pairing (Lemon, Amla, Guava) at every main meal",
+        "Strict separation of tea/coffee tannins from meal times"
+      ],
+      "allowedFoods": ["Chicken/Mutton liver (Kolija - 1-2 times weekly)", "Green banana (Kanchakola)", "Amla (Amroki) and Guava (Peyara)", "Fresh lemon juice (Lebu)", "Palong shak and Kachu shak", "Dates (Khejur)"],
+      "foodsToLimit": ["Drinking tea or coffee within 90 minutes of lunch/dinner", "Antacids taken directly with iron-rich foods", "Refined flour empty snacks"],
+      "forbiddenKeywords": ["tea with food", "coffee with food"],
+      "guidelines": [
+        "Always squeeze half a fresh lemon onto your dal and vegetable plate to double iron absorption.",
+        "Never drink milk tea or black coffee right after lunch; wait at least 90-120 minutes.",
+        "Eat 2-3 Medjool or deshi dates along with 1 fresh amla in the afternoon."
+      ],
+      "sampleMealDay": {
+        "breakfast": "2 whole eggs scrambled with tomatoes + 1 slice whole wheat bread + 1 glass orange/amla juice",
+        "lunch": "1 cup Red rice + Chicken liver curry (Kolija) or Shing fish + Kanchakola bhaji + Squeezed lemon on dal",
+        "dinner": "2 rotis + Palong shak and paneer/tofu curry + 1 bowl lentil soup with lemon slice",
+        "snack": "3 dates + 1 fresh guava (rich in Vitamin C) + 1 glass water"
+      },
+      "safety": {
+        "automatic_recommendation": true,
+        "medical_review_required": false
+      },
+      "isFeatured": false
+    },
+    {
+      "id": "postpartum_lactation",
+      "slug": "post-pregnancy-lactation-pcos",
+      "name": "Postpartum & Lactation Recovery Protocol",
+      "category": "postpartum",
+      "status": "active",
+      "tagline": "Nutrient-rich galactagogue and tissue recovery protocol for nursing mothers",
+      "description": "Supports breast milk volume and maternal tissue healing using traditional deshi galactagogues.",
+      "fullOverview": "Postpartum recovery requires additional caloric and micronutrient support for tissue repair and breast milk synthesis. This protocol features black seed (Kalo jira), moringa leaves (Sojne pata), oats, and nourishing broths.",
+      "icon": "Heart",
+      "difficulty": "Easy",
+      "targetAudience": "Nursing mothers seeking healthy milk production and postpartum physical recovery",
+      "targetWeightCategory": "Postpartum Mothers",
+      "clinical_profile": {
+        "primary_goals": ["lactation_support", "postpartum_healing", "micronutrient_replenishment"],
+        "suitable_conditions": ["postpartum_recovery", "breastfeeding_mother"],
+        "requires_professional_review": ["severe_postpartum_hemorrhage", "active_mastitis_infection"]
+      },
+      "eligibility": {
+        "minimum_age": 18,
+        "maximum_age": 45,
+        "bmi": ["normal", "overweight"],
+        "activity_levels": ["sedentary", "light", "moderate"]
+      },
+      "nutrition_strategy": {
+        "calorie_mode": "mild_surplus_plus_400_to_500_kcal",
+        "protein": "high_quality",
+        "carbohydrate": "moderate_high_complex",
+        "fat": "moderate_healthy",
+        "fiber": "high",
+        "sodium": "standard"
+      },
+      "macroRatio": {
+        "mode": "target_range",
+        "protein": 25,
+        "carbs": 45,
+        "fat": 30,
+        "protein_percent": { "min": 20, "max": 30 },
+        "carbohydrate_percent": { "min": 40, "max": 50 },
+        "fat_percent": { "min": 25, "max": 35 }
+      },
+      "food_rules": {
+        "prefer": ["kalo_jira", "sojne_pata", "rolled_oats", "garlic_soup", "deshi_fish_jhol", "milk", "eggs"],
+        "limit": ["crash_dieting_caloric_deficits", "excess_caffeine", "raw_unpasteurized_dairy"],
+        "avoid_if_allergic": true
+      },
+      "evidence_profile": {
+        "mechanism_summary": "Beta-glucans in oats and phytochemicals in black seed and moringa stimulate prolactin release and provide dense calcium, iron, and protein for lactation.",
+        "potential_benefits": ["Supports adequate breast milk supply", "Accelerates maternal tissue and pelvic floor recovery", "Prevents postpartum nutritional depletion"],
+        "evidence_level": "traditional"
+      },
+      "keyBenefits": [
+        "Natural galactagogues (Kalo jira, Sojne pata, Oats) to support prolactin",
+        "Extra 400-500 kcal allowance for healthy milk volume",
+        "High calcium and iron for postpartum repletion"
+      ],
+      "allowedFoods": ["Black cumin seed paste (Kalo jira bhorta)", "Moringa leaves (Sojne pata)", "Warm rolled oats with milk", "Garlic chicken soup (Roshun soup)", "Shing and Magur fish patla jhol", "Tok doi and milk"],
+      "foodsToLimit": ["Crash diets and starvation caloric deficits", "Excess commercial caffeine (>1 cup)", "Spicy gas-inducing street snacks"],
+      "forbiddenKeywords": ["crash diet", "starvation", "weight loss pill"],
+      "guidelines": [
+        "Include 1 tsp Kalo jira bhorta with your lunch rice for traditional lactation support.",
+        "Drink a glass of warm milk or water right after every nursing session to stay hydrated.",
+        "Do not attempt aggressive weight loss diets during the first 6 months of exclusive breastfeeding."
+      ],
+      "sampleMealDay": {
+        "breakfast": "1 bowl warm oats cooked in milk with honey, chia seeds, and 1 boiled egg",
+        "lunch": "1.5 cups Red rice + Kalo jira bhorta + Shing fish jhol with green papaya + Sojne pata bhaji",
+        "dinner": "2 handmade rotis + Garlic chicken soup with carrots and beans + 1 cup warm milk before bed",
+        "snack": "1 cup Tok doi with sliced banana and roasted almonds"
+      },
+      "safety": {
+        "automatic_recommendation": true,
+        "medical_review_required": false
+      },
+      "isFeatured": false
+    },
+    {
+      "id": "anti_aging_collagen",
+      "slug": "collagen-skin-glow-hair",
+      "name": "Collagen & Skin-Hair Vitality Protocol",
+      "category": "healthy_aging",
+      "status": "active",
+      "tagline": "Glycine-rich bone broths, Vitamin C, and silica to support dermal elasticity and hair follicles",
+      "description": "Provides natural collagen amino acid building blocks, biotin, and antioxidants for skin elasticity and hair strength.",
+      "fullOverview": "Dermal collagen synthesis requires prolyl-hydroxylase cofactors including Vitamin C, zinc, and amino acids. This protocol features traditional slow-simmered bone broths (Payaboro/Nehari broth), amla, guava, and pumpkin seeds.",
+      "icon": "Sun",
+      "difficulty": "Easy",
+      "targetAudience": "Individuals experiencing hair thinning, dry skin, or seeking skin-connective tissue support",
+      "targetWeightCategory": "Any Weight",
+      "clinical_profile": {
+        "primary_goals": ["collagen_synthesis", "hair_follicle_nourishment", "antioxidant_dermal_protection"],
+        "suitable_conditions": ["telogen_effluvium_hair_shedding", "dermal_dryness", "healthy_aging"],
+        "requires_professional_review": []
+      },
+      "eligibility": {
+        "minimum_age": 18,
+        "maximum_age": null,
+        "bmi": ["underweight", "normal", "overweight"],
+        "activity_levels": ["light", "moderate", "high"]
+      },
+      "nutrition_strategy": {
+        "calorie_mode": "eucaloric",
+        "protein": "moderate_collagen_rich",
+        "carbohydrate": "moderate_antioxidant",
+        "fat": "moderate_omega3_6",
+        "fiber": "high",
+        "sodium": "standard"
+      },
+      "macroRatio": {
+        "mode": "target_range",
+        "protein": 30,
+        "carbs": 40,
+        "fat": 30,
+        "protein_percent": { "min": 25, "max": 35 },
+        "carbohydrate_percent": { "min": 35, "max": 45 },
+        "fat_percent": { "min": 25, "max": 35 }
+      },
+      "food_rules": {
+        "prefer": ["bone_broth", "amla", "guava", "pumpkin_seeds", "eggs", "deshi_fish", "carrots"],
+        "limit": ["advanced_glycation_endproducts_charred_foods", "refined_sugars", "deep_fried_oils"],
+        "avoid_if_allergic": true
+      },
+      "evidence_profile": {
+        "mechanism_summary": "Glycine and proline from bone broths paired with Vitamin C stimulate dermal fibroblast collagen synthesis, while zinc and biotin support hair keratinization.",
+        "potential_benefits": ["Supports skin elasticity and hydration", "Helps reduce excessive hair shedding", "Strengthens brittle nails and joint connective tissues"],
+        "evidence_level": "moderate"
+      },
+      "keyBenefits": [
+        "Natural collagen peptides from slow-cooked bone broths",
+        "Ascorbic acid from fresh Amla and Guava for prolyl-hydroxylase activity",
+        "Biotin and Zinc from eggs and pumpkin seeds"
+      ],
+      "allowedFoods": ["Slow-simmered bone broth (Paya/Nehari broth)", "Amla (Amroki)", "Guava (Peyara)", "Pumpkin seeds (Misti kumrar bichi)", "Whole eggs", "Carrots and tomatoes", "Green tea"],
+      "foodsToLimit": ["Excessive refined sugar (which causes collagen glycation)", "Charred deep-fried street foods", "Sugary energy drinks"],
+      "forbiddenKeywords": ["refined sugar", "deep fried burnt food", "charred meat"],
+      "guidelines": [
+        "Drink 1 cup of warm, well-strained bone broth 3-4 times a week.",
+        "Consume 1 fresh amla or guava daily for the necessary Vitamin C to assemble collagen fibers.",
+        "Eat a handful of raw pumpkin seeds daily for zinc and plant sterols."
+      ],
+      "sampleMealDay": {
+        "breakfast": "2 whole eggs scrambled with tomatoes + 1 slice whole wheat bread + 1 fresh amla or glass of amla water",
+        "lunch": "1 cup Red rice + Rui fish curry with carrots and tomatoes + Palong shak bhaji + Cucumber salad",
+        "dinner": "1 cup warm nourishing bone broth + 1 handmade roti + Grilled chicken breast and steamed vegetables",
+        "snack": "1 cup green tea + 1 tbsp roasted pumpkin seeds and 4 walnuts"
+      },
+      "safety": {
+        "automatic_recommendation": true,
+        "medical_review_required": false
+      },
+      "isFeatured": false
+    },
+    {
+      "id": "mediterranean_fusion",
+      "slug": "mediterranean-deshi-fusion",
+      "name": "Deshi Mediterranean Longevity Protocol",
+      "category": "heart_health",
+      "status": "active",
+      "tagline": "Monounsaturated fats, colorful antioxidants, and fresh fish adapted for Bangladeshi cuisine",
+      "description": "Combines Mediterranean heart-health principles with locally available deshi ingredients for metabolic longevity.",
+      "fullOverview": "The Mediterranean diet is globally recognized for cardiovascular and metabolic longevity. This protocol adapts its core tenets using cold-pressed mustard/olive oil, local river fish, colorful vegetables, garlic, and lentils.",
+      "icon": "Leaf",
+      "difficulty": "Easy",
+      "targetAudience": "Individuals seeking long-term metabolic health, cardiovascular protection, and healthy aging",
+      "targetWeightCategory": "Any Weight",
+      "clinical_profile": {
+        "primary_goals": ["cardiovascular_longevity", "endothelial_health", "systemic_anti_inflammatory"],
+        "suitable_conditions": ["dyslipidemia", "mild_hypertension", "longevity_optimization"],
+        "requires_professional_review": []
+      },
+      "eligibility": {
+        "minimum_age": 18,
+        "maximum_age": null,
+        "bmi": ["underweight", "normal", "overweight", "obesity"],
+        "activity_levels": ["sedentary", "light", "moderate", "high"]
+      },
+      "nutrition_strategy": {
+        "calorie_mode": "individualized",
+        "protein": "moderate_fish_dominant",
+        "carbohydrate": "moderate_whole_grain",
+        "fat": "moderate_high_monounsaturated",
+        "fiber": "very_high",
+        "sodium": "standard"
+      },
+      "macroRatio": {
+        "mode": "target_range",
+        "protein": 25,
+        "carbs": 45,
+        "fat": 30,
+        "protein_percent": { "min": 20, "max": 30 },
+        "carbohydrate_percent": { "min": 40, "max": 50 },
+        "fat_percent": { "min": 25, "max": 35 }
+      },
+      "food_rules": {
+        "prefer": ["extra_virgin_olive_oil", "mustard_oil", "deshi_fish", "lentils", "tomatoes", "garlic", "colorful_vegetables"],
+        "limit": ["processed_meats", "hydrogenated_shortenings", "refined_sugar_pastries"],
+        "avoid_if_allergic": true
+      },
+      "evidence_profile": {
+        "mechanism_summary": "High polyphenol and monounsaturated fatty acid (MUFA) intake improves endothelial nitric oxide bioavailability and reduces LDL oxidation.",
+        "potential_benefits": ["Supports healthy lipid profiles (HDL to triglyceride ratio)", "Reduces systemic vascular inflammation", "Promotes long-term cognitive and metabolic health"],
+        "evidence_level": "strong"
+      },
+      "keyBenefits": [
+        "Rich in monounsaturated fats from olive and cold-pressed mustard oil",
+        "Emphasis on fresh deshi fish, lentils, and colorful vegetables",
+        "Strong evidence base for cardiovascular and cognitive longevity"
+      ],
+      "allowedFoods": ["Extra virgin olive oil and cold-pressed mustard oil", "Deshi fish (Rui, Katla, Tengra)", "Lentils (Masoor, Mug dal)", "Tomatoes, garlic, and onions", "Mixed leafy vegetables", "Tok doi", "Walnuts and almonds"],
+      "foodsToLimit": ["Commercial sausages and processed meats", "Hydrogenated shortening (Dalda)", "Refined bakery pastries"],
+      "forbiddenKeywords": ["dalda", "sausage", "processed nugget", "pastry"],
+      "guidelines": [
+        "Use olive oil for raw salads and cold-pressed mustard oil for light fish curries.",
+        "Eat fish at least 4-5 times a week in place of red meat.",
+        "Fill half your plate with colorful vegetables (tomatoes, spinach, beans, carrots) at lunch and dinner."
+      ],
+      "sampleMealDay": {
+        "breakfast": "2 whole eggs scrambled with tomatoes and olive oil + 1 slice whole wheat bread + Green tea",
+        "lunch": "1 cup Red rice + Rui fish cooked with garlic tomato gravy + Sautéed mixed shak + Cucumber tomato salad with olive oil",
+        "dinner": "1 handmade roti + Thick mixed lentil dal with vegetables + Grilled fish fillet",
+        "snack": "1/2 cup Tok doi with a handful of walnuts and a sprinkle of cinnamon"
+      },
+      "safety": {
+        "automatic_recommendation": true,
+        "medical_review_required": false
+      },
+      "isFeatured": true
+    },
+    {
+      "id": "cortisol_adrenal_reset",
+      "slug": "cortisol-stress-adrenal-reset",
+      "name": "Stress & Adrenal Nutrition Support Protocol",
+      "category": "hormonal",
+      "status": "active",
+      "tagline": "Magnesium-rich foods, adaptogenic teas, and stable complex carbohydrates to moderate stress responses",
+      "description": "Supports adrenal function and moderates stress-induced cortisol spikes through nutrient-rich whole foods.",
+      "fullOverview": "Chronic emotional and physical stress elevates cortisol, contributing to visceral fat accumulation, sleep disruption, and cravings. This protocol emphasizes magnesium-rich pumpkin seeds, sweet potatoes, dark chocolate, and Tulsi tea.",
+      "icon": "Moon",
+      "difficulty": "Easy",
+      "targetAudience": "Individuals experiencing chronic stress, high evening anxiety, or cortisol-related belly fat",
+      "targetWeightCategory": "Any Weight",
+      "clinical_profile": {
+        "primary_goals": ["hpa_axis_support", "sleep_quality", "magnesium_repletion"],
+        "suitable_conditions": ["chronic_stress", "elevated_evening_cortisol", "stress_eating_pattern"],
+        "requires_professional_review": ["cushings_disease", "addisons_adrenal_insufficiency"]
+      },
+      "eligibility": {
+        "minimum_age": 18,
+        "maximum_age": null,
+        "bmi": ["underweight", "normal", "overweight", "obesity"],
+        "activity_levels": ["sedentary", "light", "moderate", "high"]
+      },
+      "nutrition_strategy": {
+        "calorie_mode": "individualized",
+        "protein": "moderate",
+        "carbohydrate": "moderate_evening_complex",
+        "fat": "moderate",
+        "fiber": "high",
+        "sodium": "standard"
+      },
+      "macroRatio": {
+        "mode": "target_range",
+        "protein": 25,
+        "carbs": 45,
+        "fat": 30,
+        "protein_percent": { "min": 20, "max": 30 },
+        "carbohydrate_percent": { "min": 40, "max": 50 },
+        "fat_percent": { "min": 25, "max": 35 }
+      },
+      "food_rules": {
+        "prefer": ["pumpkin_seeds", "sweet_potato", "dark_chocolate_70plus", "tulsi_tea", "deshi_fish", "spinach"],
+        "limit": ["excess_caffeine_after_2pm", "refined_sugar_energy_drinks", "skipping_meals"],
+        "avoid_if_allergic": true
+      },
+      "evidence_profile": {
+        "mechanism_summary": "Magnesium acts as a natural NMDA receptor blocker and GABA agonist, while slow-digesting evening carbohydrates support serotonin and melatonin synthesis.",
+        "potential_benefits": ["Supports restful sleep quality", "Helps moderate stress-induced food cravings", "Aids in reducing stress-related central abdominal fat"],
+        "evidence_level": "moderate"
+      },
+      "keyBenefits": [
+        "Rich in dietary Magnesium and Vitamin B6 for GABA pathway support",
+        "Strategic complex carbohydrates at dinner to support sleep melatonin",
+        "Calming adaptogenic herbal teas (Tulsi and Chamomile)"
+      ],
+      "allowedFoods": ["Roasted pumpkin seeds (rich in magnesium)", "Boiled sweet potatoes (Misti aloo)", "70%+ Dark chocolate (small square)", "Tulsi (Holy Basil) and cinnamon tea", "Deshi fish and chicken", "Palong shak"],
+      "foodsToLimit": ["Caffeine after 2:00 PM", "High-sugar energy drinks and sodas", "Skipping breakfast when stressed"],
+      "forbiddenKeywords": ["energy drink", "caffeine after 2pm", "sugar binge"],
+      "guidelines": [
+        "Do not drink coffee or strong black tea on an empty stomach in the morning.",
+        "Include a small boiled sweet potato or cup of warm milk with dinner to support peaceful sleep.",
+        "Drink a warm cup of Tulsi herbal tea 45 minutes before bedtime."
+      ],
+      "sampleMealDay": {
+        "breakfast": "2 whole eggs scrambled with spinach + 1 slice whole wheat toast + 1 cup warm Tulsi tea",
+        "lunch": "1 cup Red rice + Rui fish curry with cumin and ginger + Palong shak bhaji + Cucumber salad",
+        "dinner": "1 small boiled sweet potato + Grilled chicken breast + Sautéed green beans and carrots",
+        "snack": "1 square 70%+ dark chocolate + 1 tbsp pumpkin seeds + 1 cup chamomile/tulsi tea"
+      },
+      "safety": {
+        "automatic_recommendation": true,
+        "medical_review_required": false
+      },
+      "isFeatured": false
+    },
+    {
+      "id": "weight_gain_amenorrhea",
+      "slug": "weight-gain-lean-mass",
+      "name": "Nutritional Re-Nourish & Healthy Weight Protocol",
+      "category": "weight_gain",
+      "status": "active",
+      "tagline": "Nutrient-dense, wholesome caloric surplus protocol for period recovery and lean mass",
+      "description": "Supports hypothalamic-pituitary-ovarian signaling and healthy weight restoration using nutrient-dense wholesome foods.",
+      "fullOverview": "Hypothalamic Amenorrhea and underweight status occur when low energy availability downregulates GnRH and LH pulsatility. This protocol provides a structured 300-500 kcal surplus utilizing peanut butter, pure ghee, nuts, and banana smoothies.",
+      "icon": "Sun",
+      "difficulty": "Easy",
+      "targetAudience": "Underweight individuals (BMI <18.5) or those recovering from functional hypothalamic amenorrhea",
+      "targetWeightCategory": "38kg - 52kg (Underweight)",
+      "clinical_profile": {
+        "primary_goals": ["energy_availability_restoration", "lean_weight_gain", "menstrual_recovery"],
+        "suitable_conditions": ["underweight_bmi_under_18.5", "hypothalamic_amenorrhea", "post_illness_wasting"],
+        "requires_professional_review": ["anorexia_nervosa_severe_underweight", "refeeding_syndrome_risk"]
+      },
+      "eligibility": {
+        "minimum_age": 16,
+        "maximum_age": null,
+        "bmi": ["underweight"],
+        "activity_levels": ["sedentary", "light", "moderate"]
+      },
+      "nutrition_strategy": {
+        "calorie_mode": "controlled_surplus_plus_300_to_500_kcal",
+        "protein": "moderate",
+        "carbohydrate": "high_complex",
+        "fat": "moderate_high_healthy",
+        "fiber": "moderate",
+        "sodium": "standard"
+      },
+      "macroRatio": {
+        "mode": "target_range",
+        "protein": 20,
+        "carbs": 50,
+        "fat": 30,
+        "protein_percent": { "min": 18, "max": 25 },
+        "carbohydrate_percent": { "min": 45, "max": 55 },
+        "fat_percent": { "min": 25, "max": 35 }
+      },
+      "food_rules": {
+        "prefer": ["peanut_butter", "pure_ghee", "bananas", "whole_milk", "eggs", "nuts", "dates", "avocado"],
+        "limit": ["pure_junk_food_dirty_bulking", "excessive_aerobic_starvation", "skipping_meals"],
+        "avoid_if_allergic": true
+      },
+      "evidence_profile": {
+        "mechanism_summary": "Restoring adequate energy availability (>45 kcal/kg fat-free mass/day) normalizes kisspeptin, leptin, and GnRH pulsatility to restore ovulatory function.",
+        "potential_benefits": ["Restores healthy body mass index (BMI ≥19.5)", "Supports resumption of regular menstrual cycles", "Enhances bone mineral density and thermal regulation"],
+        "evidence_level": "strong"
+      },
+      "keyBenefits": [
+        "Nutrient-dense caloric surplus without empty junk food",
+        "Healthy fats (Peanut butter, Ghee, Almonds) for steroid hormone synthesis",
+        "Frequent, easy-to-digest calorie boosters (Smoothies, Nut butter toasts)"
+      ],
+      "allowedFoods": ["Natural Peanut Butter (Chinabadam paste)", "Pure Deshi Ghee (1-2 tsp with rice)", "Whole milk and full-fat yogurt", "Ripe bananas and dates", "Whole eggs and chicken", "Potatoes and sweet potatoes"],
+      "foodsToLimit": ["Dirty bulking with rancid street oils", "Excessive volume low-calorie foods that prevent eating enough", "Skipping meals"],
+      "forbiddenKeywords": ["dirty bulk fried", "starvation", "appetite suppressant"],
+      "guidelines": [
+        "Add 1 tsp pure ghee or butter to your hot rice and dal at both lunch and dinner.",
+        "Drink a nourishing smoothie with whole milk, 1 banana, 1 tbsp peanut butter, and 2 dates daily.",
+        "Eat every 3 to 4 hours consistently without skipping planned meals."
+      ],
+      "sampleMealDay": {
+        "breakfast": "2 whole wheat toasts with 2 tbsp peanut butter + 2 whole boiled eggs + 1 glass whole milk",
+        "lunch": "1.5 cups rice with 1 tsp ghee + Rui fish curry + Potato and bean curry + 1 cup thick dal",
+        "dinner": "2 rotis + Chicken curry + Sautéed vegetables + 1 small sweet potato",
+        "snack": "High-calorie smoothie: 1 glass milk + 1 ripe banana + 1 tbsp peanut butter + 2 dates blended"
+      },
+      "safety": {
+        "automatic_recommendation": true,
+        "medical_review_required": false
+      },
+      "isFeatured": false
+    },
+    {
+      "id": "pms_pmdd_mood_care",
+      "slug": "pre-menstrual-pmdd-relief",
+      "name": "PMS & PMDD Luteal Phase Nutrition Protocol",
+      "category": "hormonal",
+      "status": "active",
+      "tagline": "Magnesium, Vitamin B6, and steady-carbohydrate nutrition to support luteal phase mood and comfort",
+      "description": "Supports serotonin synthesis and balances progesterone-to-estrogen ratios during the 10 days before menstruation.",
+      "fullOverview": "The luteal phase demands stable blood glucose and elevated micronutrients to buffer mood swings and water retention. This protocol features sunflower seeds, chickpeas, dark chocolate, and bananas.",
+      "icon": "Moon",
+      "difficulty": "Easy",
+      "targetAudience": "Individuals experiencing pre-menstrual mood changes, bloating, cramps, or intense sugar cravings",
+      "targetWeightCategory": "Any Weight",
+      "clinical_profile": {
+        "primary_goals": ["serotonin_synthesis", "luteal_phase_support", "cramp_reduction"],
+        "suitable_conditions": ["pms", "pmdd", "cyclical_water_retention"],
+        "requires_professional_review": ["severe_clinical_depression_suicidality"]
+      },
+      "eligibility": {
+        "minimum_age": 16,
+        "maximum_age": null,
+        "bmi": ["underweight", "normal", "overweight", "obesity"],
+        "activity_levels": ["light", "moderate", "high"]
+      },
+      "nutrition_strategy": {
+        "calorie_mode": "individualized",
+        "protein": "moderate",
+        "carbohydrate": "moderate_steady_complex",
+        "fat": "moderate_rich_in_b6",
+        "fiber": "high",
+        "sodium": "reduced_during_luteal"
+      },
+      "macroRatio": {
+        "mode": "target_range",
+        "protein": 25,
+        "carbs": 45,
+        "fat": 30,
+        "protein_percent": { "min": 20, "max": 30 },
+        "carbohydrate_percent": { "min": 40, "max": 50 },
+        "fat_percent": { "min": 25, "max": 35 }
+      },
+      "food_rules": {
+        "prefer": ["sunflower_seeds", "chickpeas", "bananas", "dark_chocolate", "spinach", "ginger_tea"],
+        "limit": ["excess_salt_luteal_phase", "refined_sugar_binging", "high_caffeine"],
+        "avoid_if_allergic": true
+      },
+      "evidence_profile": {
+        "mechanism_summary": "Vitamin B6 acts as a cofactor in decarboxylating 5-HTP to serotonin and L-DOPA to dopamine, while magnesium reduces prostaglandin-mediated uterine cramping.",
+        "potential_benefits": ["Moderates cyclical irritability and depressive mood dips", "Reduces pre-menstrual water retention and breast tenderness", "Helps alleviate uterine cramping"],
+        "evidence_level": "moderate"
+      },
+      "keyBenefits": [
+        "Vitamin B6 and Magnesium for neurotransmitter balance",
+        "Ginger tea for prostaglandin-mediated cramp soothing",
+        "Steady complex carbohydrates to prevent hypoglycemic mood dips"
+      ],
+      "allowedFoods": ["Sunflower seeds (Surjomukhir bichi)", "Boiled chickpeas (Chola)", "Ripe bananas (rich in B6)", "70%+ Dark chocolate", "Fresh ginger tea", "Tok doi and leafy greens"],
+      "foodsToLimit": ["Excessive salt during the premenstrual week (causes fluid retention)", "Refined sugary snacks", "Heavy caffeine"],
+      "forbiddenKeywords": ["high salt chips", "salty pickle in pms", "sugar overload"],
+      "guidelines": [
+        "Drink 2 cups of fresh ginger tea daily during the 7 days prior to your expected period.",
+        "Snack on 1 tbsp sunflower seeds and 1 square of dark chocolate in the late afternoon.",
+        "Avoid adding extra salt to meals during the pre-menstrual week to prevent fluid puffiness."
+      ],
+      "sampleMealDay": {
+        "breakfast": "2 whole eggs scrambled + 1 slice whole wheat toast + Sliced banana + 1 cup warm ginger tea",
+        "lunch": "1 cup Red rice + Boiled chickpeas with tomato and coriander + Rui fish curry + Spinach bhaji",
+        "dinner": "1 handmade roti + Chicken and vegetable stew with carrots and potatoes + Fresh cucumber salad",
+        "snack": "1 tbsp sunflower seeds + 1 square dark chocolate + 1 cup peppermint/ginger tea"
+      },
+      "safety": {
+        "automatic_recommendation": true,
+        "medical_review_required": false
+      },
+      "isFeatured": false
+    },
+    {
+      "id": "perimenopause_bone_care",
+      "slug": "menopause-perimenopause-care",
+      "name": "Perimenopause & Bone Density Protocol",
+      "category": "women_health",
+      "status": "active",
+      "tagline": "Calcium, Vitamin D, and phytoestrogenic nutrition to support bone density and vasomotor comfort",
+      "description": "Supports bone mineral retention and vascular comfort during the perimenopausal and menopausal transition.",
+      "fullOverview": "Declining estrogen levels accelerate bone calcium resorption and trigger vasomotor hot flashes. This protocol emphasizes small bony fish (Mola/Dhela mach), sesame seeds (Til), calcium-set tofu, and Tok doi.",
+      "icon": "Sun",
+      "difficulty": "Easy",
+      "targetAudience": "Women in perimenopause or menopause (ages 40-60+) focusing on bone density and hormonal transition",
+      "targetWeightCategory": "55kg - 85kg",
+      "clinical_profile": {
+        "primary_goals": ["bone_density_support", "vasomotor_comfort", "calcium_absorption"],
+        "suitable_conditions": ["perimenopause", "postmenopause", "osteopenia_risk"],
+        "requires_professional_review": ["established_severe_osteoporosis_fracture"]
+      },
+      "eligibility": {
+        "minimum_age": 38,
+        "maximum_age": null,
+        "bmi": ["underweight", "normal", "overweight", "obesity"],
+        "activity_levels": ["sedentary", "light", "moderate", "high"]
+      },
+      "nutrition_strategy": {
+        "calorie_mode": "individualized",
+        "protein": "moderate_high",
+        "carbohydrate": "moderate_low_gi",
+        "fat": "moderate",
+        "fiber": "high",
+        "sodium": "reduced"
+      },
+      "macroRatio": {
+        "mode": "target_range",
+        "protein": 30,
+        "carbs": 40,
+        "fat": 30,
+        "protein_percent": { "min": 25, "max": 35 },
+        "carbohydrate_percent": { "min": 35, "max": 45 },
+        "fat_percent": { "min": 25, "max": 35 }
+      },
+      "food_rules": {
+        "prefer": ["mola_dhela_fish_with_bones", "sesame_seeds", "tok_doi", "organic_tofu", "spinach", "boiled_eggs"],
+        "limit": ["spicy_hot_trigger_foods", "excess_alcohol", "excess_caffeine", "high_sodium"],
+        "avoid_if_allergic": true
+      },
+      "evidence_profile": {
+        "mechanism_summary": "Supplies bioavailable calcium and phosphorus from soft-boned small fish alongside mild phytoestrogenic isoflavones to moderate estrogenic receptor decline.",
+        "potential_benefits": ["Supports bone mineral density (calcium/phosphorus matrix)", "Helps moderate the intensity of vasomotor hot flashes", "Supports lean muscle preservation"],
+        "evidence_level": "moderate"
+      },
+      "keyBenefits": [
+        "High dietary Calcium from small deshi fish eaten with bones (Mola, Dhela)",
+        "Plant isoflavones (Sesame, Tofu) for gentle estrogenic receptor support",
+        "Adequate protein to prevent age-related sarcopenia"
+      ],
+      "allowedFoods": ["Small fish eaten with soft bones (Mola, Dhela, Kholisha)", "Sesame seeds (Til bhorta or sprinkled)", "Plain Tok doi (Sour yogurt)", "Organic tofu and soy", "Palong shak and Broccoli", "Whole eggs"],
+      "foodsToLimit": ["Excessively spicy foods that trigger hot flashes", "Heavy caffeine and alcohol", "High sodium foods that increase urinary calcium loss"],
+      "forbiddenKeywords": ["hot spicy trigger", "alcohol", "excess salt"],
+      "guidelines": [
+        "Eat small deshi fish with bones (Mola/Dhela) 2-3 times weekly for bioavailable calcium and phosphorus.",
+        "Incorporate 1 tablespoon of sesame seeds (Til) or 1 cup of Tok doi into your daily diet.",
+        "Engage in weight-bearing walking or light resistance exercises 3-4 days a week for bone remodeling."
+      ],
+      "sampleMealDay": {
+        "breakfast": "2 whole eggs scrambled with spinach + 1 slice whole wheat bread + 1 cup Tok doi with sesame seeds",
+        "lunch": "1 cup Red rice + Mola fish curry cooked with tomatoes and green chillies + Palong shak bhaji + Dal",
+        "dinner": "1 handmade roti + Tofu or chicken breast stir-fry with broccoli and carrots + Cucumber salad",
+        "snack": "1 glass warm milk or fortified plant milk with a pinch of nutmeg"
+      },
+      "safety": {
+        "automatic_recommendation": true,
+        "medical_review_required": false
+      },
+      "isFeatured": false
+    }
+  ]
+}
+
