@@ -45,6 +45,7 @@ export default function DashboardPage() {
   const { getDailyNutritionForDate, getMealsByDate, waterIntakeMl, addWater, fetchMeals } = useMealStore();
 
   const [activeTab, setActiveTab] = useState<'workout' | 'neat'>('neat');
+  const [selectedPlanDay, setSelectedPlanDay] = useState(1);
 
   const today = getTodayDateString();
 
@@ -91,7 +92,10 @@ export default function DashboardPage() {
   );
 
   // Active diet plan
-  const activeDietName = profile.dietaryPreferences?.[0] || 'Mediterranean Wellness';
+  const personalizedPlan = profile.personalizedPlan;
+  const selectedMealDay = personalizedPlan?.sevenDayPlan?.find((day) => day.dayNumber === selectedPlanDay)
+    || personalizedPlan?.sevenDayPlan?.[0];
+  const activeDietName = personalizedPlan?.selectedDiet?.name || profile.dietaryPreferences?.[0] || 'Mediterranean Wellness';
   const activeDiet = useMemo(
     () => MOCK_DIETS.find((d) => d.name === activeDietName || d.slug === activeDietName) || MOCK_DIETS[0],
     [activeDietName]
@@ -510,6 +514,73 @@ export default function DashboardPage() {
           )}
         </Card>
       </div>
+
+      {personalizedPlan?.sevenDayPlan?.length ? (
+        <Card variant="glass" className="p-6 space-y-5">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <div className="flex items-center gap-2">
+                <Calendar className="w-5 h-5 text-emerald-400" />
+                <h2 className="text-lg font-bold text-white">Your 7-Day Meal Plan</h2>
+              </div>
+              <p className="text-sm text-slate-400 mt-1">
+                Your saved signup plan for {personalizedPlan.selectedDiet?.name || 'your diet'}.
+              </p>
+            </div>
+            <Badge variant="emerald">{personalizedPlan.summary.targetCalories} kcal/day target</Badge>
+          </div>
+
+          <div className="flex gap-2 overflow-x-auto pb-1" aria-label="Choose meal plan day">
+            {personalizedPlan.sevenDayPlan.map((day) => (
+              <button
+                key={day.dayNumber}
+                type="button"
+                onClick={() => setSelectedPlanDay(day.dayNumber)}
+                aria-pressed={selectedMealDay?.dayNumber === day.dayNumber}
+                className={`shrink-0 rounded-xl px-4 py-2 text-sm font-semibold border transition-colors ${
+                  selectedMealDay?.dayNumber === day.dayNumber
+                    ? 'bg-emerald-500 text-slate-950 border-emerald-400'
+                    : 'bg-slate-900 text-slate-300 border-slate-700 hover:border-emerald-500/50'
+                }`}
+              >
+                Day {day.dayNumber}
+              </button>
+            ))}
+          </div>
+
+          {selectedMealDay && (
+            <div className="space-y-4">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <h3 className="font-bold text-white">{selectedMealDay.dayName}</h3>
+                  <p className="text-xs text-slate-400">{selectedMealDay.focusTitle}</p>
+                </div>
+                <span className="text-xs text-slate-300">
+                  {selectedMealDay.dayCalories} kcal · {selectedMealDay.dayProtein}g protein · {selectedMealDay.dayCarbs}g carbs · {selectedMealDay.dayFat}g fat
+                </span>
+              </div>
+              <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+                {selectedMealDay.meals.map((meal, index) => (
+                  <div key={`${meal.mealType}-${index}`} className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <h4 className="font-semibold text-white">{meal.title}</h4>
+                        <p className="text-xs text-slate-400">{meal.time}</p>
+                      </div>
+                      <span className="text-xs font-semibold text-emerald-400">{meal.slotCalories} kcal</span>
+                    </div>
+                    <ul className="mt-3 space-y-1.5 text-sm text-slate-300">
+                      {meal.items.map((item, itemIndex) => (
+                        <li key={`${item.id}-${itemIndex}`}>{item.name} <span className="text-slate-500">· {item.portion}</span></li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </Card>
+      ) : null}
 
       {/* Today's Logged Meals Timeline */}
       <div className="space-y-4">

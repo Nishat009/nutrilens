@@ -32,7 +32,7 @@ async function requireAuth(req, res, next) {
     req.user = user;
     next();
   } catch (error) {
-    res.status(422).json({ success: false, code: 422, errors: [error.message || 'Authentication required'] });
+    res.status(401).json({ success: false, code: 401, errors: [error.message || 'Authentication required'] });
   }
 }
 

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Sparkles,
@@ -30,6 +30,7 @@ import { Card } from '../../../components/ui/Card';
 import { Badge } from '../../../components/ui/Badge';
 import { ProgressBar } from '../../../components/ui/ProgressBar';
 import { useUserStore } from '../../../lib/stores/user-store';
+import { useAuthStore } from '../../../lib/stores/auth-store';
 import {
   Gender,
   GoalType,
@@ -44,7 +45,6 @@ import {
 import { cmToFeetInches, feetInchesToCm } from '../../../lib/utils/format';
 import { generatePersonalizedDietRecommendation } from '../../../services/diet-recommender';
 import { PersonalizedDietPlanView } from '../../../components/diets/PersonalizedDietPlanView';
-import { dietApi } from '../../../services/api-client';
 
 const GOAL_OPTIONS_LIST: { id: GoalType; title: string; desc: string; icon: string }[] = [
   { id: 'lose_weight', title: 'Lose Weight', desc: 'Sustainable caloric deficit prioritizing fat loss', icon: 'Flame' },
@@ -131,18 +131,34 @@ const ALLERGY_OPTIONS: { id: AllergyType; label: string }[] = [
 export default function OnboardingPage() {
   const router = useRouter();
   const { profile, updateProfile, setGoalType, recalculateTargets } = useUserStore();
+  const { user: authUser, setUser, checkAuth } = useAuthStore();
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+    if (!window.localStorage.getItem('nutrilens_token')) {
+      router.replace('/register');
+      return;
+    }
+    checkAuth().then((user) => {
+      if (!active) return;
+      if (!user) router.replace('/register');
+      else setIsCheckingAuth(false);
+    });
+    return () => { active = false; };
+  }, [checkAuth, router]);
 
   const [step, setStep] = useState(1);
   const totalSteps = 8;
 
   // Step 1: Basic Profile
-  const [name, setName] = useState(profile.name || 'Alex Morgan');
-  const [dob, setDob] = useState(profile.dob || '1998-05-14');
-  const [gender, setGender] = useState<Gender>(profile.gender || 'male');
-  const [heightCm, setHeightCm] = useState<number>(profile.heightCm || 172);
+  const [name, setName] = useState(authUser?.name || profile.name || 'Alex Morgan');
+  const [dob, setDob] = useState(authUser?.dob || profile.dob || '1998-05-14');
+  const [gender, setGender] = useState<Gender>(authUser?.gender || profile.gender || 'male');
+  const [heightCm, setHeightCm] = useState<number>(authUser?.heightCm || profile.heightCm || 172);
   const [heightUnit, setHeightUnit] = useState<'cm' | 'ft'>('cm');
-  const [weightKg, setWeightKg] = useState<number>(profile.weightKg || 78.0);
-  const [targetWeightKg, setTargetWeightKg] = useState<number>(profile.targetWeightKg || 68.0);
+  const [weightKg, setWeightKg] = useState<number>(authUser?.weightKg || profile.weightKg || 78.0);
+  const [targetWeightKg, setTargetWeightKg] = useState<number>(authUser?.targetWeightKg || profile.targetWeightKg || 68.0);
   const [waistInches, setWaistInches] = useState<string>('34');
 
   // Step 2: Goal & Pace
@@ -180,6 +196,7 @@ export default function OnboardingPage() {
 
   // Step 8: Generated Plan State
   const [generatedPlan, setGeneratedPlan] = useState<PersonalizedDietPlan | null>(null);
+  const [saveError, setSaveError] = useState('');
 
   // Toggle Health Condition
   const toggleCondition = (cond: HealthCondition) => {
@@ -233,6 +250,7 @@ export default function OnboardingPage() {
 
   // Generate Plan on Step 8
   const handleGeneratePlan = async () => {
+    setSaveError('');
     const userPayload = {
       name,
       dob,
@@ -281,14 +299,16 @@ export default function OnboardingPage() {
         allergies: userPayload.allergies,
         lifestyle: userPayload.lifestyle,
         dietaryPreferences: [plan.selectedDiet.name],
+        personalizedPlan: plan,
+        onboardingCompleted: true,
       });
       await setGoalType(primaryGoal);
       await recalculateTargets();
-
-      // Save on backend
-      await dietApi.getPersonalizedRecommendation(userPayload);
+      if (authUser) setUser({ ...authUser, ...userPayload, personalizedPlan: plan, onboardingCompleted: true });
+      router.replace('/profile');
     } catch (err) {
-      console.warn('Backend sync deferred (offline fallback active):', err);
+      console.error('Could not save onboarding assessment:', err);
+      setSaveError('We could not save your assessment. Please check your connection and try again.');
     }
   };
 
@@ -306,6 +326,8 @@ export default function OnboardingPage() {
   };
 
   const weightDiff = Math.round((weightKg - targetWeightKg) * 10) / 10;
+
+  if (isCheckingAuth) return null;
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-between p-4 sm:p-8 lg:p-12 relative overflow-hidden">
@@ -884,6 +906,14 @@ export default function OnboardingPage() {
         {/* ==================== STEP 8: RESULT PAGE ==================== */}
         {step === 8 && (
           <div>
+            {saveError && (
+              <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-xl border border-rose-500/30 bg-rose-500/10 p-4">
+                <p className="text-sm text-rose-300">{saveError}</p>
+                <Button variant="outline" onClick={handleGeneratePlan}>
+                  Retry Save
+                </Button>
+              </div>
+            )}
             {generatedPlan ? (
               <PersonalizedDietPlanView
                 plan={generatedPlan}

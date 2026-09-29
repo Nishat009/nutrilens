@@ -135,6 +135,10 @@ const UserSchema = new mongoose.Schema(
     personalizedPlan: {
       type: mongoose.Schema.Types.Mixed,
     },
+    onboardingCompleted: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,

@@ -20,6 +20,7 @@ const passwordMatches = (password, storedPassword) => {
 const serializeUser = (user) => {
   const result = user.toObject ? user.toObject() : { ...user };
   delete result.password;
+  result.onboardingCompleted = Boolean(result.onboardingCompleted || result.personalizedPlan);
   return result;
 };
 

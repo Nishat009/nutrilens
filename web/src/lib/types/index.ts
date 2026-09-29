@@ -86,6 +86,8 @@ export interface UserProfile {
   lifestyle?: LifestyleProfile;
   dietaryPreferences: string[];
   avatarUrl?: string;
+  onboardingCompleted?: boolean;
+  personalizedPlan?: PersonalizedDietPlan;
 }
 
 export interface UserGoal {

@@ -105,6 +105,26 @@ export default function ProfilePage() {
     router.push('/login');
   };
 
+  const formatAssessmentValue = (value: string) =>
+    value.replace(/_/g, ' ').replace(/^\w/, (letter) => letter.toUpperCase());
+
+  const assessmentRows = [
+    { label: 'Health conditions', values: profile.healthConditions?.length ? profile.healthConditions : ['None'] },
+    { label: 'Food preferences', values: profile.foodPreferences?.length ? profile.foodPreferences : ['Not provided'] },
+    { label: 'Foods you eat', values: profile.commonFoodsEaten?.length ? profile.commonFoodsEaten : ['Not provided'] },
+    { label: 'Allergies', values: profile.allergies.length ? profile.allergies : ['None'] },
+  ];
+
+  const lifestyleDetails = profile.lifestyle
+    ? [
+        ['Sleep', profile.lifestyle.sleepHours],
+        ['Work type', profile.lifestyle.workType],
+        ['Meals per day', String(profile.lifestyle.mealFrequency)],
+        ['Cooking', profile.lifestyle.cookingHabit],
+        ['Budget', profile.lifestyle.budgetLevel],
+      ]
+    : [];
+
   const calculated = calculateNutritionTargets(
     { gender, dob, heightCm, weightKg, activityLevel },
     selectedGoal
@@ -161,6 +181,60 @@ export default function ProfilePage() {
             <span>BMR: <strong className="text-white">{calculated.bmr} kcal</strong></span>
             <span>•</span>
             <span>TDEE: <strong className="text-white">{calculated.tdee} kcal</strong></span>
+          </div>
+        </div>
+      </Card>
+
+      <Card variant="glass" className="p-6 sm:p-8 border-slate-800 space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+          <div>
+            <h3 className="text-lg font-bold text-white">Your onboarding assessment</h3>
+            <p className="text-xs text-slate-400 mt-1">Your saved answers are linked to this account.</p>
+          </div>
+          {profile.personalizedPlan && (
+            <div className="text-sm text-emerald-300 font-semibold">
+              {profile.personalizedPlan.selectedDiet.name}
+              <span className="text-slate-400 font-normal"> · {formatCalories(profile.personalizedPlan.summary.targetCalories)} kcal/day</span>
+            </div>
+          )}
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          <div className="space-y-4">
+            <div>
+              <div className="text-[10px] font-bold uppercase text-slate-400">Goal and pace</div>
+              <div className="text-sm text-white mt-1">
+                {formatAssessmentValue(profile.primaryGoal || selectedGoal)} · {formatAssessmentValue(profile.goalPace || 'moderate')}
+              </div>
+            </div>
+            {assessmentRows.map((row) => (
+              <div key={row.label}>
+                <div className="text-[10px] font-bold uppercase text-slate-400">{row.label}</div>
+                <div className="flex flex-wrap gap-1.5 mt-1.5">
+                  {row.values.map((value) => (
+                    <span key={value} className="rounded-md border border-slate-700 bg-slate-900 px-2 py-1 text-xs text-slate-200">
+                      {formatAssessmentValue(value)}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div>
+            <div className="text-[10px] font-bold uppercase text-slate-400">Lifestyle</div>
+            {lifestyleDetails.length ? (
+              <dl className="mt-1 divide-y divide-slate-800">
+                {lifestyleDetails.map(([label, value]) => (
+                  <div key={label} className="flex justify-between gap-4 py-2 text-xs">
+                    <dt className="text-slate-400">{label}</dt>
+                    <dd className="text-right text-slate-200">{formatAssessmentValue(value)}</dd>
+                  </div>
+                ))}
+              </dl>
+            ) : (
+              <p className="mt-2 text-xs text-slate-400">No lifestyle answers saved.</p>
+            )}
           </div>
         </div>
       </Card>

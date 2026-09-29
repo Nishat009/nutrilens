@@ -31,7 +31,7 @@ export default function RegisterPage() {
 
     try {
       await register(name, email, password);
-      // Proceed directly to the 5-step onboarding wizard
+      // Continue with the eight-step onboarding flow after account creation.
       router.push('/onboarding');
     } catch {
       setError('Failed to create account. Please try again.');
@@ -46,9 +46,10 @@ export default function RegisterPage() {
         <div className="inline-flex lg:hidden items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-400 mb-4 shadow-lg shadow-emerald-500/25">
           <Sparkles className="w-6 h-6 text-slate-950 stroke-[2.5]" />
         </div>
+        <p className="text-xs font-bold uppercase tracking-wider text-emerald-400 mb-2">Get Started · First, sign up</p>
         <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">Create Account</h1>
         <p className="text-xs sm:text-sm text-slate-400 mt-1">
-          Join {APP_NAME} for intelligent AI nutrition tracking
+          Join {APP_NAME}, then complete your 8-step nutrition assessment.
         </p>
       </div>
 

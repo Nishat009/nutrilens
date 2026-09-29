@@ -29,7 +29,8 @@ export const useAuthStore = create<AuthState>((set) => ({
       set({ isAuthenticated: true, user, isLoading: false });
       return user;
     } catch {
-      set({ isLoading: false });
+      if (typeof window !== 'undefined') window.localStorage.removeItem('nutrilens_token');
+      set({ isLoading: false, isAuthenticated: false, user: null });
       return null;
     }
   },

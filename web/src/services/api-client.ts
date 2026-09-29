@@ -51,6 +51,13 @@ async function request<T>(
     errors: ['Failed to parse JSON response from server'],
   }));
 
+  if (response.status === 401 && typeof window !== 'undefined') {
+    window.localStorage.removeItem('nutrilens_token');
+    if (window.location.pathname !== '/login') {
+      window.location.assign('/login');
+    }
+  }
+
   if (!response.ok || data.success === false) {
     const errorMsg =
       data.errors && data.errors.length > 0
@@ -458,6 +465,8 @@ function normalizeUser(doc: any): UserProfile {
     lifestyle: doc.lifestyle,
     dietaryPreferences: doc.dietaryPreferences || [],
     avatarUrl: doc.avatarUrl,
+    onboardingCompleted: Boolean(doc.onboardingCompleted || doc.personalizedPlan),
+    personalizedPlan: doc.personalizedPlan,
   };
 }
 

@@ -84,6 +84,7 @@ export const useUserStore = create<UserState>((set, get) => ({
       }
     } catch (err) {
       console.error('Failed to sync profile update with backend:', err);
+      throw err;
     }
   },
 

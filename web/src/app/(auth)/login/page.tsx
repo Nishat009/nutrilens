@@ -13,8 +13,8 @@ import { APP_NAME } from '../../../lib/constants';
 export default function LoginPage() {
   const router = useRouter();
   const { login } = useAuthStore();
-  const [email, setEmail] = useState('prantik@nutrilens.ai');
-  const [password, setPassword] = useState('password123');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -30,7 +30,10 @@ export default function LoginPage() {
 
     try {
       await login(email, password);
-      router.push('/dashboard');
+      const destination = useAuthStore.getState().user?.onboardingCompleted
+        ? '/dashboard'
+        : '/onboarding';
+      router.push(destination);
     } catch {
       setError('Invalid credentials. Please try again.');
     } finally {

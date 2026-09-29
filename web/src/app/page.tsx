@@ -45,7 +45,7 @@ export default function LandingPage() {
             <Link href="/login">
               <Button variant="ghost" size="sm">Sign In</Button>
             </Link>
-            <Link href="/onboarding">
+            <Link href="/register">
               <Button variant="glow" size="sm" rightIcon={<ArrowRight className="w-4 h-4" />}>
                 Get Started
               </Button>
@@ -73,14 +73,14 @@ export default function LandingPage() {
         </p>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
-          <Link href="/onboarding" className="w-full sm:w-auto">
+          <Link href="/register" className="w-full sm:w-auto">
             <Button variant="glow" size="lg" className="w-full text-base px-8 py-4">
               Start Free Today
             </Button>
           </Link>
-          <Link href="/dashboard" className="w-full sm:w-auto">
+          <Link href="#how-it-works" className="w-full sm:w-auto">
             <Button variant="secondary" size="lg" className="w-full text-base px-8 py-4 border-slate-700">
-              Explore Live Demo
+              See How It Works
             </Button>
           </Link>
         </div>
@@ -264,7 +264,7 @@ export default function LandingPage() {
         <p className="text-slate-400 mb-8 max-w-xl mx-auto">
           Join thousands who transformed their body composition with precision AI nutrition intelligence.
         </p>
-        <Link href="/onboarding">
+        <Link href="/register">
           <Button variant="glow" size="lg" className="px-10 py-4 text-base">
             Create Your Profile Now
           </Button>
