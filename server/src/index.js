@@ -95,9 +95,9 @@ app.use((err, req, res, next) => {
     ? Object.values(err.errors).map((e) => e.message)
     : [err.message || 'Internal Server Error'];
 
-  res.status(err.status || 500).json({
+  res.status(422).json({
     success: false,
-    code: err.status || 500,
+    code: 422,
     errors,
     ...(process.env.NODE_ENV === 'development' && { stack: err.stack }),
   });

@@ -130,7 +130,7 @@ const ALLERGY_OPTIONS: { id: AllergyType; label: string }[] = [
 
 export default function OnboardingPage() {
   const router = useRouter();
-  const { profile, updateProfile, setGoalType, recalculateTargets } = useUserStore();
+  const { profile, updateProfile } = useUserStore();
   const { user: authUser, setUser, checkAuth } = useAuthStore();
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
@@ -302,8 +302,6 @@ export default function OnboardingPage() {
         personalizedPlan: plan,
         onboardingCompleted: true,
       });
-      await setGoalType(primaryGoal);
-      await recalculateTargets();
       if (authUser) setUser({ ...authUser, ...userPayload, personalizedPlan: plan, onboardingCompleted: true });
       router.replace('/profile');
     } catch (err) {

@@ -38,3 +38,10 @@ NutriLens addresses the primary barriers to long-term metabolic health and nutri
 - **API Standards**: Strict `200 OK` for all success operations, `422 Unprocessable Entity` for validation and domain errors.
 - **Dynamic Database Categories**: All botanical, food, and diet categories dynamically populated from MongoDB.
 - **Component Architecture**: 100% responsive Next.js 15 App Router components, Tailwind CSS v4, and Zustand state stores.
+
+## Account and assessment persistence
+
+- The first visit opens the landing page. Get Started leads to account creation, followed by the eight-step assessment. The dashboard requires authentication and a completed assessment.
+- Each account's assessment answers, generated diet plan, onboarding completion status, profile changes, and calculated nutrition targets must persist in MongoDB and reload after sign-in or refresh.
+- Profile and target updates must be written to the authenticated user's MongoDB document in one operation. The application must confirm success only after the database acknowledges the write and must show an actionable error on failure.
+- User profile APIs must return only the authenticated account's data and must omit password hashes. Successful operations return HTTP 200; validation and application failures return HTTP 422.

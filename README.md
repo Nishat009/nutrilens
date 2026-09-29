@@ -151,3 +151,7 @@ npm run dev
 cd server
 node src/test-intelligence.js
 ```
+
+## Account data persistence
+
+Visitors start at the landing page, create an account, and complete the eight-step nutrition assessment before opening the dashboard. Registration, assessment answers, generated plan, profile edits, and nutrition targets are stored in MongoDB on the authenticated user's record. Profile and target changes are saved together through `PUT /api/users/current`; the UI shows success only after the database confirms the write. A failed write shows an error and can be retried. `GET /api/users/current` reloads the saved profile and goal on a later visit. Set `MONGODB_URI` on the API server and `NEXT_PUBLIC_API_URL` on the web app for deployed persistence.

@@ -51,7 +51,12 @@ async function request<T>(
     errors: ['Failed to parse JSON response from server'],
   }));
 
-  if (response.status === 401 && typeof window !== 'undefined') {
+  const authFailed = response.status === 401 || (
+    response.status === 422 && data.errors?.some((message) =>
+      ['Authentication required', 'Invalid token', 'Token expired', 'User account not found'].includes(message)
+    )
+  );
+  if (authFailed && typeof window !== 'undefined') {
     window.localStorage.removeItem('nutrilens_token');
     if (window.location.pathname !== '/login') {
       window.location.assign('/login');
@@ -119,12 +124,12 @@ export const userApi = {
     };
   },
 
-  async updateProfile(userId: string = 'current', updates: Partial<UserProfile>): Promise<UserProfile> {
+  async updateProfile(userId: string = 'current', updates: Partial<UserProfile> & { goal?: Partial<UserGoal> }): Promise<{ user: UserProfile; goal: UserGoal }> {
     const res = await request<any>(`/api/users/${userId}`, {
       method: 'PUT',
       body: JSON.stringify(updates),
     });
-    return normalizeUser(res);
+    return { user: normalizeUser(res), goal: normalizeGoal(res.goal, res._id || res.id) };
   },
 
   async updateGoal(userId: string = 'current', updates: Partial<UserGoal>): Promise<UserGoal> {

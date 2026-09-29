@@ -63,7 +63,7 @@ export default function ProgressPage() {
   };
 
   useEffect(() => {
-    fetchUserProfile();
+    fetchUserProfile().catch((error) => console.error('Could not load saved profile:', error));
     loadProgressData();
   }, [daysCount]);
 

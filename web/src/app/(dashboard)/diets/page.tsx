@@ -43,7 +43,7 @@ export default function DietsPage() {
   const [personalizedPlan, setPersonalizedPlan] = useState<PersonalizedDietPlan | null>(null);
 
   useEffect(() => {
-    fetchUserProfile();
+    fetchUserProfile().catch((error) => console.error('Could not load saved profile:', error));
 
     dietApi
       .getDiets()

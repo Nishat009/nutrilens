@@ -50,7 +50,7 @@ export default function DashboardPage() {
   const today = getTodayDateString();
 
   useEffect(() => {
-    fetchUserProfile();
+    fetchUserProfile().catch((error) => console.error('Could not load saved profile:', error));
     fetchMeals(today);
   }, [fetchUserProfile, fetchMeals, today]);
 

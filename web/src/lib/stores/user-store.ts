@@ -8,7 +8,7 @@ interface UserState {
   goal: UserGoal;
   isLoading: boolean;
   fetchUserProfile: (userId?: string) => Promise<void>;
-  updateProfile: (updates: Partial<UserProfile>) => Promise<void>;
+  updateProfile: (updates: Partial<UserProfile> & { goal?: Partial<UserGoal> }) => Promise<void>;
   updateGoal: (updates: Partial<UserGoal>) => Promise<void>;
   setGoalType: (type: GoalType) => Promise<void>;
   recalculateTargets: () => Promise<void>;
@@ -54,34 +54,34 @@ export const useUserStore = create<UserState>((set, get) => ({
       const { user, goal } = await userApi.getProfile(userId);
       set({ profile: user, goal, isLoading: false });
     } catch (err) {
-      console.warn('Failed to load user profile from backend, using current active state:', err);
+      console.error('Failed to load user profile from database:', err);
       set({ isLoading: false });
+      throw err;
     }
   },
 
   updateProfile: async (updates) => {
     const { profile, goal } = get();
-    const newProfile = { ...profile, ...updates };
+    const { goal: goalUpdates, ...profileUpdates } = updates;
+    const newProfile = { ...profile, ...profileUpdates };
 
     let newGoal = goal;
     if (
-      updates.weightKg !== undefined ||
-      updates.heightCm !== undefined ||
-      updates.activityLevel !== undefined ||
-      updates.gender !== undefined ||
-      updates.dob !== undefined
+      profileUpdates.weightKg !== undefined ||
+      profileUpdates.heightCm !== undefined ||
+      profileUpdates.activityLevel !== undefined ||
+      profileUpdates.gender !== undefined ||
+      profileUpdates.dob !== undefined ||
+      profileUpdates.primaryGoal !== undefined
     ) {
-      newGoal = generateUserGoalFromProfile(newProfile.id, newProfile, goal.type);
+      newGoal = generateUserGoalFromProfile(newProfile.id, newProfile, profileUpdates.primaryGoal || goal.type);
     }
-
-    set({ profile: newProfile, goal: newGoal });
+    newGoal = { ...newGoal, ...goalUpdates };
 
     try {
       const userId = profile.id || 'current';
-      await userApi.updateProfile(userId, updates);
-      if (newGoal !== goal) {
-        await userApi.updateGoal(userId, newGoal);
-      }
+      const saved = await userApi.updateProfile(userId, { ...profileUpdates, goal: newGoal });
+      set({ profile: saved.user, goal: saved.goal });
     } catch (err) {
       console.error('Failed to sync profile update with backend:', err);
       throw err;
@@ -91,26 +91,26 @@ export const useUserStore = create<UserState>((set, get) => ({
   updateGoal: async (updates) => {
     const { profile, goal } = get();
     const newGoal = { ...goal, ...updates };
-    set({ goal: newGoal });
-
     try {
       const userId = profile.id || 'current';
-      await userApi.updateGoal(userId, updates);
+      const saved = await userApi.updateGoal(userId, updates);
+      set({ goal: saved });
     } catch (err) {
       console.error('Failed to sync goal update with backend:', err);
+      throw err;
     }
   },
 
   setGoalType: async (type: GoalType) => {
     const { profile } = get();
     const newGoal = generateUserGoalFromProfile(profile.id, profile, type);
-    set({ goal: newGoal });
-
     try {
       const userId = profile.id || 'current';
-      await userApi.updateGoal(userId, newGoal);
+      const saved = await userApi.updateGoal(userId, newGoal);
+      set({ goal: saved });
     } catch (err) {
       console.error('Failed to sync goal type change with backend:', err);
+      throw err;
     }
   },
 
@@ -127,13 +127,13 @@ export const useUserStore = create<UserState>((set, get) => ({
       targetWaterMl: targets.targetWaterMl,
     };
 
-    set({ goal: updatedGoal });
-
     try {
       const userId = profile.id || 'current';
-      await userApi.updateGoal(userId, updatedGoal);
+      const saved = await userApi.updateGoal(userId, updatedGoal);
+      set({ goal: saved });
     } catch (err) {
       console.error('Failed to sync recalculated targets with backend:', err);
+      throw err;
     }
   },
 }));

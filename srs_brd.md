@@ -132,3 +132,10 @@ All UI layouts are tested and optimized across the following 10 standard breakpo
 - Passwords hashed using bcrypt.
 - JWT tokens with 7-day expiration.
 - On-device vision processing protects user meal photography privacy.
+
+## Account persistence requirements
+
+- Landing page to account registration to eight-step assessment to authenticated dashboard is the required first-use flow.
+- MongoDB `User` stores assessment fields, generated `personalizedPlan`, `onboardingCompleted`, editable profile fields, and the embedded nutrition `goal`. Changes must survive page refresh and sign-in on another device.
+- `PUT /api/users/current` saves profile and goal together for the authenticated user; `GET /api/users/current` reads them back. A failed write must not be reported as saved in the UI. Database errors use HTTP 422 and successful operations use HTTP 200.
+- The profile endpoint must reject access to other user IDs, reject unauthorized field changes, and never return password hashes.

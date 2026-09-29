@@ -4,6 +4,8 @@
   "description": "NutriLens Express + MongoDB API Server",
   "main": "src/index.js",
   "scripts": {
+    "build": "node scripts/check-syntax.js",
+    "test:persistence": "node scripts/test-user-persistence.js",
     "dev": "nodemon src/index.js",
     "start": "node src/index.js",
     "seed": "node src/seed.js"

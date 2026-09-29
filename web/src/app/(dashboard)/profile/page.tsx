@@ -22,6 +22,7 @@ import { Select } from '../../../components/ui/Select';
 import { useUserStore } from '../../../lib/stores/user-store';
 import { useAuthStore } from '../../../lib/stores/auth-store';
 import { calculateNutritionTargets } from '../../../services/nutrition';
+import { generateUserGoalFromProfile } from '../../../services/nutrition';
 import {
   ACTIVITY_LEVEL_DETAILS,
   DIETARY_PREFERENCES_LIST,
@@ -47,10 +48,12 @@ export default function ProfilePage() {
   const [selectedGoal, setSelectedGoal] = useState<GoalType>(goal.type);
   const [dietaryPrefs, setDietaryPrefs] = useState<string[]>(profile.dietaryPreferences || []);
   const [savedSuccess, setSavedSuccess] = useState(false);
+  const [saveError, setSaveError] = useState('');
+  const [loadError, setLoadError] = useState('');
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
-    fetchUserProfile();
+    fetchUserProfile().catch(() => setLoadError('Could not load your saved profile from the database. Refresh and try again.'));
   }, [fetchUserProfile]);
 
   useEffect(() => {
@@ -77,7 +80,10 @@ export default function ProfilePage() {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
+    setSaveError('');
     try {
+      const nextProfile = { ...profile, name, email, dob, gender, heightCm, weightKg, targetWeightKg, activityLevel, dietaryPreferences: dietaryPrefs };
+      const nextGoal = generateUserGoalFromProfile(profile.id, nextProfile, selectedGoal);
       await updateProfile({
         name,
         email,
@@ -88,13 +94,14 @@ export default function ProfilePage() {
         targetWeightKg,
         activityLevel,
         dietaryPreferences: dietaryPrefs,
+        primaryGoal: selectedGoal,
+        goal: nextGoal,
       });
-      await setGoalType(selectedGoal);
-      await recalculateTargets();
       setSavedSuccess(true);
       setTimeout(() => setSavedSuccess(false), 3000);
     } catch (err) {
       console.error('Save profile error:', err);
+      setSaveError('Could not save your changes to the database. Please try again.');
     } finally {
       setIsSaving(false);
     }
@@ -160,6 +167,8 @@ export default function ProfilePage() {
           <span>Profile updated and daily nutritional targets saved to database!</span>
         </div>
       )}
+      {saveError && <div role="alert" className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs">{saveError}</div>}
+      {loadError && <div role="alert" className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs">{loadError}</div>}
 
       {/* Profile Card Header */}
       <Card variant="glass" className="p-6 sm:p-8 border-slate-800 flex flex-col sm:flex-row items-center gap-6">

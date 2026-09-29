@@ -1,76 +1,47 @@
-const mongoose = require('mongoose');
 const User = require('../models/User');
 
-const DEFAULT_USER_DATA = {
-  id: 'usr_default_01',
-  name: 'Alex Morgan',
-  email: 'alex.morgan@nutrilens.ai',
-  gender: 'male',
-  dob: '1998-05-14',
-  heightCm: 178,
-  weightKg: 74.5,
-  targetWeightKg: 72.0,
-  activityLevel: 'moderately_active',
-  dietaryPreferences: ['High Protein / Gym', 'Mediterranean'],
-  allergies: [],
-  avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&auto=format&fit=crop&q=80',
-  goal: {
-    type: 'lose_weight',
-    targetCalories: 2150,
-    targetProteinG: 160,
-    targetCarbsG: 210,
-    targetFatG: 65,
-    targetFiberG: 32,
-    targetWaterMl: 3000,
-    weeklyWeightChangeKg: -0.5,
-    isActive: true,
-  },
+const PROFILE_FIELDS = [
+  'name', 'email', 'gender', 'dob', 'heightCm', 'weightKg', 'targetWeightKg',
+  'waistCm', 'activityLevel', 'primaryGoal', 'goalPace', 'healthConditions',
+  'foodPreferences', 'commonFoodsEaten', 'allergies', 'lifestyle',
+  'dietaryPreferences', 'avatarUrl', 'activeDietId', 'medicalConditions',
+  'medications', 'personalizedPlan', 'onboardingCompleted',
+];
+const GOAL_FIELDS = [
+  'type', 'targetCalories', 'targetProteinG', 'targetCarbsG', 'targetFatG',
+  'targetFiberG', 'targetWaterMl', 'weeklyWeightChangeKg', 'isActive',
+];
+
+const fail = (res, error) => res.status(422).json({
+  success: false,
+  code: 422,
+  errors: error.errors
+    ? Object.values(error.errors).map((item) => item.message)
+    : [error.message || 'Database operation failed'],
+});
+const publicUser = (user) => {
+  const result = user.toObject();
+  delete result.password;
+  return result;
 };
 
 // @desc    Get user profile by ID
 // @route   GET /api/users/:id
 exports.getUserProfile = async (req, res) => {
   try {
-    // If DB is offline, return default profile immediately
-    if (mongoose.connection.readyState !== 1) {
-      return res.status(200).json({
-        success: true,
-        code: 200,
-        message: 'User profile retrieved (offline fallback mode)',
-        data: DEFAULT_USER_DATA,
-      });
-    }
-
     const user = req.user;
-
-    if (!user) {
-      // Auto-provision default user if DB is connected but not seeded yet
-      try {
-        user = await User.create(DEFAULT_USER_DATA);
-      } catch {
-        return res.status(200).json({
-          success: true,
-          code: 200,
-          message: 'User profile retrieved (default)',
-          data: DEFAULT_USER_DATA,
-        });
-      }
+    if (!user || (req.params.id !== 'current' && req.params.id !== String(user._id))) {
+      return fail(res, new Error('User profile not found'));
     }
 
     res.status(200).json({
       success: true,
       code: 200,
       message: 'User profile retrieved successfully',
-      data: user,
+      data: publicUser(user),
     });
   } catch (error) {
-    // Fallback gracefully on any DB query error
-    res.status(200).json({
-      success: true,
-      code: 200,
-      message: 'User profile retrieved (fallback)',
-      data: DEFAULT_USER_DATA,
-    });
+    return fail(res, error);
   }
 };
 
@@ -80,7 +51,7 @@ exports.updateUserProfile = async (req, res) => {
   try {
     const user = req.user;
 
-    if (!user) {
+    if (!user || (req.params.id !== 'current' && req.params.id !== String(user._id))) {
       return res.status(422).json({
         success: false,
         code: 422,
@@ -88,25 +59,24 @@ exports.updateUserProfile = async (req, res) => {
       });
     }
 
-    Object.assign(user, req.body);
+    for (const field of PROFILE_FIELDS) {
+      if (Object.prototype.hasOwnProperty.call(req.body, field)) user.set(field, req.body[field]);
+    }
+    if (req.body.goal && typeof req.body.goal === 'object') {
+      for (const field of GOAL_FIELDS) {
+        if (Object.prototype.hasOwnProperty.call(req.body.goal, field)) user.set(`goal.${field}`, req.body.goal[field]);
+      }
+    }
     await user.save();
 
     res.status(200).json({
       success: true,
       code: 200,
       message: 'User profile updated successfully',
-      data: user,
+      data: publicUser(user),
     });
   } catch (error) {
-    const errors = error.errors
-      ? Object.values(error.errors).map((e) => e.message)
-      : [error.message || 'Failed to update user profile'];
-
-    res.status(422).json({
-      success: false,
-      code: 422,
-      errors,
-    });
+    return fail(res, error);
   }
 };
 
@@ -116,7 +86,7 @@ exports.updateUserGoal = async (req, res) => {
   try {
     const user = req.user;
 
-    if (!user) {
+    if (!user || (req.params.id !== 'current' && req.params.id !== String(user._id))) {
       return res.status(422).json({
         success: false,
         code: 422,
@@ -124,7 +94,9 @@ exports.updateUserGoal = async (req, res) => {
       });
     }
 
-    user.goal = { ...user.goal?.toObject(), ...req.body };
+    for (const field of GOAL_FIELDS) {
+      if (Object.prototype.hasOwnProperty.call(req.body, field)) user.set(`goal.${field}`, req.body[field]);
+    }
     await user.save();
 
     res.status(200).json({
@@ -134,14 +106,6 @@ exports.updateUserGoal = async (req, res) => {
       data: user.goal,
     });
   } catch (error) {
-    const errors = error.errors
-      ? Object.values(error.errors).map((e) => e.message)
-      : [error.message || 'Failed to update user goals'];
-
-    res.status(422).json({
-      success: false,
-      code: 422,
-      errors,
-    });
+    return fail(res, error);
   }
 };
