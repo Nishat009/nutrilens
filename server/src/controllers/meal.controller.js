@@ -1,42 +1,13 @@
-const mongoose = require('mongoose');
+const { sendError, sendUnexpectedError } = require('../utils/http');
 const Meal = require('../models/Meal');
-const User = require('../models/User');
 
-async function resolveUserId(rawId) {
-  if (!rawId || rawId === 'current' || rawId === 'default' || !mongoose.Types.ObjectId.isValid(rawId)) {
-    const defaultUser = await User.findOne();
-    return defaultUser ? defaultUser._id : null;
-  }
-  return rawId;
-}
-
-// @desc    Get meals (with optional filters by userId and date)
+// @desc    Get the authenticated user's meals (optionally filtered by date)
 // @route   GET /api/meals
 exports.getMeals = async (req, res) => {
   try {
-    if (mongoose.connection.readyState !== 1) {
-      return res.status(200).json({
-        success: true,
-        code: 200,
-        message: 'Meals retrieved (offline mode)',
-        count: 0,
-        data: [],
-      });
-    }
-
-    const { userId, date } = req.query;
-    const filter = {};
-
-    if (userId && userId !== 'current' && userId !== 'default') {
-      if (mongoose.Types.ObjectId.isValid(userId)) {
-        filter.userId = userId;
-      } else {
-        const resolved = await resolveUserId(userId);
-        if (resolved) filter.userId = resolved;
-      }
-    }
-    if (date) {
-      filter.date = date;
+    const filter = { userId: req.user._id };
+    if (req.query.date) {
+      filter.date = String(req.query.date);
     }
 
     const meals = await Meal.find(filter).sort({ createdAt: -1 });
@@ -48,13 +19,7 @@ exports.getMeals = async (req, res) => {
       data: meals,
     });
   } catch (error) {
-    res.status(200).json({
-      success: true,
-      code: 200,
-      message: 'Meals retrieved (fallback)',
-      count: 0,
-      data: [],
-    });
+    return sendUnexpectedError(res, error, 'Failed to retrieve meals');
   }
 };
 
@@ -64,11 +29,7 @@ exports.getMealById = async (req, res) => {
   try {
     const meal = await Meal.findOne({ _id: req.params.id, userId: req.user._id });
     if (!meal) {
-      return res.status(422).json({
-        success: false,
-        code: 422,
-        errors: ['Meal not found'],
-      });
+      return sendError(res, 404, 'Meal not found');
     }
     res.status(200).json({
       success: true,
@@ -77,11 +38,7 @@ exports.getMealById = async (req, res) => {
       data: meal,
     });
   } catch (error) {
-    res.status(422).json({
-      success: false,
-      code: 422,
-      errors: [error.message || 'Failed to retrieve meal details'],
-    });
+    return sendUnexpectedError(res, error, 'Failed to retrieve meal details');
   }
 };
 
@@ -129,15 +86,7 @@ exports.createMeal = async (req, res) => {
       data: meal,
     });
   } catch (error) {
-    const errors = error.errors
-      ? Object.values(error.errors).map((e) => e.message)
-      : [error.message || 'Failed to create meal'];
-
-    res.status(422).json({
-      success: false,
-      code: 422,
-      errors,
-    });
+    return sendUnexpectedError(res, error, 'Failed to create meal');
   }
 };
 
@@ -147,11 +96,7 @@ exports.deleteMeal = async (req, res) => {
   try {
     const meal = await Meal.findOneAndDelete({ _id: req.params.id, userId: req.user._id });
     if (!meal) {
-      return res.status(422).json({
-        success: false,
-        code: 422,
-        errors: ['Meal not found'],
-      });
+      return sendError(res, 404, 'Meal not found');
     }
     res.status(200).json({
       success: true,
@@ -159,10 +104,6 @@ exports.deleteMeal = async (req, res) => {
       message: 'Meal deleted successfully',
     });
   } catch (error) {
-    res.status(422).json({
-      success: false,
-      code: 422,
-      errors: [error.message || 'Failed to delete meal'],
-    });
+    return sendUnexpectedError(res, error, 'Failed to delete meal');
   }
 };
