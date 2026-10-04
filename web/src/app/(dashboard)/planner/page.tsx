@@ -40,13 +40,16 @@ export default function MealPlannerPage() {
   const [newCarbs, setNewCarbs] = useState('45');
   const [newFat, setNewFat] = useState('12');
 
+  const [error, setError] = useState('');
+
   const loadPlanner = async () => {
     setIsLoading(true);
+    setError('');
     try {
       const data = await plannerApi.getPlannedMeals();
       setPlannedMeals(data);
     } catch (err) {
-      console.warn('Failed to load planner meals from backend:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load your planner.');
     } finally {
       setIsLoading(false);
     }
@@ -61,33 +64,35 @@ export default function MealPlannerPage() {
     if (!newFoodName) return;
 
     setIsSubmitting(true);
+    setError('');
     try {
       const created = await plannerApi.addPlannedMeal({
         dayOfWeek: selectedDay,
         mealType: newMealType,
         foodName: newFoodName,
-        calories: Number(newCalories) || 400,
-        protein: Number(newProtein) || 30,
-        carbs: Number(newCarbs) || 40,
-        fat: Number(newFat) || 10,
+        calories: Number(newCalories) || 0,
+        protein: Number(newProtein) || 0,
+        carbs: Number(newCarbs) || 0,
+        fat: Number(newFat) || 0,
       });
 
       setPlannedMeals((prev) => [...prev, created]);
       setIsModalOpen(false);
       setNewFoodName('');
     } catch (err) {
-      console.error('Failed to add planned meal to backend:', err);
+      setError(err instanceof Error ? err.message : 'Failed to add planned meal.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleDeleteSlot = async (id: string) => {
-    setPlannedMeals((prev) => prev.filter((p) => p.id !== id));
+    setError('');
     try {
       await plannerApi.deletePlannedMeal(id);
+      setPlannedMeals((prev) => prev.filter((p) => p.id !== id));
     } catch (err) {
-      console.error('Failed to delete planned meal from backend:', err);
+      setError(err instanceof Error ? err.message : 'Failed to delete planned meal.');
     }
   };
 
@@ -119,6 +124,10 @@ export default function MealPlannerPage() {
           Plan A Meal Slot
         </Button>
       </div>
+
+      {error && (
+        <div className="p-3 rounded-xl border border-rose-500/40 bg-rose-950/40 text-xs text-rose-300">{error}</div>
+      )}
 
       {/* Day Selector Pills */}
       <div className="grid grid-cols-7 gap-2">
@@ -279,6 +288,8 @@ export default function MealPlannerPage() {
               onChange={(e) => setNewFat(e.target.value)}
             />
           </div>
+
+          {error && <p className="text-xs text-rose-400">{error}</p>}
 
           <Button type="submit" variant="glow" className="w-full mt-4" isLoading={isSubmitting}>
             Save to Weekly Plan
