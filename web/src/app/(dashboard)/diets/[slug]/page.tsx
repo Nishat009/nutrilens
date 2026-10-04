@@ -25,12 +25,11 @@ import { Badge } from '../../../../components/ui/Badge';
 import { DietPlan } from '../../../../lib/types';
 import { dietApi } from '../../../../services/api-client';
 import { useUserStore } from '../../../../lib/stores/user-store';
-import { MOCK_DIETS } from '../../../../data/mock/diets';
 
 export default function DietDetailPage() {
   const params = useParams();
   const slug = params.slug as string;
-  const { profile, goal, updateProfile, updateGoal, fetchUserProfile } = useUserStore();
+  const { profile, fetchUserProfile } = useUserStore();
 
   const [diet, setDiet] = useState<DietPlan | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -41,21 +40,12 @@ export default function DietDetailPage() {
       setIsLoading(true);
       dietApi
         .getDietBySlug(slug)
-        .then((data) => {
-          if (data) {
-            setDiet(data);
-          } else {
-            const fallback = MOCK_DIETS.find((d) => d.slug === slug);
-            setDiet(fallback || null);
-          }
-          setIsLoading(false);
-        })
+        .then((data) => setDiet(data || null))
         .catch((err) => {
-          console.warn('Failed to load diet details from backend, checking catalog:', err);
-          const fallback = MOCK_DIETS.find((d) => d.slug === slug);
-          setDiet(fallback || null);
-          setIsLoading(false);
-        });
+          console.warn('Failed to load diet details:', err);
+          setDiet(null);
+        })
+        .finally(() => setIsLoading(false));
     }
   }, [slug]);
 
@@ -74,39 +64,22 @@ export default function DietDetailPage() {
     try {
       const res = await dietApi.adoptDiet(diet.id || diet.slug);
 
-      if (res && res.canAdopt === false) {
+      if (res.canAdopt === false) {
         setAdoptionAlert({
           status: res.status,
           message: res.message,
           action: res.requiredAction,
         });
-        setIsAdopting(false);
         return;
       }
 
-      const targetCalories = goal.targetCalories || 2000;
-      const pPercent = diet.macroRatio?.protein || 30;
-      const cPercent = diet.macroRatio?.carbs || 40;
-      const fPercent = diet.macroRatio?.fat || 30;
-
-      const targetProteinG = Math.round((targetCalories * (pPercent / 100)) / 4);
-      const targetCarbsG = Math.round((targetCalories * (cPercent / 100)) / 4);
-      const targetFatG = Math.round((targetCalories * (fPercent / 100)) / 9);
-
-      await updateProfile({
-        dietaryPreferences: [diet.name],
-        activeDietId: diet.id || diet.slug,
-      });
-
-      await updateGoal({
-        targetProteinG,
-        targetCarbsG,
-        targetFatG,
-      });
-
+      // The server stores the active diet and personalized targets; reload them.
       await fetchUserProfile();
     } catch (err) {
-      console.error('Failed to adopt diet:', err);
+      setAdoptionAlert({
+        status: 'ERROR',
+        message: err instanceof Error ? err.message : 'Failed to adopt diet protocol.',
+      });
     } finally {
       setIsAdopting(false);
     }
@@ -171,6 +144,8 @@ export default function DietDetailPage() {
             <p className="font-bold text-white">
               {adoptionAlert.status === 'PROFESSIONAL_REVIEW'
                 ? 'Clinical Review Recommended'
+                : adoptionAlert.status === 'ERROR'
+                ? 'Could Not Adopt Protocol'
                 : 'Protocol Not Recommended for Current Profile'}
             </p>
             <p className="text-slate-300 leading-relaxed">{adoptionAlert.message}</p>
