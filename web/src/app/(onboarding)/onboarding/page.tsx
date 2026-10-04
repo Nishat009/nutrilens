@@ -43,7 +43,7 @@ import {
   PersonalizedDietPlan,
 } from '../../../lib/types';
 import { cmToFeetInches, feetInchesToCm } from '../../../lib/utils/format';
-import { generatePersonalizedDietRecommendation } from '../../../services/diet-recommender';
+import { dietApi } from '../../../services/api-client';
 import { PersonalizedDietPlanView } from '../../../components/diets/PersonalizedDietPlanView';
 
 const GOAL_OPTIONS_LIST: { id: GoalType; title: string; desc: string; icon: string }[] = [
@@ -142,8 +142,20 @@ export default function OnboardingPage() {
     }
     checkAuth().then((user) => {
       if (!active) return;
-      if (!user) router.replace('/register');
-      else setIsCheckingAuth(false);
+      if (!user) {
+        router.replace('/register');
+        return;
+      }
+      // Prefill from the signed-in account; on a hard reload authUser is still null
+      // during the first render, so the initial useState values can't rely on it.
+      if (user.name) setName(user.name);
+      if (user.dob) setDob(user.dob);
+      if (user.gender) setGender(user.gender);
+      if (user.heightCm) setHeightCm(user.heightCm);
+      if (user.weightKg) setWeightKg(user.weightKg);
+      if (user.targetWeightKg) setTargetWeightKg(user.targetWeightKg);
+      if (user.activityLevel) setActivityLevel(user.activityLevel);
+      setIsCheckingAuth(false);
     });
     return () => { active = false; };
   }, [checkAuth, router]);
@@ -152,7 +164,7 @@ export default function OnboardingPage() {
   const totalSteps = 8;
 
   // Step 1: Basic Profile
-  const [name, setName] = useState(authUser?.name || profile.name || 'Alex Morgan');
+  const [name, setName] = useState(authUser?.name || profile.name || '');
   const [dob, setDob] = useState(authUser?.dob || profile.dob || '1998-05-14');
   const [gender, setGender] = useState<Gender>(authUser?.gender || profile.gender || 'male');
   const [heightCm, setHeightCm] = useState<number>(authUser?.heightCm || profile.heightCm || 172);
@@ -197,6 +209,7 @@ export default function OnboardingPage() {
   // Step 8: Generated Plan State
   const [generatedPlan, setGeneratedPlan] = useState<PersonalizedDietPlan | null>(null);
   const [saveError, setSaveError] = useState('');
+  const [isSaved, setIsSaved] = useState(false);
 
   // Toggle Health Condition
   const toggleCondition = (cond: HealthCondition) => {
@@ -276,12 +289,12 @@ export default function OnboardingPage() {
       dietaryPreferences: foodPreferences,
     };
 
-    // 1. Generate client-side recommendation instantly
-    const plan = generatePersonalizedDietRecommendation(userPayload);
-    setGeneratedPlan(plan);
-
-    // 2. Persist to User Store & Server
     try {
+      // 1. Generate the recommendation on the server (canonical diet catalog)
+      const plan: PersonalizedDietPlan = await dietApi.getPersonalizedRecommendation(userPayload);
+      setGeneratedPlan(plan);
+
+      // 2. Persist the assessment and plan to the profile
       await updateProfile({
         name,
         dob,
@@ -299,14 +312,29 @@ export default function OnboardingPage() {
         allergies: userPayload.allergies,
         lifestyle: userPayload.lifestyle,
         dietaryPreferences: [plan.selectedDiet.name],
+        activeDietId: plan.selectedDiet.id || plan.selectedDiet.slug,
         personalizedPlan: plan,
         onboardingCompleted: true,
+        // Use the plan's targets rather than a separate client-side recalculation.
+        goal: {
+          type: primaryGoal,
+          targetCalories: plan.summary.targetCalories,
+          targetProteinG: plan.summary.targetProteinG,
+          targetCarbsG: plan.summary.targetCarbsG,
+          targetFatG: plan.summary.targetFatG,
+          targetFiberG: plan.summary.targetFiberG,
+          targetWaterMl: plan.summary.targetWaterMl,
+        },
       });
       if (authUser) setUser({ ...authUser, ...userPayload, personalizedPlan: plan, onboardingCompleted: true });
-      router.replace('/profile');
+      setIsSaved(true);
     } catch (err) {
       console.error('Could not save onboarding assessment:', err);
-      setSaveError('We could not save your assessment. Please check your connection and try again.');
+      setSaveError(
+        err instanceof Error
+          ? `We could not generate or save your plan: ${err.message}`
+          : 'We could not save your assessment. Please check your connection and try again.'
+      );
     }
   };
 
@@ -912,11 +940,27 @@ export default function OnboardingPage() {
                 </Button>
               </div>
             )}
+            {isSaved && (
+              <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4">
+                <p className="text-sm text-emerald-300">Your assessment and personalized plan are saved.</p>
+                <Button variant="glow" onClick={() => router.replace('/dashboard')}>
+                  Go to Dashboard
+                </Button>
+              </div>
+            )}
             {generatedPlan ? (
               <PersonalizedDietPlanView
                 plan={generatedPlan}
-                onPlanUpdate={(updated) => setGeneratedPlan(updated)}
-                onRetakeAssessment={() => setStep(1)}
+                onPlanUpdate={(updated) => {
+                  setGeneratedPlan(updated);
+                  updateProfile({ personalizedPlan: updated }).catch((err) =>
+                    setSaveError(err instanceof Error ? err.message : 'Could not save plan changes.')
+                  );
+                }}
+                onRetakeAssessment={() => {
+                  setIsSaved(false);
+                  setStep(1);
+                }}
               />
             ) : (
               <Card variant="glass" className="p-12 text-center border-slate-800 space-y-4">

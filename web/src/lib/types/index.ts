@@ -344,6 +344,7 @@ export interface Recommendation {
 // ==================== PERSONALIZED RECOMMENDATION & 7-DAY PLAN TYPES ====================
 
 export interface DietMatchScore {
+  id?: string;
   slug: string;
   name: string;
   tagline: string;

@@ -5,7 +5,7 @@ import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
 import { FoodSwapOption, PersonalizedMealItem } from '../../lib/types';
-import { getFoodSwaps } from '../../services/diet-recommender';
+import { dietApi } from '../../services/api-client';
 import { RefreshCw, CheckCircle2, ArrowRight, Flame, Scale, Sparkles } from 'lucide-react';
 
 interface FoodSwapModalProps {
@@ -26,12 +26,28 @@ export function FoodSwapModal({
   const [swaps, setSwaps] = useState<FoodSwapOption[]>([]);
   const [selectedSwap, setSelectedSwap] = useState<FoodSwapOption | null>(null);
 
+  const [loadError, setLoadError] = useState('');
+
   useEffect(() => {
-    if (currentItem && isOpen) {
-      const alternatives = getFoodSwaps(currentItem.foodId, userAllergies);
-      setSwaps(alternatives);
-      setSelectedSwap(alternatives[0] || null);
-    }
+    if (!currentItem || !isOpen) return;
+    let active = true;
+    setLoadError('');
+    dietApi
+      .swapMealFood(currentItem.foodId, userAllergies)
+      .then((alternatives: FoodSwapOption[]) => {
+        if (!active) return;
+        setSwaps(alternatives);
+        setSelectedSwap(alternatives[0] || null);
+      })
+      .catch((err) => {
+        if (!active) return;
+        setSwaps([]);
+        setSelectedSwap(null);
+        setLoadError(err instanceof Error ? err.message : 'Could not load swap options.');
+      });
+    return () => {
+      active = false;
+    };
   }, [currentItem, isOpen, userAllergies]);
 
   if (!currentItem) return null;
@@ -89,7 +105,11 @@ export function FoodSwapModal({
             <span className="text-xs text-slate-500">Allergy-safe & macro-aligned</span>
           </div>
 
-          {swaps.length === 0 ? (
+          {loadError ? (
+            <div className="text-center py-6 text-sm text-rose-400 bg-slate-900/50 rounded-xl border border-slate-800">
+              {loadError}
+            </div>
+          ) : swaps.length === 0 ? (
             <div className="text-center py-6 text-sm text-slate-400 bg-slate-900/50 rounded-xl border border-slate-800">
               No direct swap alternatives found for this item with your current allergy settings.
             </div>

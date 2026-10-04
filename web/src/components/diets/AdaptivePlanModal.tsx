@@ -6,7 +6,7 @@ import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { Badge } from '../ui/Badge';
 import { AdaptivePlanReview } from '../../lib/types';
-import { reviewAdaptiveProgress } from '../../services/diet-recommender';
+import { dietApi } from '../../services/api-client';
 import {
   Activity,
   TrendingDown,
@@ -40,17 +40,28 @@ export function AdaptivePlanModal({
 
   const [reviewResult, setReviewResult] = useState<AdaptivePlanReview | null>(null);
 
-  const handleRunReview = () => {
+  const [isReviewing, setIsReviewing] = useState(false);
+  const [reviewError, setReviewError] = useState('');
+
+  const handleRunReview = async () => {
     const curWt = parseFloat(currentWeight) || startingWeightKg;
-    const result = reviewAdaptiveProgress({
-      startingWeightKg,
-      currentWeightKg: curWt,
-      weeksElapsed,
-      hungerRating,
-      energyRating,
-      adherenceRating,
-    });
-    setReviewResult(result);
+    setIsReviewing(true);
+    setReviewError('');
+    try {
+      const result: AdaptivePlanReview = await dietApi.submitAdaptiveReview({
+        startingWeightKg,
+        currentWeightKg: curWt,
+        weeksElapsed,
+        hungerRating,
+        energyRating,
+        adherenceRating,
+      });
+      setReviewResult(result);
+    } catch (err) {
+      setReviewError(err instanceof Error ? err.message : 'Could not run the check-in review.');
+    } finally {
+      setIsReviewing(false);
+    }
   };
 
   const handleReset = () => {
@@ -166,11 +177,13 @@ export function AdaptivePlanModal({
               </div>
             </div>
 
+            {reviewError && <p className="text-xs text-rose-400">{reviewError}</p>}
+
             <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-800">
               <Button variant="ghost" onClick={onClose}>
                 Cancel
               </Button>
-              <Button variant="glow" onClick={handleRunReview} className="flex items-center gap-1.5">
+              <Button variant="glow" onClick={handleRunReview} isLoading={isReviewing} className="flex items-center gap-1.5">
                 <Activity className="w-4 h-4" /> Calculate Adaptive Advice
               </Button>
             </div>
