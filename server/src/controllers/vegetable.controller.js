@@ -1,6 +1,8 @@
+const { sendError, sendUnexpectedError } = require('../utils/http');
 const mongoose = require('mongoose');
 const Vegetable = require('../models/Vegetable');
 const { VEGETABLES_DATA } = require('../data/vegetables-data');
+const { escapeRegex } = require('../utils/regex');
 
 /**
  * Normalization helper for fuzzy & alias vegetable matching
@@ -62,7 +64,7 @@ exports.getVegetables = async (req, res) => {
 
     if (search && search.trim()) {
       const cleanSearch = search.trim();
-      const escaped = cleanSearch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const escaped = escapeRegex(cleanSearch);
       const regex = new RegExp(escaped, 'i');
 
       filter.$or = [
@@ -108,11 +110,7 @@ exports.getVegetables = async (req, res) => {
       data: vegetables,
     });
   } catch (error) {
-    res.status(422).json({
-      success: false,
-      code: 422,
-      errors: [error.message || 'Failed to retrieve vegetables'],
-    });
+    return sendUnexpectedError(res, error, 'Failed to retrieve vegetables');
   }
 };
 
@@ -131,7 +129,7 @@ exports.searchVegetables = async (req, res) => {
     }
 
     const cleanQuery = queryStr.trim();
-    const escaped = cleanQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const escaped = escapeRegex(cleanQuery);
     const regex = new RegExp(escaped, 'i');
     const exactRegex = new RegExp(`^${escaped}$`, 'i');
 
@@ -176,11 +174,7 @@ exports.searchVegetables = async (req, res) => {
       data: ranked,
     });
   } catch (error) {
-    res.status(422).json({
-      success: false,
-      code: 422,
-      errors: [error.message || 'Vegetable search failed'],
-    });
+    return sendUnexpectedError(res, error, 'Vegetable search failed');
   }
 };
 
@@ -199,17 +193,13 @@ exports.getVegetableByIdOrSlug = async (req, res) => {
       vegetable = await Vegetable.findOne({
         $or: [
           { slug: idOrSlug.toLowerCase() },
-          { name: new RegExp(`^${idOrSlug}$`, 'i') },
+          { name: new RegExp(`^${escapeRegex(idOrSlug)}$`, 'i') },
         ],
       });
     }
 
     if (!vegetable) {
-      return res.status(422).json({
-        success: false,
-        code: 422,
-        errors: [`Vegetable '${idOrSlug}' not found in database`],
-      });
+      return sendError(res, 404, [`Vegetable '${idOrSlug}' not found in database`]);
     }
 
 
@@ -220,11 +210,7 @@ exports.getVegetableByIdOrSlug = async (req, res) => {
       data: vegetable,
     });
   } catch (error) {
-    res.status(422).json({
-      success: false,
-      code: 422,
-      errors: [error.message || 'Failed to retrieve vegetable'],
-    });
+    return sendUnexpectedError(res, error, 'Failed to retrieve vegetable');
   }
 };
 
@@ -240,11 +226,7 @@ exports.matchVegetables = async (req, res) => {
       : [];
 
     if (namesToMatch.length === 0) {
-      return res.status(422).json({
-        success: false,
-        code: 422,
-        errors: ['Please provide at least one vegetable name or label to match'],
-      });
+      return sendError(res, 422, ['Please provide at least one vegetable name or label to match']);
     }
 
     const allVegetables = await Vegetable.find({ isActive: true });
@@ -326,11 +308,7 @@ exports.matchVegetables = async (req, res) => {
       data: matches,
     });
   } catch (error) {
-    res.status(422).json({
-      success: false,
-      code: 422,
-      errors: [error.message || 'Vegetable matching failed'],
-    });
+    return sendUnexpectedError(res, error, 'Vegetable matching failed');
   }
 };
 
@@ -351,17 +329,13 @@ exports.calculateNutrition = async (req, res) => {
       vegetable = await Vegetable.findOne({
         $or: [
           { slug: idOrSlug.toLowerCase() },
-          { name: new RegExp(`^${idOrSlug}$`, 'i') },
+          { name: new RegExp(`^${escapeRegex(idOrSlug)}$`, 'i') },
         ],
       });
     }
 
     if (!vegetable) {
-      return res.status(422).json({
-        success: false,
-        code: 422,
-        errors: [`Vegetable '${idOrSlug}' not found`],
-      });
+      return sendError(res, 404, [`Vegetable '${idOrSlug}' not found`]);
     }
 
 
@@ -399,11 +373,7 @@ exports.calculateNutrition = async (req, res) => {
       data: calculated,
     });
   } catch (error) {
-    res.status(422).json({
-      success: false,
-      code: 422,
-      errors: [error.message || 'Failed to calculate nutrition'],
-    });
+    return sendUnexpectedError(res, error, 'Failed to calculate nutrition');
   }
 };
 
@@ -423,10 +393,6 @@ exports.getCategories = async (req, res) => {
       data: summary.map((s) => ({ category: s._id, count: s.count })),
     });
   } catch (error) {
-    res.status(422).json({
-      success: false,
-      code: 422,
-      errors: [error.message || 'Failed to retrieve categories'],
-    });
+    return sendUnexpectedError(res, error, 'Failed to retrieve categories');
   }
 };
