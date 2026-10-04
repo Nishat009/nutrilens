@@ -30,15 +30,17 @@ import { Badge } from '../../../components/ui/Badge';
 import { Modal } from '../../../components/ui/Modal';
 import { Input } from '../../../components/ui/Input';
 import { useUserStore } from '../../../lib/stores/user-store';
-import { formatCalories, formatGrams } from '../../../lib/utils/format';
+import { formatCalories, formatGrams, toLocalDateString } from '../../../lib/utils/format';
 import { progressApi } from '../../../services/api-client';
 import { DailyNutrition, WeightLog } from '../../../lib/types';
 
 export default function ProgressPage() {
-  const { profile, goal, fetchUserProfile, updateProfile } = useUserStore();
+  const { profile, goal, fetchUserProfile } = useUserStore();
   const [range, setRange] = useState<'7d' | '30d' | '90d'>('30d');
   const [isWeightModalOpen, setIsWeightModalOpen] = useState(false);
-  const [newWeight, setNewWeight] = useState(profile.weightKg.toString());
+  const [newWeight, setNewWeight] = useState('');
+  const [weightError, setWeightError] = useState('');
+  const [loadError, setLoadError] = useState('');
   const [weightLogs, setWeightLogs] = useState<WeightLog[]>([]);
   const [nutritionHistory, setNutritionHistory] = useState<DailyNutrition[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -48,6 +50,7 @@ export default function ProgressPage() {
 
   const loadProgressData = async () => {
     setIsLoading(true);
+    setLoadError('');
     try {
       const [logs, history] = await Promise.all([
         progressApi.getWeightLogs(),
@@ -56,7 +59,7 @@ export default function ProgressPage() {
       setWeightLogs(logs);
       setNutritionHistory(history);
     } catch (err) {
-      console.warn('Failed to load progress analytics from backend:', err);
+      setLoadError(err instanceof Error ? err.message : 'Failed to load progress data.');
     } finally {
       setIsLoading(false);
     }
@@ -67,67 +70,72 @@ export default function ProgressPage() {
     loadProgressData();
   }, [daysCount]);
 
-  // Construct chart timeline merging nutrition history and weight logs
+  // Merge real nutrition history and weigh-ins into one timeline. Days without a
+  // record stay null so the charts show gaps instead of invented values.
   const chartData = useMemo(() => {
-    if (nutritionHistory.length === 0 && weightLogs.length === 0) {
-      // Return structured fallback timeline
-      const now = new Date();
-      return Array.from({ length: Math.min(daysCount, 7) }, (_, i) => {
-        const d = new Date(now.getTime() - (Math.min(daysCount, 7) - 1 - i) * 24 * 60 * 60 * 1000);
-        return {
-          date: d.toISOString().slice(5, 10),
-          calories: goal.targetCalories,
-          targetCalories: goal.targetCalories,
-          protein: goal.targetProteinG,
-          carbs: goal.targetCarbsG,
-          fat: goal.targetFatG,
-          weight: profile.weightKg,
-        };
+    const cutoff = toLocalDateString(new Date(Date.now() - daysCount * 24 * 60 * 60 * 1000));
+    const byDate = new Map<string, {
+      date: string;
+      calories: number | null;
+      protein: number | null;
+      carbs: number | null;
+      fat: number | null;
+      weight: number | null;
+    }>();
+    const entry = (date: string) => {
+      if (!byDate.has(date)) {
+        byDate.set(date, { date, calories: null, protein: null, carbs: null, fat: null, weight: null });
+      }
+      return byDate.get(date)!;
+    };
+
+    nutritionHistory.forEach((item) => {
+      const e = entry(item.date);
+      e.calories = item.totalCalories;
+      e.protein = item.totalProtein;
+      e.carbs = item.totalCarbs;
+      e.fat = item.totalFat;
+    });
+    weightLogs
+      .filter((w) => w.date >= cutoff)
+      .forEach((w) => {
+        entry(w.date).weight = w.weightKg;
       });
-    }
 
-    const weightMap = new Map<string, number>();
-    weightLogs.forEach((w) => weightMap.set(w.date, w.weightKg));
+    return Array.from(byDate.values())
+      .sort((a, b) => a.date.localeCompare(b.date))
+      .map((e) => ({ ...e, date: e.date.slice(5) }));
+  }, [nutritionHistory, weightLogs, daysCount]);
 
-    if (nutritionHistory.length > 0) {
-      return nutritionHistory.map((item) => ({
-        date: item.date.slice(5),
-        calories: item.totalCalories,
-        targetCalories: goal.targetCalories,
-        protein: item.totalProtein,
-        carbs: item.totalCarbs,
-        fat: item.totalFat,
-        weight: weightMap.get(item.date) || profile.weightKg,
-      }));
-    }
+  const weighIns = chartData.filter((d) => d.weight !== null).map((d) => d.weight as number);
+  const weightDelta = weighIns.length > 1
+    ? Math.round((weighIns[weighIns.length - 1] - weighIns[0]) * 10) / 10
+    : 0;
+  const hasChartData = chartData.length > 0;
 
-    return weightLogs.slice(-daysCount).map((w) => ({
-      date: w.date.slice(5),
-      calories: goal.targetCalories,
-      targetCalories: goal.targetCalories,
-      protein: goal.targetProteinG,
-      carbs: goal.targetCarbsG,
-      fat: goal.targetFatG,
-      weight: w.weightKg,
-    }));
-  }, [nutritionHistory, weightLogs, daysCount, goal, profile.weightKg]);
-
-  const initialWeight = chartData[0]?.weight || profile.weightKg;
-  const latestWeight = chartData[chartData.length - 1]?.weight || profile.weightKg;
-  const weightDelta = Math.round((latestWeight - initialWeight) * 10) / 10;
+  const openWeightModal = () => {
+    setWeightError('');
+    setNewWeight(profile.weightKg ? profile.weightKg.toString() : '');
+    setIsWeightModalOpen(true);
+  };
 
   const handleSaveWeight = async () => {
     const val = parseFloat(newWeight);
-    if (isNaN(val) || val <= 0) return;
+    if (isNaN(val) || val <= 0) {
+      setWeightError('Please enter a valid weight in kg.');
+      return;
+    }
 
     setIsSubmittingWeight(true);
+    setWeightError('');
     try {
+      // The server also updates the profile's current weight.
       await progressApi.logWeight({ weightKg: val });
-      await updateProfile({ weightKg: val });
+      await fetchUserProfile();
       await loadProgressData();
       setIsWeightModalOpen(false);
     } catch (err) {
-      console.error('Failed to log weight to backend:', err);
+      setWeightError(err instanceof Error ? err.message : 'Failed to save weigh-in.');
     } finally {
       setIsSubmittingWeight(false);
     }
@@ -166,13 +174,22 @@ export default function ProgressPage() {
           <Button
             variant="glow"
             size="sm"
-            onClick={() => setIsWeightModalOpen(true)}
+            onClick={openWeightModal}
             leftIcon={<Scale className="w-4 h-4" />}
           >
             Log Weight
           </Button>
         </div>
       </div>
+
+      {loadError && (
+        <div className="p-3 rounded-xl border border-rose-500/40 bg-rose-950/40 text-xs text-rose-300">{loadError}</div>
+      )}
+      {!isLoading && !loadError && !hasChartData && (
+        <div className="p-3 rounded-xl border border-slate-700 bg-slate-900/60 text-xs text-slate-400">
+          No meals or weigh-ins logged in this period yet. Log a meal or your weight to see your trends.
+        </div>
+      )}
 
       {/* KPI Stats Ribbon */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -246,6 +263,7 @@ export default function ProgressPage() {
                 type="monotone"
                 dataKey="weight"
                 name="Weight (kg)"
+                connectNulls
                 stroke="#10b981"
                 strokeWidth={3}
                 dot={{ r: 3, fill: '#10b981' }}
@@ -335,6 +353,7 @@ export default function ProgressPage() {
             value={newWeight}
             onChange={(e) => setNewWeight(e.target.value)}
           />
+          {weightError && <p className="text-xs text-rose-400">{weightError}</p>}
           <Button
             variant="glow"
             className="w-full"
