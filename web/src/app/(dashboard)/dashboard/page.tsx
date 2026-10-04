@@ -37,12 +37,12 @@ import {
   calculate30DayWeightProjection,
 } from '../../../services/nutrition';
 import { MEAL_TYPE_CONFIG } from '../../../lib/constants';
-import { MealType } from '../../../lib/types';
-import { MOCK_DIETS } from '../../../data/mock/diets';
+import { DietPlan, MealType } from '../../../lib/types';
+import { dietApi } from '../../../services/api-client';
 
 export default function DashboardPage() {
   const { profile, goal, fetchUserProfile } = useUserStore();
-  const { getDailyNutritionForDate, getMealsByDate, waterIntakeMl, addWater, fetchMeals } = useMealStore();
+  const { meals, getDailyNutritionForDate, getMealsByDate, waterIntakeMl, addWater, fetchMeals } = useMealStore();
 
   const [activeTab, setActiveTab] = useState<'workout' | 'neat'>('neat');
   const [selectedPlanDay, setSelectedPlanDay] = useState(1);
@@ -54,11 +54,12 @@ export default function DashboardPage() {
     fetchMeals(today);
   }, [fetchUserProfile, fetchMeals, today]);
 
+  // `meals` is a dependency so today's totals refresh once meals load or change.
   const todayNutrition = useMemo(
     () => getDailyNutritionForDate(today),
-    [getDailyNutritionForDate, today, waterIntakeMl]
+    [getDailyNutritionForDate, today, waterIntakeMl, meals]
   );
-  const todayMeals = useMemo(() => getMealsByDate(today), [getMealsByDate, today]);
+  const todayMeals = useMemo(() => getMealsByDate(today), [getMealsByDate, today, meals]);
 
   const targets = useMemo(
     () => calculateNutritionTargets(profile, goal.type),
@@ -95,11 +96,22 @@ export default function DashboardPage() {
   const personalizedPlan = profile.personalizedPlan;
   const selectedMealDay = personalizedPlan?.sevenDayPlan?.find((day) => day.dayNumber === selectedPlanDay)
     || personalizedPlan?.sevenDayPlan?.[0];
-  const activeDietName = personalizedPlan?.selectedDiet?.name || profile.dietaryPreferences?.[0] || 'Mediterranean Wellness';
-  const activeDiet = useMemo(
-    () => MOCK_DIETS.find((d) => d.name === activeDietName || d.slug === activeDietName) || MOCK_DIETS[0],
-    [activeDietName]
-  );
+  const activeDietKey = profile.activeDietId || personalizedPlan?.selectedDiet?.slug || '';
+  const [activeDiet, setActiveDiet] = useState<DietPlan | null>(null);
+
+  useEffect(() => {
+    if (!activeDietKey) {
+      setActiveDiet(null);
+      return;
+    }
+    dietApi
+      .getDietBySlug(activeDietKey)
+      .then(setActiveDiet)
+      .catch((error) => {
+        console.error('Could not load active diet protocol:', error);
+        setActiveDiet(null);
+      });
+  }, [activeDietKey]);
 
   const waterGlassesDrank = Math.round(todayNutrition.waterIntakeMl / 250);
 
@@ -118,7 +130,7 @@ export default function DashboardPage() {
           </div>
           <p className="text-xs sm:text-sm text-slate-400 mt-0.5">
             Calibrated for <strong className="text-white">{profile.name}</strong> • Diet Protocol:{' '}
-            <strong className="text-emerald-400">{activeDiet.name}</strong>
+            <strong className="text-emerald-400">{activeDiet?.name || 'None selected'}</strong>
           </p>
         </div>
 
@@ -445,6 +457,23 @@ export default function DashboardPage() {
         </Card>
 
         {/* Right: Active Diet Protocol & Recommended Superfoods (6 cols) */}
+        {!activeDiet ? (
+          <Card variant="glass" className="lg:col-span-6 p-6 space-y-4 flex flex-col items-start justify-center">
+            <div className="flex items-center gap-2">
+              <Award className="w-5 h-5 text-emerald-400" />
+              <h3 className="text-base font-bold text-white">No Active Protocol</h3>
+            </div>
+            <p className="text-xs text-slate-400">
+              Choose a diet protocol to see its macro targets and recommended foods here.
+            </p>
+            <Link
+              href="/diets"
+              className="text-xs text-emerald-400 hover:text-emerald-300 font-semibold flex items-center gap-1"
+            >
+              Explore All Diets <ChevronRight className="w-3.5 h-3.5" />
+            </Link>
+          </Card>
+        ) : (
         <Card variant="glass" className="lg:col-span-6 p-6 space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -513,6 +542,7 @@ export default function DashboardPage() {
             </div>
           )}
         </Card>
+        )}
       </div>
 
       {personalizedPlan?.sevenDayPlan?.length ? (
