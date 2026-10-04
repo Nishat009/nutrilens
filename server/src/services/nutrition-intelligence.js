@@ -1,9 +1,9 @@
-const dietPlansData = require('../nutrition/diet-plans.json');
 const medicalRulesData = require('../nutrition/medical-rules.json');
 const foodDatabase = require('../nutrition/food-database.json');
 const recommendationRules = require('../nutrition/recommendation-rules.json');
+const { CANONICAL_DIETS, getIneligibilityReason } = require('./diet-ranking');
+const { getUserConditions, getUserAge, getUserBmi } = require('./user-profile');
 
-const CANONICAL_DIETS = dietPlansData.diet_plans;
 const FOODS = foodDatabase.foods;
 const MEDICAL_RULES = medicalRulesData.conditions;
 
@@ -11,7 +11,7 @@ const MEDICAL_RULES = medicalRulesData.conditions;
  * Universal resolver to match any canonical ID, slug, legacy name, or keyword
  */
 function resolveDietPlan(identifier) {
-  if (!identifier) return CANONICAL_DIETS[0];
+  if (!identifier) return null;
   if (typeof identifier === 'object') {
     if (identifier.id || identifier.slug || identifier.name) {
       const match = resolveDietPlan(identifier.id || identifier.slug || identifier.name);
@@ -61,9 +61,9 @@ function resolveDietPlan(identifier) {
     return false;
   });
 
-  if (match) return match;
-
-  return CANONICAL_DIETS[0];
+  // Unknown identifiers resolve to null so callers can report "not found"
+  // instead of silently using an unrelated protocol.
+  return match || null;
 }
 
 /**
@@ -366,7 +366,8 @@ function evaluateFoodScan(foodIdentifier, portionG = 100, userContext = {}) {
   const { activeDiet, medicalConditions = [], allergies = [], medications = [] } = userContext;
 
   const foodData = typeof foodIdentifier === 'object' ? foodIdentifier : findFoodItem(foodIdentifier);
-  const matchedDiet = resolveDietPlan(activeDiet);
+  // Without an active protocol, judge the food against the balanced Mediterranean baseline.
+  const matchedDiet = resolveDietPlan(activeDiet) || resolveDietPlan('mediterranean_fusion');
 
 
   // Step 1: Allergy Check (Immediate AVOID trigger)
@@ -483,11 +484,20 @@ function validateDietAdoption(userProfile = {}, dietPlanIdentifier) {
   }
 
 
-  const conditions = (userProfile.medicalConditions || userProfile.medical_conditions || []).map((c) =>
-    c.toLowerCase().trim()
-  );
-  const bmi = userProfile.bmi || (userProfile.weightKg && userProfile.heightCm ? userProfile.weightKg / Math.pow(userProfile.heightCm / 100, 2) : 22);
-  const age = userProfile.age || 25;
+  // Onboarding stores conditions in healthConditions; merge with medicalConditions.
+  const conditions = getUserConditions(userProfile);
+  const bmi = getUserBmi(userProfile) || 22;
+
+  // 0. Catalog eligibility (sex / age range)
+  const ineligibility = getIneligibilityReason(dietPlan, userProfile);
+  if (ineligibility) {
+    return {
+      canAdopt: false,
+      status: 'BLOCKED',
+      message: ineligibility,
+      professionalReviewRequired: false,
+    };
+  }
 
   // 1. Check Hard Contraindications (CKD, Pregnancy, Underweight)
   if (conditions.some((c) => c.includes('ckd') || c.includes('kidney'))) {
@@ -539,7 +549,7 @@ function validateDietAdoption(userProfile = {}, dietPlanIdentifier) {
 function calculatePersonalizedTargets(userProfile = {}, dietPlan) {
   const weightKg = userProfile.weightKg || userProfile.weight_kg || 70;
   const heightCm = userProfile.heightCm || userProfile.height_cm || 170;
-  const age = userProfile.age || 26;
+  const age = getUserAge(userProfile) || 30;
   const gender = userProfile.gender || userProfile.sex || 'female';
   const activityLevel = userProfile.activityLevel || userProfile.activity_level || 'moderately_active';
   const goal = userProfile.goal && userProfile.goal.type ? userProfile.goal.type : userProfile.goal || 'lose_weight';
@@ -597,33 +607,6 @@ function calculatePersonalizedTargets(userProfile = {}, dietPlan) {
   };
 }
 
-/**
- * Scores and ranks the 20 canonical diet plans for a user profile
- */
-function rankDietsForUser(userProfile = {}) {
-  const conditions = (userProfile.medicalConditions || userProfile.medical_conditions || []).map((c) =>
-    c.toLowerCase().trim()
-  );
-
-  return CANONICAL_DIETS.map((diet) => {
-    let score = 50; // Baseline score
-
-    // Condition match
-    if (conditions.some((c) => diet.clinical_profile && diet.clinical_profile.suitable_conditions.includes(c))) {
-      score += 35;
-    }
-
-    // Featured boost
-    if (diet.isFeatured) score += 10;
-
-    return {
-      diet,
-      score: Math.min(100, score),
-      recommended: score >= 70,
-    };
-  }).sort((a, b) => b.score - a.score);
-}
-
 module.exports = {
   CANONICAL_DIETS,
   resolveDietPlan,
@@ -636,7 +619,6 @@ module.exports = {
   calculateThyroidRisk,
   validateDietAdoption,
   calculatePersonalizedTargets,
-  rankDietsForUser,
   generateFoodAlternatives,
 };
 

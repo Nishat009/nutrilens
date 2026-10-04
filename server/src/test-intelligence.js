@@ -2,8 +2,8 @@ const {
   evaluateFoodScan,
   validateDietAdoption,
   calculatePersonalizedTargets,
-  rankDietsForUser,
 } = require('./services/nutrition-intelligence');
+const { rankDietProtocols } = require('./services/diet-ranking');
 
 console.log('=== RUNNING CLINICAL NUTRITION INTELLIGENCE TESTS ===\n');
 
@@ -109,8 +109,8 @@ const targets = calculatePersonalizedTargets(
 assert(targets.targetCalories > 1200 && targets.targetProteinG > 0 && targets.targetWaterMl >= 2000, `Test 13: Personalized targets calculated successfully (Calories: ${targets.targetCalories}, Protein: ${targets.targetProteinG}g, Water: ${targets.targetWaterMl}ml)`);
 
 // Test 14: Diet Ranking
-const ranked = rankDietsForUser({ medicalConditions: ['pcos'] });
-assert(ranked.length === 20 && ranked[0].diet.id === 'pcos_hormone_balance', `Test 14: Ranked diets places PCOS protocol on top for PCOS user`);
+const ranked = rankDietProtocols({ gender: 'female', healthConditions: ['pcos'] });
+assert(ranked.length === 20 && ranked[0].id === 'pcos_hormone_balance', `Test 14: Ranked diets places PCOS protocol on top for PCOS user`);
 
 console.log(`\n=== RESULTS: ${passed} PASSED, ${failed} FAILED ===`);
 if (failed > 0) process.exit(1);

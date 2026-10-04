@@ -19,7 +19,7 @@ router.post('/adopt', requireAuth, adoptDiet);
 
 // Diet protocols catalogue
 router.get('/', getDiets);
-router.get('/recommendations', getRecommendations);
+router.get('/recommendations', requireAuth, getRecommendations);
 router.get('/:slug', getDietBySlug);
 
 module.exports = router;

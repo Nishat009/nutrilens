@@ -1,60 +1,40 @@
-const DietPlan = require('../models/DietPlan');
-const User = require('../models/User');
+const { sendError, sendUnexpectedError } = require('../utils/http');
 const {
   generatePersonalizedDietRecommendation,
   getFoodSwaps,
   reviewAdaptiveProgress,
 } = require('../services/diet-recommendation-engine');
-const mongoose = require('mongoose');
+const { rankDietProtocols } = require('../services/diet-ranking');
 const {
   CANONICAL_DIETS,
   resolveDietPlan,
   validateDietAdoption,
   calculatePersonalizedTargets,
-  rankDietsForUser,
 } = require('../services/nutrition-intelligence');
 
-// Helper to resolve or find active user
+// The canonical catalog (server/src/nutrition/diet-plans.json) is the single
+// source of truth for diet protocols; it is static, so it isn't stored in MongoDB.
+
 // @desc    Get all diet plans (Canonical 20)
 // @route   GET /api/diets
-exports.getDiets = async (req, res) => {
-  try {
-    const dbDiets = await DietPlan.find();
-    if (dbDiets && dbDiets.length > 0) {
-      return res.status(200).json({
-        success: true,
-        code: 200,
-        count: dbDiets.length,
-        data: dbDiets,
-      });
-    }
-    res.status(200).json({
-      success: true,
-      code: 200,
-      count: CANONICAL_DIETS.length,
-      data: CANONICAL_DIETS,
-    });
-  } catch (error) {
-    res.status(200).json({
-      success: true,
-      code: 200,
-      count: CANONICAL_DIETS.length,
-      data: CANONICAL_DIETS,
-    });
-  }
+exports.getDiets = (req, res) => {
+  res.status(200).json({
+    success: true,
+    code: 200,
+    count: CANONICAL_DIETS.length,
+    data: CANONICAL_DIETS,
+  });
 };
 
 // @desc    Get diet plan by slug or canonical ID
 // @route   GET /api/diets/:slug
 exports.getDietBySlug = async (req, res) => {
   try {
-    const query = req.params.slug;
-    let diet = await DietPlan.findOne({ $or: [{ slug: query }, { id: query }, { name: query }] });
-    if (!diet) diet = resolveDietPlan(query);
-    if (!diet) return res.status(422).json({ success: false, code: 422, errors: ['Diet protocol not found'] });
+    const diet = resolveDietPlan(req.params.slug);
+    if (!diet) return sendError(res, 404, 'Diet protocol not found');
     res.status(200).json({ success: true, code: 200, message: 'Diet protocol retrieved successfully', data: diet });
   } catch (error) {
-    res.status(422).json({ success: false, code: 422, errors: [error.message || 'Failed to retrieve diet protocol'] });
+    return sendUnexpectedError(res, error, 'Failed to retrieve diet protocol');
   }
 };
 
@@ -66,24 +46,19 @@ exports.adoptDiet = async (req, res) => {
 
     const targetIdentifier = dietId || dietName;
     if (!targetIdentifier) {
-      return res.status(422).json({
-        success: false,
-        code: 422,
-        errors: ['Diet identifier (id, slug, or name) is required'],
-      });
+      return sendError(res, 422, ['Diet identifier (id, slug, or name) is required']);
     }
 
     const user = req.user;
     if (!user) {
-      return res.status(422).json({
-        success: false,
-        code: 422,
-        errors: ['User profile not found'],
-      });
+      return sendError(res, 404, 'User profile not found');
     }
 
     // Step 1: Safety & Eligibility Validation
     const validation = validateDietAdoption(user, targetIdentifier);
+    if (!validation.dietPlan && validation.status === 'error') {
+      return sendError(res, 404, 'Diet protocol not found');
+    }
     if (!validation.canAdopt) {
       return res.status(200).json({
         success: true,
@@ -128,11 +103,7 @@ exports.adoptDiet = async (req, res) => {
       },
     });
   } catch (error) {
-    res.status(422).json({
-      success: false,
-      code: 422,
-      errors: [error.message || 'Failed to adopt diet plan'],
-    });
+    return sendUnexpectedError(res, error, 'Failed to adopt diet plan');
   }
 };
 
@@ -140,26 +111,10 @@ exports.adoptDiet = async (req, res) => {
 // @route   POST /api/diets/recommend
 exports.getPersonalizedRecommendation = async (req, res) => {
   try {
-    const userProfile = req.body || {};
+    // Assessment answers in the body override what is stored on the profile.
+    // The caller persists the plan (onboarding saves it with the full assessment).
+    const userProfile = { ...req.user.toObject(), ...(req.body || {}) };
     const recommendation = generatePersonalizedDietRecommendation(userProfile);
-
-    // Keep the generated plan on the authenticated profile.
-    if (req.user?._id) {
-      try {
-        await User.findByIdAndUpdate(req.user._id, {
-          personalizedPlan: recommendation,
-          primaryGoal: userProfile.primaryGoal,
-          goalPace: userProfile.goalPace,
-          healthConditions: userProfile.healthConditions,
-          foodPreferences: userProfile.foodPreferences,
-          allergies: userProfile.allergies,
-          lifestyle: userProfile.lifestyle,
-          waistCm: userProfile.waistCm,
-        });
-      } catch (err) {
-        console.warn('Could not auto-save plan to user document:', err);
-      }
-    }
 
     res.status(200).json({
       success: true,
@@ -168,11 +123,7 @@ exports.getPersonalizedRecommendation = async (req, res) => {
       data: recommendation,
     });
   } catch (error) {
-    res.status(422).json({
-      success: false,
-      code: 422,
-      errors: [error.message || 'Failed to generate personalized diet recommendation'],
-    });
+    return sendUnexpectedError(res, error, 'Failed to generate personalized diet recommendation');
   }
 };
 
@@ -182,11 +133,7 @@ exports.getFoodSwapAlternatives = async (req, res) => {
   try {
     const { foodId, allergies = [], dietType = 'balanced' } = req.body;
     if (!foodId) {
-      return res.status(422).json({
-        success: false,
-        code: 422,
-        errors: ['Please provide a foodId to get swap alternatives'],
-      });
+      return sendError(res, 422, ['Please provide a foodId to get swap alternatives']);
     }
 
     const swaps = getFoodSwaps(foodId, allergies, dietType);
@@ -198,11 +145,7 @@ exports.getFoodSwapAlternatives = async (req, res) => {
       data: swaps,
     });
   } catch (error) {
-    res.status(422).json({
-      success: false,
-      code: 422,
-      errors: [error.message || 'Failed to retrieve food swap alternatives'],
-    });
+    return sendUnexpectedError(res, error, 'Failed to retrieve food swap alternatives');
   }
 };
 
@@ -220,11 +163,7 @@ exports.submitAdaptiveReview = async (req, res) => {
       data: reviewResult,
     });
   } catch (error) {
-    res.status(422).json({
-      success: false,
-      code: 422,
-      errors: [error.message || 'Failed to review adaptive progress'],
-    });
+    return sendUnexpectedError(res, error, 'Failed to review adaptive progress');
   }
 };
 
@@ -232,23 +171,14 @@ exports.submitAdaptiveReview = async (req, res) => {
 // @route   GET /api/diets/recommendations
 exports.getRecommendations = async (req, res) => {
   try {
-    const user = req.user;
-    const rankedDiets = rankDietsForUser(user || {});
-
     res.status(200).json({
       success: true,
       code: 200,
       message: 'Personalized diet recommendations calculated',
-      data: rankedDiets,
+      data: rankDietProtocols(req.user.toObject()),
     });
   } catch (error) {
-    const defaultRanked = rankDietsForUser({});
-    res.status(200).json({
-      success: true,
-      code: 200,
-      message: 'Default diet recommendations calculated',
-      data: defaultRanked,
-    });
+    return sendUnexpectedError(res, error, 'Failed to calculate diet recommendations');
   }
 };
 
