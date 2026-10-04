@@ -1,65 +1,45 @@
-const User = require('../models/User');
 const crypto = require('crypto');
+const User = require('../models/User');
 const { createToken } = require('../middleware/auth');
+const { hashPassword, verifyPassword } = require('../utils/password');
+const { sendError, sendUnexpectedError } = require('../utils/http');
+const mailer = require('../utils/mailer');
 
-const hashPassword = (password, salt = crypto.randomBytes(16).toString('hex')) => ({
-  salt,
-  hash: crypto.scryptSync(password, salt, 64).toString('hex'),
-});
-
-const passwordMatches = (password, storedPassword) => {
-  if (!storedPassword) return false;
-  if (storedPassword.startsWith('scrypt$')) {
-    const [, salt, hash] = storedPassword.split('$');
-    const derived = crypto.scryptSync(password, salt, 64).toString('hex');
-    return crypto.timingSafeEqual(Buffer.from(derived, 'hex'), Buffer.from(hash, 'hex'));
-  }
-  return password === storedPassword;
-};
+const RESET_TOKEN_TTL_MS = 60 * 60 * 1000; // 1 hour
+const MIN_PASSWORD_LENGTH = 8;
 
 const serializeUser = (user) => {
   const result = user.toObject ? user.toObject() : { ...user };
   delete result.password;
+  delete result.passwordResetTokenHash;
+  delete result.passwordResetExpires;
   result.onboardingCompleted = Boolean(result.onboardingCompleted || result.personalizedPlan);
   return result;
 };
+
+const normalizeEmail = (email) => (typeof email === 'string' ? email.trim().toLowerCase() : '');
+const hashResetToken = (token) => crypto.createHash('sha256').update(token).digest('hex');
 
 // @desc    Register a new user
 // @route   POST /api/auth/register
 exports.register = async (req, res) => {
   try {
-    const { name, email, password, gender, dob, heightCm, weightKg, activityLevel } = req.body;
+    const { name, password } = req.body;
+    const email = normalizeEmail(req.body.email);
 
-    if (!name || !email || !password || password.length < 8) {
-      return res.status(422).json({
-        success: false,
-        code: 422,
-        errors: ['Name, email, and a password of at least 8 characters are required'],
-      });
+    if (typeof name !== 'string' || !name.trim() || !email || typeof password !== 'string' || password.length < MIN_PASSWORD_LENGTH) {
+      return sendError(res, 422, `Name, email, and a password of at least ${MIN_PASSWORD_LENGTH} characters are required`);
     }
 
-    // Check if user already exists
-    let user = await User.findOne({ email });
-    if (user) {
-      return res.status(422).json({
-        success: false,
-        code: 422,
-        errors: ['User already exists with this email'],
-      });
+    if (await User.exists({ email })) {
+      return sendError(res, 409, 'User already exists with this email');
     }
 
-    user = await User.create({
-      name,
+    // Biometrics are collected during onboarding, so none are invented here.
+    const user = await User.create({
+      name: name.trim(),
       email,
-      password: (() => {
-        const { salt, hash } = hashPassword(password);
-        return `scrypt$${salt}$${hash}`;
-      })(),
-      gender: gender || 'male',
-      dob: dob || '1998-05-14',
-      heightCm: heightCm || 178,
-      weightKg: weightKg || 74.5,
-      activityLevel: activityLevel || 'moderately_active',
+      password: hashPassword(password),
     });
 
     res.status(200).json({
@@ -69,15 +49,7 @@ exports.register = async (req, res) => {
       data: { user: serializeUser(user), token: createToken(user._id) },
     });
   } catch (error) {
-    const errors = error.errors
-      ? Object.values(error.errors).map((e) => e.message)
-      : [error.message || 'An error occurred during registration'];
-
-    res.status(422).json({
-      success: false,
-      code: 422,
-      errors,
-    });
+    return sendUnexpectedError(res, error, 'An error occurred during registration');
   }
 };
 
@@ -85,29 +57,16 @@ exports.register = async (req, res) => {
 // @route   POST /api/auth/login
 exports.login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { password } = req.body;
+    const email = normalizeEmail(req.body.email);
 
-    if (!email || !password) {
-      return res.status(422).json({
-        success: false,
-        code: 422,
-        errors: ['Please provide both email and password'],
-      });
+    if (!email || typeof password !== 'string' || !password) {
+      return sendError(res, 422, 'Please provide both email and password');
     }
 
     const user = await User.findOne({ email }).select('+password');
-    if (!user || !passwordMatches(password, user.password)) {
-      return res.status(422).json({
-        success: false,
-        code: 422,
-        errors: ['Invalid email or password'],
-      });
-    }
-
-    if (!user.password.startsWith('scrypt$')) {
-      const { salt, hash } = hashPassword(password);
-      user.password = `scrypt$${salt}$${hash}`;
-      await user.save();
+    if (!user || !verifyPassword(password, user.password)) {
+      return sendError(res, 401, 'Invalid email or password');
     }
 
     res.status(200).json({
@@ -117,41 +76,95 @@ exports.login = async (req, res) => {
       data: { user: serializeUser(user), token: createToken(user._id) },
     });
   } catch (error) {
-    const errors = error.errors
-      ? Object.values(error.errors).map((e) => e.message)
-      : [error.message || 'An error occurred during login'];
-
-    res.status(422).json({
-      success: false,
-      code: 422,
-      errors,
-    });
+    return sendUnexpectedError(res, error, 'An error occurred during login');
   }
 };
 
 // @desc    Get current user profile
 // @route   GET /api/auth/me
 exports.getMe = async (req, res) => {
+  res.status(200).json({
+    success: true,
+    code: 200,
+    message: 'User profile retrieved successfully',
+    data: serializeUser(req.user),
+  });
+};
+
+// @desc    Email a password reset link
+// @route   POST /api/auth/forgot-password
+exports.forgotPassword = async (req, res) => {
+  // Same response whether or not the account exists, so emails can't be enumerated.
+  const genericResponse = {
+    success: true,
+    code: 200,
+    message: 'If an account exists for that email, a password reset link has been sent.',
+  };
+
   try {
-    const user = req.user;
-    if (!user) {
-      return res.status(422).json({
-        success: false,
-        code: 422,
-        errors: ['No user profile found'],
-      });
+    const email = normalizeEmail(req.body.email);
+    if (!email) return sendError(res, 422, 'Please provide your email address');
+
+    const user = await User.findOne({ email });
+    if (!user) return res.status(200).json(genericResponse);
+
+    const token = crypto.randomBytes(32).toString('hex');
+    user.passwordResetTokenHash = hashResetToken(token);
+    user.passwordResetExpires = new Date(Date.now() + RESET_TOKEN_TTL_MS);
+    await user.save();
+
+    const appUrl = (process.env.APP_URL || 'http://localhost:3000').replace(/\/+$/, '');
+    const resetUrl = `${appUrl}/reset-password?token=${token}`;
+    await mailer.sendMail({
+      to: user.email,
+      subject: 'Reset your NutriLens password',
+      text: [
+        `Hi ${user.name},`,
+        '',
+        'We received a request to reset your NutriLens password. Open this link to choose a new one:',
+        resetUrl,
+        '',
+        'The link expires in 1 hour. If you did not request this, you can ignore this email.',
+      ].join('\n'),
+    });
+
+    res.status(200).json(genericResponse);
+  } catch (error) {
+    return sendUnexpectedError(res, error, 'Could not send the password reset email');
+  }
+};
+
+// @desc    Set a new password using a reset token
+// @route   POST /api/auth/reset-password
+exports.resetPassword = async (req, res) => {
+  try {
+    const { token, password } = req.body;
+    if (typeof token !== 'string' || !token) {
+      return sendError(res, 422, 'Reset token is required');
     }
+    if (typeof password !== 'string' || password.length < MIN_PASSWORD_LENGTH) {
+      return sendError(res, 422, `Password must be at least ${MIN_PASSWORD_LENGTH} characters`);
+    }
+
+    const user = await User.findOne({
+      passwordResetTokenHash: hashResetToken(token),
+      passwordResetExpires: { $gt: new Date() },
+    }).select('+passwordResetTokenHash +passwordResetExpires');
+    if (!user) {
+      return sendError(res, 400, 'This reset link is invalid or has expired. Please request a new one.');
+    }
+
+    user.password = hashPassword(password);
+    user.passwordResetTokenHash = undefined;
+    user.passwordResetExpires = undefined;
+    await user.save();
+
     res.status(200).json({
       success: true,
       code: 200,
-      message: 'User profile retrieved successfully',
-      data: serializeUser(user),
+      message: 'Password updated successfully. You can now sign in.',
     });
   } catch (error) {
-    res.status(422).json({
-      success: false,
-      code: 422,
-      errors: [error.message || 'An error occurred retrieving user profile'],
-    });
+    return sendUnexpectedError(res, error, 'Could not reset password');
   }
 };
