@@ -18,3 +18,21 @@ services:
         sync: false # (Optional) Google Gemini API Key for multimodal AI vision
       - key: HF_TOKEN
         sync: false # (Optional) Hugging Face token for open Food-101 vision model
+      - key: JWT_SECRET
+        generateValue: true # Random secret for signing login tokens
+      - key: CORS_ORIGIN
+        sync: false # Your Vercel frontend URL, e.g. https://nutrilens.vercel.app
+      - key: ADMIN_EMAILS
+        sync: false # (Optional) Emails allowed to add foods to the shared catalog
+      - key: APP_URL
+        sync: false # Frontend URL used in password reset links
+      - key: SMTP_HOST
+        sync: false # SMTP server for password reset emails (required in production)
+      - key: SMTP_PORT
+        sync: false
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: SMTP_FROM
+        sync: false
