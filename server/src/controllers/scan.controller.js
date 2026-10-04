@@ -1,6 +1,7 @@
+const { sendError, sendUnexpectedError } = require('../utils/http');
 const FoodScan = require('../models/FoodScan');
-const User = require('../models/User');
 const { analyzeFoodImageServer } = require('../services/foodRecognitionService');
+const { getUserConditions } = require('../services/user-profile');
 
 // @desc    Analyze food photo using open food recognition model & calculate nutrition
 // @route   POST /api/scans/analyze
@@ -9,11 +10,7 @@ exports.analyzeFoodScan = async (req, res) => {
     const { image, mealType, dominantColor, colorProfile, fileName } = req.body;
 
     if (!image) {
-      return res.status(422).json({
-        success: false,
-        code: 422,
-        errors: ['Please provide an image for analysis'],
-      });
+      return sendError(res, 422, ['Please provide an image for analysis']);
     }
 
     const result = await analyzeFoodImageServer(image, mealType, {
@@ -51,23 +48,9 @@ exports.analyzeFoodScan = async (req, res) => {
       data: { ...result, persistedScanId: scan._id },
     });
   } catch (error) {
-    res.status(422).json({
-      success: false,
-      code: 422,
-      errors: [error.message || 'Food analysis failed'],
-    });
+    return sendUnexpectedError(res, error, 'Food analysis failed');
   }
 };
-
-const mongoose = require('mongoose');
-
-async function resolveUserId(rawId) {
-  if (!rawId || rawId === 'current' || rawId === 'default' || !mongoose.Types.ObjectId.isValid(rawId)) {
-    const defaultUser = await User.findOne();
-    return defaultUser ? defaultUser._id : null;
-  }
-  return rawId;
-}
 
 // @desc    Get recent food scans for user
 // @route   GET /api/scans
@@ -84,11 +67,7 @@ exports.getScans = async (req, res) => {
       data: scans,
     });
   } catch (error) {
-    res.status(422).json({
-      success: false,
-      code: 422,
-      errors: [error.message || 'Failed to retrieve scans'],
-    });
+    return sendUnexpectedError(res, error, 'Failed to retrieve scans');
   }
 };
 
@@ -98,11 +77,7 @@ exports.getScanById = async (req, res) => {
   try {
     const scan = await FoodScan.findOne({ _id: req.params.id, userId: req.user._id });
     if (!scan) {
-      return res.status(422).json({
-        success: false,
-        code: 422,
-        errors: ['Scan not found'],
-      });
+      return sendError(res, 404, 'Scan not found');
     }
     res.status(200).json({
       success: true,
@@ -111,11 +86,7 @@ exports.getScanById = async (req, res) => {
       data: scan,
     });
   } catch (error) {
-    res.status(422).json({
-      success: false,
-      code: 422,
-      errors: [error.message || 'Failed to retrieve scan'],
-    });
+    return sendUnexpectedError(res, error, 'Failed to retrieve scan');
   }
 };
 
@@ -137,15 +108,7 @@ exports.createScan = async (req, res) => {
       data: scan,
     });
   } catch (error) {
-    const errors = error.errors
-      ? Object.values(error.errors).map((e) => e.message)
-      : [error.message || 'Failed to save scan'];
-
-    res.status(422).json({
-      success: false,
-      code: 422,
-      errors,
-    });
+    return sendUnexpectedError(res, error, 'Failed to save scan');
   }
 };
 
@@ -157,11 +120,7 @@ exports.teachFoodScan = async (req, res) => {
     const { foodId, foodName, category, perceptualHash, colorSignature, sampleThumbnail } = req.body;
 
     if (!foodName || !perceptualHash) {
-      return res.status(422).json({
-        success: false,
-        code: 422,
-        errors: ['Please provide both foodName and perceptualHash to teach the model'],
-      });
+      return sendError(res, 422, ['Please provide both foodName and perceptualHash to teach the model']);
     }
 
     // Upsert or increment learned count if same hash exists
@@ -193,11 +152,7 @@ exports.teachFoodScan = async (req, res) => {
       data: match,
     });
   } catch (error) {
-    res.status(422).json({
-      success: false,
-      code: 422,
-      errors: [error.message || 'Failed to save learned food association'],
-    });
+    return sendUnexpectedError(res, error, 'Failed to save learned food association');
   }
 };
 
@@ -215,11 +170,7 @@ exports.getLearnedMatches = async (req, res) => {
       data: matches,
     });
   } catch (error) {
-    res.status(422).json({
-      success: false,
-      code: 422,
-      errors: [error.message || 'Failed to retrieve learned visual associations'],
-    });
+    return sendUnexpectedError(res, error, 'Failed to retrieve learned visual associations');
   }
 };
 
@@ -228,19 +179,14 @@ exports.getLearnedMatches = async (req, res) => {
 exports.evaluateScanFood = async (req, res) => {
   try {
     const { evaluateFoodScan } = require('../services/nutrition-intelligence');
-    let { foodName, foodId, portionG = 100, userId, activeDiet, medicalConditions, allergies, medications } = req.body;
+    let { foodName, foodId, portionG = 100, activeDiet, medicalConditions, allergies, medications } = req.body;
 
-    // Fetch user context if userId is provided and conditions/diet are not passed explicitly
-    if (userId) {
-      const resolvedId = await resolveUserId(userId);
-      const user = resolvedId ? await User.findById(resolvedId) : null;
-      if (user) {
-        activeDiet = activeDiet || user.activeDietId || (user.dietaryPreferences && user.dietaryPreferences[0]);
-        medicalConditions = medicalConditions || user.medicalConditions;
-        allergies = allergies || user.allergies;
-        medications = medications || user.medications;
-      }
-    }
+    // Fill in any context not passed explicitly from the authenticated user's profile
+    const user = req.user;
+    activeDiet = activeDiet || user.activeDietId || (user.dietaryPreferences && user.dietaryPreferences[0]);
+    medicalConditions = medicalConditions || getUserConditions(user);
+    allergies = allergies || user.allergies;
+    medications = medications || user.medications;
 
     const evaluation = evaluateFoodScan(foodId || foodName, portionG, {
       activeDiet,
@@ -256,11 +202,7 @@ exports.evaluateScanFood = async (req, res) => {
       data: evaluation,
     });
   } catch (error) {
-    res.status(422).json({
-      success: false,
-      code: 422,
-      errors: [error.message || 'Failed to evaluate food safety'],
-    });
+    return sendUnexpectedError(res, error, 'Failed to evaluate food safety');
   }
 };
 
