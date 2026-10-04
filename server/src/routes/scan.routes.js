@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const { requireAuth } = require('../middleware/auth');
 const {
   getScans,
   getScanById,
@@ -9,6 +10,8 @@ const {
   getLearnedMatches,
   evaluateScanFood,
 } = require('../controllers/scan.controller');
+
+router.use(requireAuth);
 
 router.post('/analyze', analyzeFoodScan);
 router.post('/evaluate', evaluateScanFood);
