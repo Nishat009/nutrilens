@@ -1,3 +1,4 @@
+const { sendError, sendUnexpectedError } = require('../utils/http');
 const User = require('../models/User');
 
 const PROFILE_FIELDS = [
@@ -12,13 +13,7 @@ const GOAL_FIELDS = [
   'targetFiberG', 'targetWaterMl', 'weeklyWeightChangeKg', 'isActive',
 ];
 
-const fail = (res, error) => res.status(422).json({
-  success: false,
-  code: 422,
-  errors: error.errors
-    ? Object.values(error.errors).map((item) => item.message)
-    : [error.message || 'Database operation failed'],
-});
+const fail = (res, error) => sendUnexpectedError(res, error, 'Database operation failed');
 const publicUser = (user) => {
   const result = user.toObject();
   delete result.password;
@@ -31,7 +26,7 @@ exports.getUserProfile = async (req, res) => {
   try {
     const user = req.user;
     if (!user || (req.params.id !== 'current' && req.params.id !== String(user._id))) {
-      return fail(res, new Error('User profile not found'));
+      return sendError(res, 404, 'User profile not found');
     }
 
     res.status(200).json({
@@ -52,11 +47,7 @@ exports.updateUserProfile = async (req, res) => {
     const user = req.user;
 
     if (!user || (req.params.id !== 'current' && req.params.id !== String(user._id))) {
-      return res.status(422).json({
-        success: false,
-        code: 422,
-        errors: ['User not found'],
-      });
+      return sendError(res, 404, 'User not found');
     }
 
     for (const field of PROFILE_FIELDS) {
@@ -87,11 +78,7 @@ exports.updateUserGoal = async (req, res) => {
     const user = req.user;
 
     if (!user || (req.params.id !== 'current' && req.params.id !== String(user._id))) {
-      return res.status(422).json({
-        success: false,
-        code: 422,
-        errors: ['User not found'],
-      });
+      return sendError(res, 404, 'User not found');
     }
 
     for (const field of GOAL_FIELDS) {
