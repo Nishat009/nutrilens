@@ -1,6 +1,7 @@
 import { buildResultItem, findBestFoodMatch, NutritionResultItem } from './nutrition-engine';
 import { NUTRITION_DATABASE } from '../data/nutrition-database';
 import { classifyFoodImageLocally } from './local-vision-classifier';
+import { scanApi } from './api-client';
 
 export interface ModelPrediction {
   label: string;
@@ -71,23 +72,9 @@ export async function recognizeFoodFromImage(
   }
 
   // 2. Optional backend fallback if running with server
-  const base = process.env.NEXT_PUBLIC_API_URL
-    ? process.env.NEXT_PUBLIC_API_URL.replace(/\/+$/, '')
-    : '';
-
   try {
-    const response = await fetch(`${base}/api/scans/analyze`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ image: imageDataUrl, mealType: customMealType }),
-    });
-
-    if (response.ok) {
-      const data = await response.json();
-      if (data.success && (data.data || data.result)) {
-        return data.data || data.result;
-      }
-    }
+    const result = await scanApi.analyzeImage(imageDataUrl, customMealType);
+    if (result) return result;
   } catch (err) {
     console.warn('Backend food recognition call error:', err);
   }

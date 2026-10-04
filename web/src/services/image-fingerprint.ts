@@ -1,4 +1,5 @@
 import { DatabaseFoodItem, NUTRITION_DATABASE } from '../data/nutrition-database';
+import { scanApi } from './api-client';
 
 export interface LearnedMemoryEntry {
   foodId: string;
@@ -118,23 +119,9 @@ export async function teachVisualMemory(
   }
 
   // 2. Persist to MongoDB backend asynchronously
-  try {
-    const base = process.env.NEXT_PUBLIC_API_URL
-      ? process.env.NEXT_PUBLIC_API_URL.replace(/\/+$/, '')
-      : '';
-    fetch(`${base}/api/scans/teach`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        foodId: food.id,
-        foodName: food.name,
-        category: food.category,
-        perceptualHash: hash,
-      }),
-    }).catch((e) => console.warn('Backend teach sync notice:', e));
-  } catch (err) {
-    console.warn('Backend sync failed:', err);
-  }
+  scanApi
+    .teach({ foodId: food.id, foodName: food.name, category: food.category, perceptualHash: hash })
+    .catch((e) => console.warn('Backend teach sync notice:', e));
 
   return entry;
 }

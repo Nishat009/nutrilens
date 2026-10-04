@@ -29,6 +29,14 @@ async function request<T>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<T> {
+  const data = await requestEnvelope<T>(endpoint, options);
+  return (data.data !== undefined ? data.data : data.result !== undefined ? data.result : (data as unknown as T)) as T;
+}
+
+async function requestEnvelope<T = any>(
+  endpoint: string,
+  options: RequestInit = {}
+): Promise<ApiResponse<T> & Record<string, any>> {
   const url = `${BASE_URL}${endpoint}`;
   const headers = new Headers(options.headers || {});
 
@@ -51,11 +59,9 @@ async function request<T>(
     errors: ['Failed to parse JSON response from server'],
   }));
 
-  const authFailed = response.status === 401 || (
-    response.status === 422 && data.errors?.some((message) =>
-      ['Authentication required', 'Invalid token', 'Token expired', 'User account not found'].includes(message)
-    )
-  );
+  // 401 = missing/expired/invalid session. Login itself also answers 401 for bad
+  // credentials, but that happens on /login where no redirect is needed.
+  const authFailed = response.status === 401;
   if (authFailed && typeof window !== 'undefined') {
     window.localStorage.removeItem('nutrilens_token');
     if (window.location.pathname !== '/login') {
@@ -71,7 +77,7 @@ async function request<T>(
     throw new Error(errorMsg);
   }
 
-  return (data.data !== undefined ? data.data : data.result !== undefined ? data.result : (data as unknown as T)) as T;
+  return data;
 }
 
 // ----------------------------------------------------
@@ -101,6 +107,22 @@ export const authApi = {
       body: JSON.stringify(body),
     });
     return { user: normalizeUser(res.user), token: res.token };
+  },
+
+  async forgotPassword(email: string): Promise<string> {
+    const res = await requestEnvelope('/api/auth/forgot-password', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    });
+    return res.message || 'If an account exists for that email, a password reset link has been sent.';
+  },
+
+  async resetPassword(token: string, password: string): Promise<string> {
+    const res = await requestEnvelope('/api/auth/reset-password', {
+      method: 'POST',
+      body: JSON.stringify({ token, password }),
+    });
+    return res.message || 'Password updated successfully.';
   },
 
   async getMe(): Promise<{ user: UserProfile; goal: UserGoal }> {
@@ -211,9 +233,15 @@ export const scanApi = {
     return res;
   },
 
-  async getScans(userId?: string): Promise<FoodScan[]> {
-    const query = userId ? `?userId=${userId}` : '';
-    const res = await request<any[]>(`/api/scans${query}`);
+  async teach(body: { foodId: string; foodName: string; category: string; perceptualHash: string }): Promise<any> {
+    return await request<any>('/api/scans/teach', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    });
+  },
+
+  async getScans(): Promise<FoodScan[]> {
+    const res = await request<any[]>('/api/scans');
     return (res || []).map(normalizeScan);
   },
 
@@ -286,67 +314,32 @@ export const progressApi = {
   },
 };
 
-import { MOCK_DIETS } from '../data/mock/diets';
 
 // ----------------------------------------------------
 // 7. Diets API
 // ----------------------------------------------------
 export const dietApi = {
   async getDiets(): Promise<DietPlan[]> {
-    try {
-      const res = await request<any[]>('/api/diets');
-      return (res || []).map(normalizeDiet);
-    } catch {
-      return MOCK_DIETS;
-    }
+    const res = await request<any[]>('/api/diets');
+    return (res || []).map(normalizeDiet);
   },
 
   async getDietBySlug(slug: string): Promise<DietPlan> {
-    try {
-      const res = await request<any>(`/api/diets/${slug}`);
-      return normalizeDiet(res);
-    } catch {
-      const raw = String(slug || '').toLowerCase().trim();
-      const fallback =
-        MOCK_DIETS.find(
-          (d) =>
-            d.slug.toLowerCase() === raw ||
-            (d.id && d.id.toLowerCase() === raw) ||
-            d.name.toLowerCase() === raw ||
-            d.slug.includes(raw) ||
-            (d.id && d.id.includes(raw))
-        ) || MOCK_DIETS[0];
-      return fallback;
-    }
+    const res = await request<any>(`/api/diets/${encodeURIComponent(slug)}`);
+    return normalizeDiet(res);
   },
 
-  async adoptDiet(dietIdentifier: string, userId?: string): Promise<any> {
-    try {
-      return await request<any>('/api/diets/adopt', {
-        method: 'POST',
-        body: JSON.stringify({ dietName: dietIdentifier, dietId: dietIdentifier, userId }),
-      });
-    } catch (err: any) {
-      return {
-        success: true,
-        canAdopt: true,
-        status: 'SAFE',
-        message: `Adopted protocol locally.`,
-      };
-    }
+  // Returns the raw response envelope: blocked/review-required adoptions come back
+  // as success with canAdopt=false, so callers need status/message, not just data.
+  async adoptDiet(dietIdentifier: string): Promise<any> {
+    return await requestEnvelope('/api/diets/adopt', {
+      method: 'POST',
+      body: JSON.stringify({ dietId: dietIdentifier }),
+    });
   },
 
-  async getRecommendations(userId?: string): Promise<any[]> {
-    const query = userId ? `?userId=${userId}` : '';
-    try {
-      return await request<any[]>(`/api/diets/recommendations${query}`);
-    } catch {
-      return MOCK_DIETS.slice(0, 3).map((d, idx) => ({
-        diet: d,
-        score: 90 - idx * 10,
-        recommended: true,
-      }));
-    }
+  async getRecommendations(): Promise<any[]> {
+    return await request<any[]>('/api/diets/recommendations');
   },
 
   async getPersonalizedRecommendation(userProfile: Partial<UserProfile>): Promise<any> {
@@ -469,6 +462,7 @@ function normalizeUser(doc: any): UserProfile {
     allergies: doc.allergies || [],
     lifestyle: doc.lifestyle,
     dietaryPreferences: doc.dietaryPreferences || [],
+    activeDietId: doc.activeDietId,
     avatarUrl: doc.avatarUrl,
     onboardingCompleted: Boolean(doc.onboardingCompleted || doc.personalizedPlan),
     personalizedPlan: doc.personalizedPlan,
