@@ -17,7 +17,7 @@ import {
   ShieldCheck,
 } from 'lucide-react';
 import { Button } from '../ui/Button';
-import { cn } from '../../lib/utils/format';
+import { cn, getTodayDateString } from '../../lib/utils/format';
 
 interface VegetableDetailModalProps {
   vegetable: Vegetable | null;
@@ -30,6 +30,7 @@ export function VegetableDetailModal({ vegetable, onClose }: VegetableDetailModa
   const [grams, setGrams] = useState<number>(100);
   const [selectedMealType, setSelectedMealType] = useState<'breakfast' | 'lunch' | 'dinner' | 'snack'>('lunch');
   const [isAdded, setIsAdded] = useState(false);
+  const [addError, setAddError] = useState('');
 
   const addMeal = useMealStore((state) => state.addMeal);
 
@@ -48,12 +49,13 @@ export function VegetableDetailModal({ vegetable, onClose }: VegetableDetailModa
   };
 
   const handleAddToMeal = async () => {
-    const todayStr = new Date().toISOString().split('T')[0];
+    const todayStr = getTodayDateString();
     const timeStr = new Date().toTimeString().slice(0, 5);
 
+    setAddError('');
     try {
       await addMeal({
-        userId: 'current_user',
+        userId: 'current',
         type: selectedMealType,
         date: todayStr,
         time: timeStr,
@@ -83,7 +85,7 @@ export function VegetableDetailModal({ vegetable, onClose }: VegetableDetailModa
         setIsAdded(false);
       }, 3000);
     } catch (err) {
-      console.error('Failed to log vegetable meal:', err);
+      setAddError(err instanceof Error ? err.message : 'Failed to log this vegetable.');
     }
   };
 
@@ -313,7 +315,7 @@ export function VegetableDetailModal({ vegetable, onClose }: VegetableDetailModa
           >
             {isAdded ? (
               <span className="inline-flex items-center gap-1.5">
-                <Check className="w-4 h-4" /> Added to Today's Diary!
+                <Check className="w-4 h-4" /> Added to Today&apos;s Diary!
               </span>
             ) : (
               <span className="inline-flex items-center gap-1.5">
@@ -322,6 +324,7 @@ export function VegetableDetailModal({ vegetable, onClose }: VegetableDetailModa
             )}
           </Button>
         </div>
+        {addError && <p className="text-xs text-rose-400 text-right">{addError}</p>}
       </div>
     </div>
   );
