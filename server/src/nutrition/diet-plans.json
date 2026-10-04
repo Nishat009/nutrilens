@@ -22,6 +22,7 @@
         "requires_professional_review": ["pregnancy_with_gestational_diabetes", "severe_eating_disorder"]
       },
       "eligibility": {
+        "sex": ["female"],
         "minimum_age": 16,
         "maximum_age": null,
         "bmi": ["normal", "overweight", "obesity"],
@@ -478,6 +479,7 @@
         "requires_professional_review": ["high_risk_pregnancy", "active_ivf_medication_adjustments"]
       },
       "eligibility": {
+        "sex": ["female"],
         "minimum_age": 18,
         "maximum_age": 45,
         "bmi": ["normal", "overweight"],
@@ -630,6 +632,7 @@
         "requires_professional_review": ["history_of_eating_disorders", "type_1_diabetes", "pregnancy"]
       },
       "eligibility": {
+        "sex": ["female"],
         "minimum_age": 18,
         "maximum_age": null,
         "bmi": ["normal", "overweight", "obesity"],
@@ -858,6 +861,7 @@
         "requires_professional_review": ["hormone_sensitive_malignancies"]
       },
       "eligibility": {
+        "sex": ["female"],
         "minimum_age": 18,
         "maximum_age": null,
         "bmi": ["normal", "overweight"],
@@ -1010,6 +1014,7 @@
         "requires_professional_review": ["severe_postpartum_hemorrhage", "active_mastitis_infection"]
       },
       "eligibility": {
+        "sex": ["female"],
         "minimum_age": 18,
         "maximum_age": 45,
         "bmi": ["normal", "overweight"],
@@ -1390,6 +1395,7 @@
         "requires_professional_review": ["severe_clinical_depression_suicidality"]
       },
       "eligibility": {
+        "sex": ["female"],
         "minimum_age": 16,
         "maximum_age": null,
         "bmi": ["underweight", "normal", "overweight", "obesity"],
@@ -1466,6 +1472,7 @@
         "requires_professional_review": ["established_severe_osteoporosis_fracture"]
       },
       "eligibility": {
+        "sex": ["female"],
         "minimum_age": 38,
         "maximum_age": null,
         "bmi": ["underweight", "normal", "overweight", "obesity"],
