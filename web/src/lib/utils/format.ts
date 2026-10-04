@@ -30,12 +30,23 @@ export function formatDatePretty(dateStr: string): string {
   }
 }
 
-export function getTodayDateString(): string {
-  const d = new Date();
+// YYYY-MM-DD in the user's local timezone (toISOString() would shift to UTC).
+export function toLocalDateString(d: Date): string {
   const year = d.getFullYear();
   const month = String(d.getMonth() + 1).padStart(2, '0');
   const day = String(d.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
+}
+
+export function getTodayDateString(): string {
+  return toLocalDateString(new Date());
+}
+
+// Shift a YYYY-MM-DD date string by whole days without timezone drift.
+export function addDaysToDateString(dateStr: string, days: number): string {
+  const d = new Date(dateStr + 'T00:00:00');
+  d.setDate(d.getDate() + days);
+  return toLocalDateString(d);
 }
 
 export function getGreeting(name?: string): string {
