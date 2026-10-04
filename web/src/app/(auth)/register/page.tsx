@@ -25,6 +25,10 @@ export default function RegisterPage() {
       setError('Please fill in all required fields.');
       return;
     }
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters.');
+      return;
+    }
 
     setIsLoading(true);
     setError('');
@@ -33,8 +37,8 @@ export default function RegisterPage() {
       await register(name, email, password);
       // Continue with the eight-step onboarding flow after account creation.
       router.push('/onboarding');
-    } catch {
-      setError('Failed to create account. Please try again.');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to create account. Please try again.');
     } finally {
       setIsLoading(false);
     }

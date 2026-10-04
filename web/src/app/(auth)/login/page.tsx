@@ -34,8 +34,8 @@ export default function LoginPage() {
         ? '/dashboard'
         : '/onboarding';
       router.push(destination);
-    } catch {
-      setError('Invalid credentials. Please try again.');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Invalid credentials. Please try again.');
     } finally {
       setIsLoading(false);
     }
