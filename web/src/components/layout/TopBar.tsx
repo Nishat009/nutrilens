@@ -4,16 +4,28 @@ import React from 'react';
 import Link from 'next/link';
 import { useUserStore } from '../../lib/stores/user-store';
 import { getGreeting } from '../../lib/utils/format';
-import { Bell, Sparkles, Menu } from 'lucide-react';
+import { Sparkles, Menu } from 'lucide-react';
 import { Button } from '../ui/Button';
+
+const GOAL_LABELS: Record<string, string> = {
+  lose_weight: 'Lose weight',
+  reduce_belly_fat: 'Reduce belly fat',
+  gain_muscle: 'Build muscle',
+  body_recomposition: 'Body recomposition',
+  maintain: 'Maintain weight',
+  general_health: 'General health',
+  blood_sugar: 'Blood sugar management',
+  blood_pressure: 'Blood pressure support',
+};
 
 interface TopBarProps {
   onOpenSidebar?: () => void;
 }
 
 export function TopBar({ onOpenSidebar }: TopBarProps) {
-  const { profile } = useUserStore();
+  const { profile, goal, isLoaded } = useUserStore();
   const greeting = getGreeting(profile?.name?.split(' ')[0]);
+  const goalLabel = isLoaded ? GOAL_LABELS[goal.type] : undefined;
 
   return (
     <header className="sticky top-0 z-20 w-full bg-slate-950/70 backdrop-blur-xl border-b border-slate-800/80 px-4 sm:px-8 py-3.5 flex items-center justify-between">
@@ -31,9 +43,9 @@ export function TopBar({ onOpenSidebar }: TopBarProps) {
 
         <div>
           <h2 className="text-base sm:text-lg font-bold text-white tracking-tight">{greeting} 👋</h2>
-          <p className="text-xs text-slate-400 hidden sm:block">
-            Targeting fat loss & high protein adherence
-          </p>
+          {goalLabel && (
+            <p className="text-xs text-slate-400 hidden sm:block">Goal: {goalLabel}</p>
+          )}
         </div>
       </div>
 
@@ -44,15 +56,6 @@ export function TopBar({ onOpenSidebar }: TopBarProps) {
             <span>Scan Food</span>
           </Button>
         </Link>
-
-        {/* Notifications Icon */}
-        <button
-          aria-label="View notifications"
-          className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-850 bg-slate-900/80 border border-slate-800 transition-colors relative cursor-pointer"
-        >
-          <Bell className="w-4 h-4" />
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-emerald-400" />
-        </button>
 
         {/* Profile Avatar */}
         <Link

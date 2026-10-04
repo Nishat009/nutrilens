@@ -1,8 +1,8 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   LayoutDashboard,
   Camera,
@@ -13,9 +13,12 @@ import {
   User,
   Sparkles,
   Flame,
+  LogOut,
   X,
 } from 'lucide-react';
-import { cn } from '../../lib/utils/format';
+import { addDaysToDateString, cn, getTodayDateString } from '../../lib/utils/format';
+import { useAuthStore } from '../../lib/stores/auth-store';
+import { progressApi } from '../../services/api-client';
 import { APP_NAME } from '../../lib/constants';
 
 const navItems = [
@@ -33,8 +36,37 @@ interface SidebarProps {
   onClose?: () => void;
 }
 
+// Consecutive days with at least one logged meal, counting back from today
+// (or from yesterday if nothing has been logged yet today).
+function calculateStreak(loggedDates: Set<string>): { days: number; loggedToday: boolean } {
+  const today = getTodayDateString();
+  const loggedToday = loggedDates.has(today);
+  let cursor = loggedToday ? today : addDaysToDateString(today, -1);
+  let days = 0;
+  while (loggedDates.has(cursor)) {
+    days += 1;
+    cursor = addDaysToDateString(cursor, -1);
+  }
+  return { days, loggedToday };
+}
+
 export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
   const pathname = usePathname();
+  const router = useRouter();
+  const logout = useAuthStore((state) => state.logout);
+  const [streak, setStreak] = useState<{ days: number; loggedToday: boolean } | null>(null);
+
+  useEffect(() => {
+    progressApi
+      .getNutritionHistory({ days: 60 })
+      .then((history) => setStreak(calculateStreak(new Set(history.map((day) => day.date)))))
+      .catch((error) => console.warn('Could not load logging streak:', error));
+  }, [pathname]);
+
+  const handleLogout = () => {
+    logout();
+    router.replace('/login');
+  };
 
   const sidebarContent = (
     <div className="flex flex-col h-full justify-between">
@@ -106,20 +138,39 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
         </nav>
       </div>
 
-      {/* Daily Streak Card */}
-      <div className="p-4 rounded-2xl bg-gradient-to-b from-slate-900/90 to-slate-900/50 border border-slate-800/90 text-slate-200 mt-6">
-        <div className="flex items-center gap-3 mb-2">
-          <div className="p-2 rounded-xl bg-amber-500/15 text-amber-400 border border-amber-500/20">
-            <Flame className="w-5 h-5 animate-pulse" />
+      <div className="space-y-3 mt-6">
+        {/* Daily Streak Card (from logged meals) */}
+        {streak && (
+          <div className="p-4 rounded-2xl bg-gradient-to-b from-slate-900/90 to-slate-900/50 border border-slate-800/90 text-slate-200">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-2 rounded-xl bg-amber-500/15 text-amber-400 border border-amber-500/20">
+                <Flame className="w-5 h-5" />
+              </div>
+              <div>
+                <div className="text-xs font-semibold text-white">
+                  {streak.days}-Day Streak
+                </div>
+                <div className="text-[11px] text-slate-400">Days in a row with a logged meal</div>
+              </div>
+            </div>
+            <p className="text-xs text-slate-400 leading-relaxed">
+              {streak.loggedToday
+                ? 'Today is logged. Keep it going tomorrow!'
+                : streak.days > 0
+                ? 'Log a meal today to keep your streak alive.'
+                : 'Log a meal today to start a streak.'}
+            </p>
           </div>
-          <div>
-            <div className="text-xs font-semibold text-white">12-Day Streak</div>
-            <div className="text-[11px] text-slate-400">Consistent tracking</div>
-          </div>
-        </div>
-        <p className="text-xs text-slate-400 leading-relaxed">
-          Log 1 more meal today to secure your streak milestone!
-        </p>
+        )}
+
+        <button
+          type="button"
+          onClick={handleLogout}
+          className="w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl text-sm font-medium text-slate-400 hover:text-rose-300 hover:bg-slate-900/80 border border-transparent transition-colors cursor-pointer"
+        >
+          <LogOut className="w-5 h-5" />
+          <span>Log Out</span>
+        </button>
       </div>
     </div>
   );
