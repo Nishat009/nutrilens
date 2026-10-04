@@ -124,6 +124,10 @@ JWT_SECRET=your_secret_key_here
 NODE_ENV=development
 ```
 
+`JWT_SECRET` is required when `NODE_ENV=production`. See `server/.env.example` for the optional settings:
+`CORS_ORIGIN` (allowed frontend origins), `ADMIN_EMAILS` (who may add foods to the shared catalog),
+`APP_URL` and `SMTP_*` (password reset emails; without `SMTP_HOST` in development, reset links are printed to the server console).
+
 Create `web/.env.local`:
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:5000
@@ -146,11 +150,23 @@ cd ../web
 npm run dev
 ```
 
-### 5. Run Nutrition Intelligence Tests
+### 5. Run Tests & Lint
 ```bash
+# API integration tests (needs MongoDB; uses a separate nutrilens_test database,
+# override with TEST_MONGODB_URI — the database name must contain "test")
 cd server
+npm test
+
+# Nutrition engine checks
 node src/test-intelligence.js
+
+# Frontend lint + type check
+cd ../web
+npm run lint
+npx tsc --noEmit
 ```
+
+Diet protocols are served from `server/src/nutrition/diet-plans.json` (the canonical 20); they are not stored in MongoDB.
 
 ## Account data persistence
 
