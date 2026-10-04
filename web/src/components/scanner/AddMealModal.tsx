@@ -31,13 +31,17 @@ export function AddMealModal({
   });
   const [notes, setNotes] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setError('');
     try {
       await onConfirm(selectedType, date, time, notes);
       onClose();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to save meal. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -112,6 +116,8 @@ export function AddMealModal({
             className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-emerald-500"
           />
         </div>
+
+        {error && <p className="text-xs text-rose-400">{error}</p>}
 
         {/* Submit Actions */}
         <div className="pt-2 flex justify-end gap-3 border-t border-slate-800">

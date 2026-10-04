@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Sparkles,
@@ -34,8 +34,8 @@ import {
 import { FoodRecognitionResult } from '../../services/food-recognition';
 import { useMealStore } from '../../lib/stores/meal-store';
 import { useUserStore } from '../../lib/stores/user-store';
-import { checkDietPlanCompatibility } from '../../services/nutrition';
-import { MealType } from '../../lib/types';
+import { scanApi } from '../../services/api-client';
+import { DietComplianceEvaluation, MealType } from '../../lib/types';
 
 interface FoodAnalysisResultProps {
   image: string;
@@ -58,7 +58,36 @@ export function FoodAnalysisResult({
   const [learnedFeedback, setLearnedFeedback] = useState<string | null>(null);
   const [manualVegName, setManualVegName] = useState('');
 
-  const activeDietName = profile.dietaryPreferences?.[0] || 'Mediterranean Wellness';
+  const activeDietName = profile.dietaryPreferences?.[0] || 'No active protocol';
+  const userConditions = (profile.healthConditions || []).filter((c) => c !== 'none');
+
+  // Clinical/diet evaluation per detected item, computed on the server against the
+  // user's active protocol, conditions and allergies.
+  const [evaluations, setEvaluations] = useState<Record<string, DietComplianceEvaluation>>({});
+  useEffect(() => {
+    let active = true;
+    Promise.all(
+      items.map((i) =>
+        scanApi
+          .evaluateFood({ foodName: i.name, portionG: i.quantity || 100 })
+          .then((evaluation: DietComplianceEvaluation) => [i.id, evaluation] as const)
+          .catch((err) => {
+            console.warn(`Could not evaluate ${i.name}:`, err);
+            return null;
+          })
+      )
+    ).then((entries) => {
+      if (!active) return;
+      setEvaluations(Object.fromEntries(entries.filter((e): e is readonly [string, DietComplianceEvaluation] => e !== null)));
+    });
+    return () => {
+      active = false;
+    };
+  }, [items]);
+  const evaluatedItems = items
+    .map((item) => ({ item, evalRes: evaluations[item.id] }))
+    .filter((entry): entry is { item: NutritionResultItem; evalRes: DietComplianceEvaluation } => Boolean(entry.evalRes));
+  const flaggedItems = evaluatedItems.filter(({ evalRes }) => evalRes.status !== 'SAFE');
 
   // Quick manual vegetable search matches
   const quickVegMatches = useMemo(() => {
@@ -161,63 +190,59 @@ export function FoodAnalysisResult({
     time: string,
     notes: string
   ) => {
-    try {
-      const { scanApi } = await import('../../services/api-client');
-      // Save scan record
-      scanApi.createScan({
-        imageUrl: image,
-        status: 'completed',
-        suggestedMealType: mealType,
-        analysisNotes: notes || initialResult.analysisNotes,
-        totalCalories: totals.calories,
-        totalProtein: totals.protein,
-        totalCarbs: totals.carbs,
-        totalFat: totals.fat,
-        totalFiber: totals.fiber,
-        detectedItems: items.map((i) => ({
-          id: i.id,
-          name: i.name,
-          confidence: i.confidence,
-          estimatedQuantity: i.quantity,
-          unit: i.unit,
-          calories: i.calories,
-          protein: i.protein,
-          carbs: i.carbs,
-          fat: i.fat,
-          fiber: i.fiber,
-          foodId: i.foodId,
-        })),
-      }).catch((e) => console.warn('Failed to save scan record:', e));
+    // Errors propagate to AddMealModal, which shows them and keeps the modal open.
+    // Save scan record (history only; a failure here shouldn't block logging the meal)
+    scanApi.createScan({
+      imageUrl: image,
+      status: 'completed',
+      suggestedMealType: mealType,
+      analysisNotes: notes || initialResult.analysisNotes,
+      totalCalories: totals.calories,
+      totalProtein: totals.protein,
+      totalCarbs: totals.carbs,
+      totalFat: totals.fat,
+      totalFiber: totals.fiber,
+      detectedItems: items.map((i) => ({
+        id: i.id,
+        name: i.name,
+        confidence: i.confidence,
+        estimatedQuantity: i.quantity,
+        unit: i.unit,
+        calories: i.calories,
+        protein: i.protein,
+        carbs: i.carbs,
+        fat: i.fat,
+        fiber: i.fiber,
+        foodId: i.foodId,
+      })),
+    }).catch((e) => console.warn('Failed to save scan record:', e));
 
-      // Save meal to database via store
-      await addMeal({
-        userId: 'current',
-        type: mealType,
-        date,
-        time,
-        totalCalories: totals.calories,
-        totalProtein: totals.protein,
-        totalCarbs: totals.carbs,
-        totalFat: totals.fat,
-        totalFiber: totals.fiber,
-        imageUrl: image,
-        notes: notes || initialResult.analysisNotes,
-        items: items.map((i) => ({
-          id: i.id,
-          foodName: i.name,
-          quantity: i.quantity,
-          unit: i.unit,
-          calories: i.calories,
-          protein: i.protein,
-          carbs: i.carbs,
-          fat: i.fat,
-          fiber: i.fiber,
-          confidence: i.confidence,
-        })),
-      });
-    } catch (err) {
-      console.error('Error saving meal:', err);
-    }
+    // Save meal to database via store
+    await addMeal({
+      userId: 'current',
+      type: mealType,
+      date,
+      time,
+      totalCalories: totals.calories,
+      totalProtein: totals.protein,
+      totalCarbs: totals.carbs,
+      totalFat: totals.fat,
+      totalFiber: totals.fiber,
+      imageUrl: image,
+      notes: notes || initialResult.analysisNotes,
+      items: items.map((i) => ({
+        id: i.id,
+        foodName: i.name,
+        quantity: i.quantity,
+        unit: i.unit,
+        calories: i.calories,
+        protein: i.protein,
+        carbs: i.carbs,
+        fat: i.fat,
+        fiber: i.fiber,
+        confidence: i.confidence,
+      })),
+    });
 
     router.push('/dashboard');
   };
@@ -334,25 +359,16 @@ export function FoodAnalysisResult({
                     Protocol: <span className="text-emerald-400">{activeDietName}</span>
                   </span>
                 </div>
-                {profile.medicalConditions && profile.medicalConditions.length > 0 && (
+                {userConditions.length > 0 && (
                   <span className="text-[10px] text-slate-400 font-medium">
-                    ({profile.medicalConditions.join(', ')})
+                    ({userConditions.join(', ')})
                   </span>
                 )}
               </div>
 
               {/* Multi-tier Semantic Evaluation Badges */}
               <div className="flex flex-wrap gap-1.5">
-                {items.map((i) => {
-                  const evalResult = checkDietPlanCompatibility(
-                    i.name,
-                    'Vegetables',
-                    activeDietName,
-                    i.quantity || 100,
-                    profile.medicalConditions || [],
-                    profile.allergies || []
-                  );
-
+                {evaluatedItems.map(({ item: i, evalRes: evalResult }) => {
                   const badgeClass =
                     evalResult.status === 'SAFE'
                       ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300'
@@ -377,37 +393,14 @@ export function FoodAnalysisResult({
             </div>
 
             {/* Clinical & Portion Guidance Alerts (Caution, Limit, Avoid, Professional Review) */}
-            {items.some((i) => {
-              const res = checkDietPlanCompatibility(
-                i.name,
-                'Vegetables',
-                activeDietName,
-                i.quantity || 100,
-                profile.medicalConditions || [],
-                profile.allergies || []
-              );
-              return res.status !== 'SAFE';
-            }) && (
+            {flaggedItems.length > 0 && (
               <div className="p-3.5 rounded-2xl bg-slate-900/95 border border-slate-800 space-y-2.5 animate-in fade-in">
                 <div className="flex items-center gap-2 text-xs font-bold text-amber-400">
                   <ShieldAlert className="w-4 h-4 text-amber-400 shrink-0" />
                   <span>Clinical & Nutritional Feedback</span>
                 </div>
                 <div className="space-y-2 text-xs text-slate-300">
-                  {items
-                    .map((i) => {
-                      const evalRes = checkDietPlanCompatibility(
-                        i.name,
-                        'Vegetables',
-                        activeDietName,
-                        i.quantity || 100,
-                        profile.medicalConditions || [],
-                        profile.allergies || []
-                      );
-                      return { item: i, evalRes };
-                    })
-                    .filter(({ evalRes }) => evalRes.status !== 'SAFE')
-                    .map(({ item, evalRes }) => {
+                  {flaggedItems.map(({ item, evalRes }) => {
                       const borderColor =
                         evalRes.status === 'AVOID'
                           ? 'border-rose-500/30 bg-rose-950/20 text-rose-200'
