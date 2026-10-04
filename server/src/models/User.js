@@ -46,30 +46,18 @@ const UserSchema = new mongoose.Schema(
     },
     password: {
       type: String,
-      default: 'password123',
+      required: [true, 'Please provide a password'],
       select: false,
     },
+    // Biometrics are filled in during onboarding; no invented defaults.
     gender: {
       type: String,
       enum: ['male', 'female', 'other'],
-      default: 'male',
     },
-    dob: {
-      type: String,
-      default: '1998-05-14',
-    },
-    heightCm: {
-      type: Number,
-      default: 178,
-    },
-    weightKg: {
-      type: Number,
-      default: 74.5,
-    },
-    targetWeightKg: {
-      type: Number,
-      default: 72.0,
-    },
+    dob: { type: String },
+    heightCm: { type: Number },
+    weightKg: { type: Number },
+    targetWeightKg: { type: Number },
     waistCm: {
       type: Number,
     },
@@ -121,13 +109,9 @@ const UserSchema = new mongoose.Schema(
     },
     dietaryPreferences: {
       type: [String],
-      default: ['High Protein / Gym', 'Mediterranean'],
+      default: [],
     },
-    avatarUrl: {
-      type: String,
-      default:
-        'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&auto=format&fit=crop&q=80',
-    },
+    avatarUrl: { type: String },
     goal: {
       type: UserGoalSchema,
       default: () => ({}),
@@ -139,6 +123,9 @@ const UserSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    // Password reset: only a SHA-256 hash of the emailed token is stored.
+    passwordResetTokenHash: { type: String, select: false },
+    passwordResetExpires: { type: Date, select: false },
   },
   {
     timestamps: true,
