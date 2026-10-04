@@ -50,7 +50,7 @@ export function PersonalizedDietPlanView({
   onRetakeAssessment,
 }: PersonalizedDietPlanViewProps) {
   const router = useRouter();
-  const { profile, updateGoal, updateProfile } = useUserStore();
+  const { profile, updateGoal } = useUserStore();
 
   const [activeDayNumber, setActiveDayNumber] = useState<number>(1);
   const [currentPlan, setCurrentPlan] = useState<PersonalizedDietPlan>(plan);
@@ -62,6 +62,7 @@ export function PersonalizedDietPlanView({
   const [isAdaptiveModalOpen, setIsAdaptiveModalOpen] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncSuccess, setSyncSuccess] = useState(false);
+  const [syncError, setSyncError] = useState('');
 
   const activeDay =
     currentPlan.sevenDayPlan.find((d) => d.dayNumber === activeDayNumber) ||
@@ -137,8 +138,16 @@ export function PersonalizedDietPlanView({
   // Sync this personalized plan to user's weekly planner & goals
   const handleAdoptAndSync = async () => {
     setIsSyncing(true);
+    setSyncError('');
     try {
-      // 1. Update user nutrition goals
+      // 1. Adopt diet on server (runs the clinical safety check first)
+      const adoption = await dietApi.adoptDiet(currentPlan.selectedDiet.slug || currentPlan.selectedDiet.name);
+      if (adoption.canAdopt === false) {
+        setSyncError(adoption.message || 'This protocol is not recommended for your current profile.');
+        return;
+      }
+
+      // 2. Apply this plan's nutrition targets
       await updateGoal({
         targetCalories: currentPlan.summary.targetCalories,
         targetProteinG: currentPlan.summary.targetProteinG,
@@ -148,39 +157,31 @@ export function PersonalizedDietPlanView({
         targetWaterMl: currentPlan.summary.targetWaterMl,
       });
 
-      // 2. Save active diet preference
-      await updateProfile({
-        dietaryPreferences: [currentPlan.selectedDiet.name],
-      });
+      // 3. Replace the weekly planner with this plan so re-syncing doesn't duplicate slots
+      const existing = await plannerApi.getPlannedMeals();
+      await Promise.all(existing.map((slot) => plannerApi.deletePlannedMeal(slot.id)));
 
-      // 3. Adopt diet on server
-      await dietApi.adoptDiet(currentPlan.selectedDiet.name);
-
-      // 4. Populate weekly planned meals for each day (0=Sun, 1=Mon, ...)
+      // 4. Populate weekly planned meals; the planner page indexes days 0=Mon ... 6=Sun
       for (const day of currentPlan.sevenDayPlan) {
-        const dayOfWeekIndex = (day.dayNumber % 7); // 1->Mon (1), ... 7->Sun (0)
+        const dayOfWeekIndex = (day.dayNumber - 1) % 7; // dayNumber 1=Mon ... 7=Sun
         for (const slot of day.meals) {
           const combinedFoodName = slot.items.map((i) => i.name).join(' + ');
-          try {
-            await plannerApi.addPlannedMeal({
-              dayOfWeek: dayOfWeekIndex,
-              mealType: slot.mealType === 'morning_snack' || slot.mealType === 'afternoon_snack' ? 'snack' : slot.mealType as any,
-              foodName: combinedFoodName.slice(0, 100),
-              calories: slot.slotCalories,
-              protein: slot.slotProtein,
-              carbs: slot.slotCarbs,
-              fat: slot.slotFat,
-            });
-          } catch {
-            // Ignore single slot duplicate errors
-          }
+          await plannerApi.addPlannedMeal({
+            dayOfWeek: dayOfWeekIndex,
+            mealType: slot.mealType === 'morning_snack' || slot.mealType === 'afternoon_snack' ? 'snack' : slot.mealType as any,
+            foodName: combinedFoodName.slice(0, 100),
+            calories: slot.slotCalories,
+            protein: slot.slotProtein,
+            carbs: slot.slotCarbs,
+            fat: slot.slotFat,
+          });
         }
       }
 
       setSyncSuccess(true);
       setTimeout(() => setSyncSuccess(false), 3500);
     } catch (err) {
-      console.error('Failed to sync personalized plan:', err);
+      setSyncError(err instanceof Error ? err.message : 'Failed to sync plan to your weekly planner.');
     } finally {
       setIsSyncing(false);
     }
@@ -245,6 +246,8 @@ export function PersonalizedDietPlanView({
             </Button>
           </div>
         </div>
+
+        {syncError && <p className="relative z-10 mt-3 text-xs text-rose-400">{syncError}</p>}
 
         {/* Nutritional Targets Matrix Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mt-6 pt-6 border-t border-slate-800/80">
