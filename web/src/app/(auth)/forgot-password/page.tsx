@@ -6,19 +6,27 @@ import { Mail, ArrowLeft, CheckCircle2 } from 'lucide-react';
 import { Button } from '../../../components/ui/Button';
 import { Input } from '../../../components/ui/Input';
 import { Card } from '../../../components/ui/Card';
+import { authApi } from '../../../services/api-client';
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) return;
     setIsLoading(true);
-    await new Promise((r) => setTimeout(r, 600));
-    setIsLoading(false);
-    setIsSubmitted(true);
+    setError('');
+    try {
+      await authApi.forgotPassword(email);
+      setIsSubmitted(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not send the reset link. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -28,9 +36,10 @@ export default function ForgotPasswordPage() {
           <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto border border-emerald-500/30">
             <CheckCircle2 className="w-6 h-6" />
           </div>
-          <h2 className="text-2xl font-bold text-white">Reset Link Sent</h2>
+          <h2 className="text-2xl font-bold text-white">Check Your Email</h2>
           <p className="text-xs text-slate-400 leading-relaxed">
-            We sent a password reset instruction link to <strong className="text-slate-200">{email}</strong>. Check your inbox and follow the steps.
+            If an account exists for <strong className="text-slate-200">{email}</strong>, we sent a password reset link.
+            It expires in 1 hour.
           </p>
           <Link href="/login" className="block pt-4">
             <Button variant="secondary" className="w-full">
@@ -57,6 +66,8 @@ export default function ForgotPasswordPage() {
               leftIcon={<Mail className="w-4 h-4 text-slate-400" />}
               required
             />
+
+            {error && <p className="text-xs text-rose-400">{error}</p>}
 
             <Button
               type="submit"
