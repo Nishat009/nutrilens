@@ -1,4 +1,6 @@
+const { sendError, sendUnexpectedError } = require('../utils/http');
 const Food = require('../models/Food');
+const { escapeRegex } = require('../utils/regex');
 
 // @desc    Get all foods or filter by category
 // @route   GET /api/foods
@@ -8,14 +10,15 @@ exports.getFoods = async (req, res) => {
     const query = {};
 
     if (category) {
-      query.category = category;
+      query.category = String(category);
     }
 
     if (search) {
+      const pattern = new RegExp(escapeRegex(search), 'i');
       query.$or = [
-        { name: { $regex: search, $options: 'i' } },
-        { category: { $regex: search, $options: 'i' } },
-        { tags: { $in: [new RegExp(search, 'i')] } },
+        { name: pattern },
+        { category: pattern },
+        { tags: pattern },
       ];
     }
 
@@ -28,11 +31,7 @@ exports.getFoods = async (req, res) => {
       data: foods,
     });
   } catch (error) {
-    res.status(422).json({
-      success: false,
-      code: 422,
-      errors: [error.message || 'Failed to retrieve food items'],
-    });
+    return sendUnexpectedError(res, error, 'Failed to retrieve food items');
   }
 };
 
@@ -42,11 +41,7 @@ exports.getFoodById = async (req, res) => {
   try {
     const food = await Food.findById(req.params.id);
     if (!food) {
-      return res.status(422).json({
-        success: false,
-        code: 422,
-        errors: ['Food item not found'],
-      });
+      return sendError(res, 404, 'Food item not found');
     }
     res.status(200).json({
       success: true,
@@ -55,11 +50,7 @@ exports.getFoodById = async (req, res) => {
       data: food,
     });
   } catch (error) {
-    res.status(422).json({
-      success: false,
-      code: 422,
-      errors: [error.message || 'Failed to retrieve food item'],
-    });
+    return sendUnexpectedError(res, error, 'Failed to retrieve food item');
   }
 };
 
@@ -75,14 +66,6 @@ exports.createFood = async (req, res) => {
       data: food,
     });
   } catch (error) {
-    const errors = error.errors
-      ? Object.values(error.errors).map((e) => e.message)
-      : [error.message || 'Failed to create food item'];
-
-    res.status(422).json({
-      success: false,
-      code: 422,
-      errors,
-    });
+    return sendUnexpectedError(res, error, 'Failed to create food item');
   }
 };
