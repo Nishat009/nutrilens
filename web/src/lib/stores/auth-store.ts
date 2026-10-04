@@ -1,6 +1,9 @@
 import { create } from 'zustand';
 import { UserProfile } from '../types';
 import { authApi } from '../../services/api-client';
+import { useUserStore } from './user-store';
+import { useMealStore } from './meal-store';
+import { useScanStore } from './scan-store';
 
 interface AuthState {
   isAuthenticated: boolean;
@@ -71,6 +74,10 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   logout: () => {
     if (typeof window !== 'undefined') window.localStorage.removeItem('nutrilens_token');
+    // Drop the previous user's cached data so the next login starts clean.
+    useUserStore.getState().reset();
+    useMealStore.getState().reset();
+    useScanStore.getState().reset();
     set({
       isAuthenticated: false,
       user: null,

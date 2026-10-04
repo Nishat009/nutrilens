@@ -10,7 +10,8 @@ interface ScanState {
   analysisProgress: number;
   isLoadingHistory: boolean;
 
-  fetchHistory: (userId?: string) => Promise<void>;
+  fetchHistory: () => Promise<void>;
+  reset: () => void;
   setCurrentScan: (scan: FoodScan | null) => void;
   updateDetectedItem: (itemId: string, updates: Partial<FoodScanItem>) => void;
   removeDetectedItem: (itemId: string) => void;
@@ -28,10 +29,10 @@ export const useScanStore = create<ScanState>((set, get) => ({
   analysisProgress: 0,
   isLoadingHistory: false,
 
-  fetchHistory: async (userId?: string) => {
+  fetchHistory: async () => {
     set({ isLoadingHistory: true });
     try {
-      const scans = await scanApi.getScans(userId);
+      const scans = await scanApi.getScans();
       set({ history: scans, isLoadingHistory: false });
     } catch (err) {
       console.warn('Failed to load scan history from backend:', err);
@@ -174,4 +175,7 @@ export const useScanStore = create<ScanState>((set, get) => ({
   },
 
   clearCurrentScan: () => set({ currentScan: null, isAnalyzing: false, analysisStep: 0, analysisProgress: 0 }),
+
+  reset: () =>
+    set({ currentScan: null, history: [], isAnalyzing: false, analysisStep: 0, analysisProgress: 0, isLoadingHistory: false }),
 }));

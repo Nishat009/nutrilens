@@ -15,6 +15,7 @@ interface MealState {
   getMealsByDate: (date: string) => Meal[];
   getMealById: (id: string) => Meal | undefined;
   getDailyNutritionForDate: (date: string) => DailyNutrition;
+  reset: () => void;
 }
 
 export const useMealStore = create<MealState>((set, get) => ({
@@ -47,29 +48,16 @@ export const useMealStore = create<MealState>((set, get) => ({
 
   setWaterIntake: (amountMl) => set({ waterIntakeMl: amountMl }),
 
+  // Throws on failure so callers can show the error instead of a fake local save.
   addMeal: async (mealData) => {
-    try {
-      const createdMeal = await mealApi.createMeal(mealData);
-      set((state) => ({ meals: [createdMeal, ...state.meals] }));
-      return createdMeal;
-    } catch (err) {
-      console.error('Failed to create meal on backend, saving locally:', err);
-      const fallbackMeal: Meal = {
-        ...mealData,
-        id: 'meal_' + Date.now().toString(36),
-      };
-      set((state) => ({ meals: [fallbackMeal, ...state.meals] }));
-      return fallbackMeal;
-    }
+    const createdMeal = await mealApi.createMeal(mealData);
+    set((state) => ({ meals: [createdMeal, ...state.meals] }));
+    return createdMeal;
   },
 
   deleteMeal: async (id: string) => {
+    await mealApi.deleteMeal(id);
     set((state) => ({ meals: state.meals.filter((m) => m.id !== id) }));
-    try {
-      await mealApi.deleteMeal(id);
-    } catch (err) {
-      console.error('Failed to delete meal from backend:', err);
-    }
   },
 
   getMealsByDate: (date: string) => {
@@ -104,4 +92,6 @@ export const useMealStore = create<MealState>((set, get) => ({
       mealsLoggedCount: dayMeals.length,
     };
   },
+
+  reset: () => set({ meals: [], isLoading: false, waterIntakeMl: 0 }),
 }));

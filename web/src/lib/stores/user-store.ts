@@ -7,6 +7,8 @@ interface UserState {
   profile: UserProfile;
   goal: UserGoal;
   isLoading: boolean;
+  isLoaded: boolean;
+  reset: () => void;
   fetchUserProfile: (userId?: string) => Promise<void>;
   updateProfile: (updates: Partial<UserProfile> & { goal?: Partial<UserGoal> }) => Promise<void>;
   updateGoal: (updates: Partial<UserGoal>) => Promise<void>;
@@ -14,17 +16,18 @@ interface UserState {
   recalculateTargets: () => Promise<void>;
 }
 
+// Placeholder until the real profile loads; check `isLoaded` before trusting these values.
 const DEFAULT_PROFILE: UserProfile = {
   id: 'current',
-  name: 'Alex Morgan',
-  email: 'alex.morgan@nutrilens.ai',
+  name: '',
+  email: '',
   gender: 'male',
-  dob: '1998-05-14',
-  heightCm: 178,
-  weightKg: 74.5,
-  targetWeightKg: 72.0,
+  dob: '',
+  heightCm: 0,
+  weightKg: 0,
+  targetWeightKg: 0,
   activityLevel: 'moderately_active',
-  dietaryPreferences: ['High Protein / Gym', 'Mediterranean'],
+  dietaryPreferences: [],
   allergies: [],
 };
 
@@ -47,12 +50,15 @@ export const useUserStore = create<UserState>((set, get) => ({
   profile: DEFAULT_PROFILE,
   goal: DEFAULT_GOAL,
   isLoading: false,
+  isLoaded: false,
+
+  reset: () => set({ profile: DEFAULT_PROFILE, goal: DEFAULT_GOAL, isLoading: false, isLoaded: false }),
 
   fetchUserProfile: async (userId: string = 'current') => {
     set({ isLoading: true });
     try {
       const { user, goal } = await userApi.getProfile(userId);
-      set({ profile: user, goal, isLoading: false });
+      set({ profile: user, goal, isLoading: false, isLoaded: true });
     } catch (err) {
       console.error('Failed to load user profile from database:', err);
       set({ isLoading: false });
@@ -81,7 +87,7 @@ export const useUserStore = create<UserState>((set, get) => ({
     try {
       const userId = profile.id || 'current';
       const saved = await userApi.updateProfile(userId, { ...profileUpdates, goal: newGoal });
-      set({ profile: saved.user, goal: saved.goal });
+      set({ profile: saved.user, goal: saved.goal, isLoaded: true });
     } catch (err) {
       console.error('Failed to sync profile update with backend:', err);
       throw err;
