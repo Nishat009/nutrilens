@@ -8,10 +8,10 @@ const Food = require('./models/Food');
 const Meal = require('./models/Meal');
 const FoodScan = require('./models/FoodScan');
 const WeightLog = require('./models/WeightLog');
-const DietPlan = require('./models/DietPlan');
 const PlannedMeal = require('./models/PlannedMeal');
 const Vegetable = require('./models/Vegetable');
 const { VEGETABLES_DATA } = require('./data/vegetables-data');
+const { hashPassword } = require('./utils/password');
 
 const FOODS_DATA = [
   {
@@ -151,8 +151,6 @@ const FOODS_DATA = [
   },
 ];
 
-const { DIETS_DATA } = require('./data/diet-plans');
-
 const seedDB = async () => {
   try {
     const uri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/nutrilens';
@@ -168,7 +166,6 @@ const seedDB = async () => {
       Meal.deleteMany({}),
       FoodScan.deleteMany({}),
       WeightLog.deleteMany({}),
-      DietPlan.deleteMany({}),
       PlannedMeal.deleteMany({}),
     ]);
     console.log('🧹 Cleared existing database collections');
@@ -178,21 +175,16 @@ const seedDB = async () => {
     const user = await User.create({
       name: 'Alex Morgan',
       email: 'alex.morgan@nutrilens.ai',
-      password: 'password123',
+      password: hashPassword(process.env.SEED_USER_PASSWORD || 'password123'),
       gender: 'male',
       dob: '1998-05-14',
       heightCm: 178,
       weightKg: 74.5,
       targetWeightKg: 72.0,
       activityLevel: 'moderately_active',
-      dietaryPreferences: [
-        'High Protein / Gym',
-        'Mediterranean',
-        'Intermittent Fasting (16/8)',
-      ],
+      activeDietId: 'mediterranean_fusion',
+      dietaryPreferences: ['Deshi Mediterranean Longevity Protocol'],
       allergies: ['Peanuts'],
-      avatarUrl:
-        'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&auto=format&fit=crop&q=80',
       goal: {
         type: 'lose_weight',
         targetCalories: 2150,
@@ -231,10 +223,9 @@ const seedDB = async () => {
     const vegetables = await Vegetable.insertMany(VEGETABLES_DATA);
     console.log(`🥦 Seeded ${vegetables.length} dedicated researched USDA vegetables`);
 
-    // 3. Seed Diet Plans
-
-    const diets = await DietPlan.insertMany(DIETS_DATA);
-    console.log(`📖 Seeded ${diets.length} clinical diet protocols`);
+    // 3. Diet protocols are served from src/nutrition/diet-plans.json, not MongoDB.
+    // Drop the legacy collection so stale protocols can't resurface.
+    await mongoose.connection.db.dropCollection('dietplans').catch(() => {});
 
     // 4. Meals & Scans start clean for fresh user logging
     console.log('🍲 Fresh user state initialized with 0 meals logged (clean slate)');
