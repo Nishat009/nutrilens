@@ -46,7 +46,7 @@ async function main() {
     assert.equal(read.statusCode, 200);
     assert.equal(read.body.data.password, undefined);
     const forbidden = await invoke(getUserProfile, reloaded, new mongoose.Types.ObjectId().toString());
-    assert.equal(forbidden.statusCode, 422);
+    assert.equal(forbidden.statusCode, 404);
     console.log('MongoDB profile and goal persistence round trip passed.');
   } finally {
     if (testUser) await User.deleteOne({ _id: testUser._id });
