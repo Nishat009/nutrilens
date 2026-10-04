@@ -1,14 +1,5 @@
-const mongoose = require('mongoose');
+const { sendError, sendUnexpectedError } = require('../utils/http');
 const PlannedMeal = require('../models/PlannedMeal');
-const User = require('../models/User');
-
-async function resolveUserId(rawId) {
-  if (!rawId || rawId === 'current' || rawId === 'default' || !mongoose.Types.ObjectId.isValid(rawId)) {
-    const defaultUser = await User.findOne();
-    return defaultUser ? defaultUser._id : null;
-  }
-  return rawId;
-}
 
 // @desc    Get planned meals (filterable by userId and dayOfWeek)
 // @route   GET /api/planner
@@ -33,11 +24,7 @@ exports.getPlannedMeals = async (req, res) => {
       data: plannedMeals,
     });
   } catch (error) {
-    res.status(422).json({
-      success: false,
-      code: 422,
-      errors: [error.message || 'Failed to retrieve planned meals'],
-    });
+    return sendUnexpectedError(res, error, 'Failed to retrieve planned meals');
   }
 };
 
@@ -49,19 +36,11 @@ exports.addPlannedMeal = async (req, res) => {
       req.body;
 
     if (!foodName) {
-      return res.status(422).json({
-        success: false,
-        code: 422,
-        errors: ['Food name is required'],
-      });
+      return sendError(res, 422, ['Food name is required']);
     }
 
     if (dayOfWeek === undefined) {
-      return res.status(422).json({
-        success: false,
-        code: 422,
-        errors: ['Day of week is required (0-6)'],
-      });
+      return sendError(res, 422, ['Day of week is required (0-6)']);
     }
 
     const userId = req.user._id;
@@ -84,15 +63,7 @@ exports.addPlannedMeal = async (req, res) => {
       data: plannedMeal,
     });
   } catch (error) {
-    const errors = error.errors
-      ? Object.values(error.errors).map((e) => e.message)
-      : [error.message || 'Failed to create planned meal slot'];
-
-    res.status(422).json({
-      success: false,
-      code: 422,
-      errors,
-    });
+    return sendUnexpectedError(res, error, 'Failed to create planned meal slot');
   }
 };
 
@@ -102,11 +73,7 @@ exports.deletePlannedMeal = async (req, res) => {
   try {
     const plannedMeal = await PlannedMeal.findOneAndDelete({ _id: req.params.id, userId: req.user._id });
     if (!plannedMeal) {
-      return res.status(422).json({
-        success: false,
-        code: 422,
-        errors: ['Planned meal slot not found'],
-      });
+      return sendError(res, 404, 'Planned meal slot not found');
     }
 
     res.status(200).json({
@@ -115,10 +82,6 @@ exports.deletePlannedMeal = async (req, res) => {
       message: 'Planned meal slot deleted successfully',
     });
   } catch (error) {
-    res.status(422).json({
-      success: false,
-      code: 422,
-      errors: [error.message || 'Failed to delete planned meal slot'],
-    });
+    return sendUnexpectedError(res, error, 'Failed to delete planned meal slot');
   }
 };

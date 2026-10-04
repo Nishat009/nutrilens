@@ -1,15 +1,7 @@
-const mongoose = require('mongoose');
+const { sendError, sendUnexpectedError } = require('../utils/http');
 const WeightLog = require('../models/WeightLog');
 const Meal = require('../models/Meal');
 const User = require('../models/User');
-
-async function resolveUserId(rawId) {
-  if (!rawId || rawId === 'current' || rawId === 'default' || !mongoose.Types.ObjectId.isValid(rawId)) {
-    const defaultUser = await User.findOne();
-    return defaultUser ? defaultUser._id : null;
-  }
-  return rawId;
-}
 
 // @desc    Get weight logs
 // @route   GET /api/progress/weight
@@ -26,11 +18,7 @@ exports.getWeightLogs = async (req, res) => {
       data: logs,
     });
   } catch (error) {
-    res.status(422).json({
-      success: false,
-      code: 422,
-      errors: [error.message || 'Failed to retrieve weight logs'],
-    });
+    return sendUnexpectedError(res, error, 'Failed to retrieve weight logs');
   }
 };
 
@@ -41,11 +29,7 @@ exports.logWeight = async (req, res) => {
     let { date, weightKg, notes } = req.body;
 
     if (!weightKg) {
-      return res.status(422).json({
-        success: false,
-        code: 422,
-        errors: ['Please provide a weight value in kg'],
-      });
+      return sendError(res, 422, ['Please provide a weight value in kg']);
     }
 
     const userId = req.user._id;
@@ -71,15 +55,7 @@ exports.logWeight = async (req, res) => {
       data: log,
     });
   } catch (error) {
-    const errors = error.errors
-      ? Object.values(error.errors).map((e) => e.message)
-      : [error.message || 'Failed to log weight entry'];
-
-    res.status(422).json({
-      success: false,
-      code: 422,
-      errors,
-    });
+    return sendUnexpectedError(res, error, 'Failed to log weight entry');
   }
 };
 
@@ -131,11 +107,7 @@ exports.getNutritionHistory = async (req, res) => {
       data: history,
     });
   } catch (error) {
-    res.status(422).json({
-      success: false,
-      code: 422,
-      errors: [error.message || 'Failed to retrieve nutrition history'],
-    });
+    return sendUnexpectedError(res, error, 'Failed to retrieve nutrition history');
   }
 };
 
@@ -160,11 +132,7 @@ exports.getProgressSummary = async (req, res) => {
       },
     });
   } catch (error) {
-    res.status(422).json({
-      success: false,
-      code: 422,
-      errors: [error.message || 'Failed to retrieve progress summary'],
-    });
+    return sendUnexpectedError(res, error, 'Failed to retrieve progress summary');
   }
 };
 
