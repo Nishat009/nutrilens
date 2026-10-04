@@ -35,9 +35,7 @@ export async function loadMobileNetModel(): Promise<any> {
 
   try {
     // 1. Try dynamic import from npm bundle
-    // @ts-ignore
     const tf = await import('@tensorflow/tfjs');
-    // @ts-ignore
     const mobilenet = await import('@tensorflow-models/mobilenet');
 
     if (tf && mobilenet) {
@@ -117,9 +115,6 @@ export async function classifyFoodImageLocally(
   // 1. Always run Smart Canvas Chromatic Analysis
   let chromaticMatches: Array<{ item: DatabaseFoodItem; score: number }> = [];
   let isDominantRed = false;
-  let isDominantGreen = false;
-  let isDominantOrange = false;
-  let isDominantPurple = false;
 
   if (typeof window !== 'undefined') {
     chromaticMatches = analyzeImageCanvasColor(imageDataUrl);
