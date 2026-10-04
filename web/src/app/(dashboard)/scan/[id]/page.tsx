@@ -18,11 +18,13 @@ export default function ScanResultDetailPage() {
   const params = useParams();
   const scanId = params.id as string;
   const { currentScan, setCurrentScan } = useScanStore();
-  const [scan, setScan] = useState<FoodScan | null>(currentScan);
-  const [isLoading, setIsLoading] = useState(!currentScan);
+  // Only reuse the in-memory scan when it is the one this URL refers to.
+  const cachedScan = currentScan && currentScan.id === scanId ? currentScan : null;
+  const [scan, setScan] = useState<FoodScan | null>(cachedScan);
+  const [isLoading, setIsLoading] = useState(!cachedScan);
 
   useEffect(() => {
-    if (!currentScan && scanId) {
+    if (!cachedScan && scanId) {
       setIsLoading(true);
       scanApi
         .getScanById(scanId)
@@ -34,10 +36,10 @@ export default function ScanResultDetailPage() {
         .catch(() => {
           setIsLoading(false);
         });
-    } else if (currentScan) {
-      setScan(currentScan);
+    } else if (cachedScan) {
+      setScan(cachedScan);
     }
-  }, [scanId, currentScan, setCurrentScan]);
+  }, [scanId, cachedScan, setCurrentScan]);
 
   if (isLoading) {
     return (
@@ -60,14 +62,24 @@ export default function ScanResultDetailPage() {
     );
   }
 
+  // Use the confidence values stored with the scan; fall back to "low" when unknown
+  // rather than claiming high confidence.
+  const toLevel = (confidence: number): 'low' | 'medium' | 'high' =>
+    confidence < 0.6 ? 'low' : confidence < 0.8 ? 'medium' : 'high';
+  const confidences = scan.detectedItems.map((item) => item.confidence ?? 0);
+  const overallConfidence = confidences.length
+    ? Math.round((confidences.reduce((sum, c) => sum + c, 0) / confidences.length) * 100) / 100
+    : 0;
+
   // Convert FoodScan into FoodRecognitionResult format
   const recognitionResult: FoodRecognitionResult = {
     scanId: scan.id,
     status: 'completed',
     isDemoMode: false,
-    modelName: 'AI Multimodal Vision Classifier',
+    modelName: 'Saved Scan',
     detectedFoods: scan.detectedItems.map((item) => {
       const match = findBestFoodMatch(item.name);
+      const confidence = item.confidence ?? 0;
       return {
         id: item.id,
         foodId: item.foodId || match.item.id,
@@ -80,19 +92,19 @@ export default function ScanResultDetailPage() {
         carbs: item.carbs,
         fat: item.fat,
         fiber: item.fiber,
-        confidence: item.confidence || 0.95,
-        confidenceLevel: item.confidence && item.confidence < 0.6 ? 'low' : item.confidence && item.confidence < 0.8 ? 'medium' : 'high',
+        confidence,
+        confidenceLevel: toLevel(confidence),
         suggestions: NUTRITION_DATABASE.slice(0, 4).map((f) => f.name),
         imageUrl: match.item.imageUrl,
       };
     }),
-    overallConfidence: 0.94,
-    overallConfidenceLevel: 'high',
+    overallConfidence,
+    overallConfidenceLevel: toLevel(overallConfidence),
     topSuggestions: NUTRITION_DATABASE.slice(0, 5).map((f) => f.name),
     suggestedMealType: ['breakfast', 'lunch', 'dinner', 'snack'].includes(scan.suggestedMealType)
       ? scan.suggestedMealType as 'breakfast' | 'lunch' | 'dinner' | 'snack'
       : 'lunch',
-    analysisNotes: scan.analysisNotes || 'AI Food Vision recognized ingredients with high semantic confidence.',
+    analysisNotes: scan.analysisNotes || '',
     disclaimer:
       'Nutrition values are estimates based on standard recipe averages and may vary depending on exact ingredients, preparation method, and portion size. Not intended for medical diagnosis.',
   };
