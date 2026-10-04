@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
   BookOpen,
@@ -22,7 +22,6 @@ import { Button } from '../../../components/ui/Button';
 import { DietPlan, PersonalizedDietPlan } from '../../../lib/types';
 import { dietApi } from '../../../services/api-client';
 import { useUserStore } from '../../../lib/stores/user-store';
-import { generatePersonalizedDietRecommendation } from '../../../services/diet-recommender';
 import { PersonalizedDietPlanView } from '../../../components/diets/PersonalizedDietPlanView';
 
 const iconMap: Record<string, React.ReactNode> = {
@@ -36,34 +35,34 @@ const iconMap: Record<string, React.ReactNode> = {
 };
 
 export default function DietsPage() {
-  const { profile, fetchUserProfile } = useUserStore();
+  const { profile, fetchUserProfile, updateProfile } = useUserStore();
   const [activeTab, setActiveTab] = useState<'personalized' | 'protocols'>('personalized');
   const [diets, setDiets] = useState<DietPlan[]>([]);
   const [isLoadingDiets, setIsLoadingDiets] = useState(true);
-  const [personalizedPlan, setPersonalizedPlan] = useState<PersonalizedDietPlan | null>(null);
+  const [dietsError, setDietsError] = useState('');
+  const [planSaveError, setPlanSaveError] = useState('');
 
   useEffect(() => {
     fetchUserProfile().catch((error) => console.error('Could not load saved profile:', error));
 
     dietApi
       .getDiets()
-      .then((data) => {
-        setDiets(data);
-        setIsLoadingDiets(false);
-      })
-      .catch((err) => {
-        console.warn('Failed to load diets from backend:', err);
-        setIsLoadingDiets(false);
-      });
+      .then(setDiets)
+      .catch((err) => setDietsError(err instanceof Error ? err.message : 'Failed to load diet protocols.'))
+      .finally(() => setIsLoadingDiets(false));
   }, [fetchUserProfile]);
 
-  // Generate / Load Personalized Plan whenever profile is available
-  useEffect(() => {
-    if (profile) {
-      const plan = generatePersonalizedDietRecommendation(profile);
-      setPersonalizedPlan(plan);
+  // Show the plan saved during onboarding instead of regenerating it from whatever is in memory.
+  const personalizedPlan: PersonalizedDietPlan | null = profile.personalizedPlan || null;
+
+  const handlePlanUpdate = async (updated: PersonalizedDietPlan) => {
+    setPlanSaveError('');
+    try {
+      await updateProfile({ personalizedPlan: updated });
+    } catch (err) {
+      setPlanSaveError(err instanceof Error ? err.message : 'Failed to save plan changes.');
     }
-  }, [profile]);
+  };
 
   return (
     <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in duration-300">
@@ -104,7 +103,7 @@ export default function DietsPage() {
                 : 'text-slate-400 hover:text-slate-200'
             }`}
           >
-            <BookOpen className="w-3.5 h-3.5" /> All 7 Protocols
+            <BookOpen className="w-3.5 h-3.5" /> All {diets.length || ''} Protocols
           </button>
         </div>
       </div>
@@ -112,11 +111,11 @@ export default function DietsPage() {
       {/* TAB 1: PERSONALIZED PLAN */}
       {activeTab === 'personalized' && (
         <div>
+          {planSaveError && (
+            <p className="mb-4 text-xs text-rose-400">{planSaveError}</p>
+          )}
           {personalizedPlan ? (
-            <PersonalizedDietPlanView
-              plan={personalizedPlan}
-              onPlanUpdate={(updated) => setPersonalizedPlan(updated)}
-            />
+            <PersonalizedDietPlanView plan={personalizedPlan} onPlanUpdate={handlePlanUpdate} />
           ) : (
             <Card variant="glass" className="p-12 text-center border-slate-800 space-y-4">
               <div className="w-12 h-12 rounded-2xl bg-emerald-500/15 text-emerald-400 flex items-center justify-center mx-auto border border-emerald-500/30">
@@ -136,20 +135,24 @@ export default function DietsPage() {
         </div>
       )}
 
-      {/* TAB 2: ALL 7 SCIENTIFIC PROTOCOLS CATALOGUE */}
+      {/* TAB 2: SCIENTIFIC PROTOCOLS CATALOGUE */}
       {activeTab === 'protocols' && (
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-bold text-white flex items-center gap-2">
               <BookOpen className="w-5 h-5 text-emerald-400" /> Complete Scientific Diet Library
             </h2>
-            <span className="text-xs text-slate-500">7 Peer-Documented Strategies</span>
+            <span className="text-xs text-slate-500">{diets.length} Peer-Documented Strategies</span>
           </div>
 
           {isLoadingDiets ? (
             <div className="text-center py-20 space-y-4">
               <div className="w-8 h-8 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin mx-auto" />
               <p className="text-xs text-slate-400">Loading diet protocols from backend...</p>
+            </div>
+          ) : dietsError ? (
+            <div className="text-center py-20 space-y-4">
+              <p className="text-xs text-rose-400">{dietsError}</p>
             </div>
           ) : diets.length === 0 ? (
             <div className="text-center py-20 space-y-4">
