@@ -18,7 +18,7 @@ import { Button } from '../../../components/ui/Button';
 import { Badge } from '../../../components/ui/Badge';
 import { EmptyState } from '../../../components/ui/EmptyState';
 import { useMealStore } from '../../../lib/stores/meal-store';
-import { formatDatePretty, formatCalories, formatGrams, getTodayDateString } from '../../../lib/utils/format';
+import { addDaysToDateString, formatDatePretty, formatCalories, formatGrams, getTodayDateString } from '../../../lib/utils/format';
 import { MEAL_TYPE_CONFIG } from '../../../lib/constants';
 import { MealType } from '../../../lib/types';
 
@@ -36,19 +36,23 @@ export default function MealsPage() {
 
   const dailyNutrition = useMemo(() => {
     return getDailyNutritionForDate(selectedDate);
-  }, [getDailyNutritionForDate, selectedDate]);
+    // `meals` is a dependency so totals refresh when meals load or change.
+  }, [getDailyNutritionForDate, selectedDate, meals]);
 
-  const handlePrevDay = () => {
-    const d = new Date(selectedDate + 'T00:00:00');
-    d.setDate(d.getDate() - 1);
-    setSelectedDate(d.toISOString().split('T')[0]);
+  const [deleteError, setDeleteError] = useState('');
+
+  const handleDelete = async (id: string) => {
+    setDeleteError('');
+    try {
+      await deleteMeal(id);
+    } catch (err) {
+      setDeleteError(err instanceof Error ? err.message : 'Failed to delete meal.');
+    }
   };
 
-  const handleNextDay = () => {
-    const d = new Date(selectedDate + 'T00:00:00');
-    d.setDate(d.getDate() + 1);
-    setSelectedDate(d.toISOString().split('T')[0]);
-  };
+  const handlePrevDay = () => setSelectedDate(addDaysToDateString(selectedDate, -1));
+
+  const handleNextDay = () => setSelectedDate(addDaysToDateString(selectedDate, 1));
 
   const isToday = selectedDate === getTodayDateString();
 
@@ -96,6 +100,10 @@ export default function MealsPage() {
           <ChevronRight className="w-5 h-5" />
         </button>
       </Card>
+
+      {deleteError && (
+        <div className="p-3 rounded-xl border border-rose-500/40 bg-rose-950/40 text-xs text-rose-300">{deleteError}</div>
+      )}
 
       {/* Daily Summary Ribbon */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -177,7 +185,7 @@ export default function MealsPage() {
                     </div>
 
                     <button
-                      onClick={() => deleteMeal(meal.id)}
+                      onClick={() => handleDelete(meal.id)}
                       aria-label="Delete meal"
                       className="p-2 rounded-xl text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
                     >
