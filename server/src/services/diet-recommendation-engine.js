@@ -1,4 +1,4 @@
-const { DIETS_DATA } = require('../data/diet-plans');
+const { rankDietProtocols, KETO_ID, PLANT_FORWARD_ID } = require('./diet-ranking');
 const { BANGLADESHI_FOODS } = require('../data/bangladeshi-foods');
 
 /**
@@ -105,7 +105,7 @@ function calculateSafeCalorieAndMacroTargets(userProfile, topDiet) {
   // If High Protein or Muscle Gain, ensure adequate protein floor (at least 1.8g/kg)
   let targetProteinG = Math.round((targetCalories * (macroRatio.protein / 100)) / 4);
   const minProteinForWeight = Math.round(weightKg * 1.6);
-  if (targetProteinG < minProteinForWeight && topDiet.slug !== 'plant-based') {
+  if (targetProteinG < minProteinForWeight && topDiet.id !== PLANT_FORWARD_ID) {
     targetProteinG = minProteinForWeight;
   }
 
@@ -146,200 +146,6 @@ function calculateSafeCalorieAndMacroTargets(userProfile, topDiet) {
 }
 
 /**
- * 6. Diet Matching Engine: Ranks DIETS_DATA based on comprehensive user profile
- */
-function rankDietProtocols(userProfile) {
-  const goal = userProfile.primaryGoal || 'lose_weight';
-  const conditions = userProfile.healthConditions || [];
-  const preferences = userProfile.foodPreferences || [];
-  const allergies = userProfile.allergies || [];
-  const activity = userProfile.activityLevel || 'moderately_active';
-
-  const scoredDiets = DIETS_DATA.map((diet) => {
-    let score = 70; // baseline
-    const reasons = [];
-    const cautionReasons = [];
-    const doctorConsultReasons = [];
-
-    // 1. Goal compatibility (up to +20)
-    if (diet.goalCompatibility && diet.goalCompatibility[goal]) {
-      const goalScore = diet.goalCompatibility[goal];
-      score += (goalScore - 70) * 0.4;
-      if (goalScore >= 90) {
-        reasons.push(`Directly supports your primary focus on ${formatGoalName(goal)}.`);
-      }
-    }
-
-    // Direct targeted goal boost
-    if (goal === 'blood_sugar' && diet.slug === 'low-gi-diabetes') {
-      score += 15;
-    } else if (goal === 'blood_pressure' && diet.slug === 'dash') {
-      score += 15;
-    } else if ((goal === 'gain_muscle' || goal === 'body_recomposition') && diet.slug === 'high-protein') {
-      score += 15;
-    } else if ((goal === 'general_health' || goal === 'maintain') && diet.slug === 'mediterranean') {
-      score += 10;
-    }
-
-    // 2. Health conditions compatibility
-    conditions.forEach((cond) => {
-      if (diet.healthCompatibility && diet.healthCompatibility[cond]) {
-        const condScore = diet.healthCompatibility[cond];
-        score += (condScore - 70) * 0.3;
-        if (condScore >= 92) {
-          reasons.push(`Clinically favorable pattern for managing ${formatConditionName(cond)}.`);
-        } else if (condScore <= 60) {
-          cautionReasons.push(`Requires careful consideration or portion adjustments for ${formatConditionName(cond)}.`);
-        }
-      }
-
-      // Targeted condition boost
-      if ((cond === 'diabetes' || cond === 'prediabetes' || cond === 'pcos') && diet.slug === 'low-gi-diabetes') {
-        score += 10;
-      }
-      if (cond === 'hypertension' && diet.slug === 'dash') {
-        score += 10;
-      }
-
-      // Check if this condition requires medical consultation under this diet
-      if (diet.requiresProfessionalReview && diet.requiresProfessionalReview.includes(cond)) {
-        doctorConsultReasons.push(
-          `For ${formatConditionName(cond)}, please consult a physician or clinical dietitian before starting ${diet.name}.`
-        );
-      }
-    });
-
-    // 3. Food preferences compatibility
-    if (preferences.includes('vegan') || preferences.includes('vegetarian')) {
-      if (diet.slug === 'plant-based') {
-        score += 20;
-        reasons.push('100% aligned with your botanical / plant-based dietary preference.');
-      } else if (diet.slug === 'ketogenic' || diet.slug === 'high-protein') {
-        score -= 25;
-        cautionReasons.push('Heavily relies on animal proteins which conflicts with plant-based preference.');
-      }
-    }
-
-    if (preferences.includes('low_carb')) {
-      if (diet.slug === 'ketogenic') {
-        score += 18;
-        reasons.push('Matches your explicit preference for low-carbohydrate eating.');
-      } else if (diet.slug === 'low-gi-diabetes') {
-        score += 12;
-        reasons.push('Provides controlled, slow-digesting complex carbohydrates.');
-      }
-    } else {
-      // If user did NOT request low carb, heavily de-prioritize strict Keto
-      if (diet.slug === 'ketogenic') {
-        score -= 20;
-        cautionReasons.push('Very restrictive (<30g carbs) and requires specific low-carb adherence.');
-      }
-    }
-
-    if (preferences.includes('traditional_bangladeshi') || preferences.includes('balanced')) {
-      if (diet.foodStyle && diet.foodStyle.includes('bangladeshi-friendly')) {
-        score += 10;
-        reasons.push('Seamlessly incorporates familiar Bangladeshi foods (rice portions, local fish, lentils, and seasonal greens).');
-      }
-    }
-
-    if (preferences.includes('high_protein')) {
-      if (diet.slug === 'high-protein') {
-        score += 15;
-        reasons.push('Optimized for high protein density to promote lean tissue repair.');
-      }
-    }
-
-    // 4. Special medical safety checks
-    if (conditions.includes('kidney_disease')) {
-      if (diet.slug === 'high-protein' || diet.slug === 'ketogenic') {
-        score -= 40;
-        cautionReasons.push('High protein/ketogenic loads can place stress on impaired kidney function.');
-        doctorConsultReasons.push('Renal conditions require strict individualized protein management by a nephrologist.');
-      }
-    }
-
-    if (conditions.includes('pregnancy_breastfeeding')) {
-      if (diet.slug === 'ketogenic' || diet.slug === 'intermittent-fasting') {
-        score -= 40;
-        cautionReasons.push('Ketosis and time-restricted fasting are not advised during pregnancy or breastfeeding.');
-        doctorConsultReasons.push('Pregnancy requires adequate carbohydrate and nutrient density for fetal development.');
-      }
-    }
-
-    // 5. Activity level compatibility
-    if (activity === 'very_active' || activity === 'extra_active') {
-      if (diet.slug === 'high-protein') {
-        score += 8;
-        reasons.push('Provides ample amino acids and glycogen replenishment for your high workout volume.');
-      }
-    }
-
-    // Cap score between 35 and 99
-    const finalScore = Math.min(99, Math.max(35, Math.round(score)));
-
-    return {
-      slug: diet.slug,
-      name: diet.name,
-      tagline: diet.tagline,
-      icon: diet.icon,
-      rawScore: score,
-      score: Math.min(99, Math.max(35, Math.round(score))),
-      macroRatio: diet.macroRatio,
-      reasons: reasons.slice(0, 4),
-      cautionReasons: cautionReasons.slice(0, 3),
-      requiresDoctorConsult: doctorConsultReasons.length > 0,
-      doctorConsultReasons,
-    };
-  });
-
-  // Sort descending by rawScore
-  scoredDiets.sort((a, b) => b.rawScore - a.rawScore);
-
-  // Assign tiers
-  scoredDiets.forEach((item, index) => {
-    if (index === 0) item.tier = 'Best Match';
-    else if (index <= 2) item.tier = 'Good Match';
-    else item.tier = 'Alternative';
-  });
-
-  return scoredDiets;
-}
-
-function formatGoalName(goal) {
-  const map = {
-    lose_weight: 'Sustainable Weight Loss',
-    reduce_belly_fat: 'Waist & Visceral Fat Reduction',
-    gain_muscle: 'Lean Muscle Hypertrophy',
-    body_recomposition: 'Body Recomposition',
-    maintain: 'Healthy Weight Maintenance',
-    general_health: 'Longevity & Vitality',
-    blood_sugar: 'Blood Sugar Stability',
-    blood_pressure: 'Cardiovascular Blood Pressure Support',
-  };
-  return map[goal] || 'Healthy Nutrition';
-}
-
-function formatConditionName(cond) {
-  const map = {
-    diabetes: 'Type 2 Diabetes',
-    prediabetes: 'Prediabetes & Insulin Resistance',
-    hypertension: 'High Blood Pressure (Hypertension)',
-    pcos: 'PCOS / Hormonal Balance',
-    thyroid: 'Thyroid Health',
-    high_cholesterol: 'Lipid & Cholesterol Balance',
-    fatty_liver: 'Fatty Liver Health',
-    kidney_disease: 'Kidney Health',
-    liver_disease: 'Liver Health',
-    gerd: 'Gastric & Acid Reflux',
-    ibs: 'Digestive & IBS Comfort',
-    anemia: 'Iron & Anemia Support',
-    pregnancy_breastfeeding: 'Pregnancy / Nursing',
-  };
-  return map[cond] || cond;
-}
-
-/**
  * 7. 7-Day Personalized Meal Plan Generator (with Bangladeshi adaptation, allergies hard exclusion, portion guides)
  */
 function generate7DayMealPlan(userProfile, targetCalories, topDiet) {
@@ -350,7 +156,7 @@ function generate7DayMealPlan(userProfile, targetCalories, topDiet) {
   const isVegan = preferences.includes('vegan');
   const isVegetarian = preferences.includes('vegetarian') || isVegan;
   const isPescatarian = preferences.includes('pescatarian');
-  const isLowCarb = topDiet.slug === 'ketogenic';
+  const isLowCarb = topDiet.id === KETO_ID;
 
   // Filter safe food pool excluding user allergens
   const safeFoods = BANGLADESHI_FOODS.filter((food) => {
