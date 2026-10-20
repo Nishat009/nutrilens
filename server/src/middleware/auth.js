@@ -3,16 +3,19 @@ const mongoose = require('mongoose');
 const User = require('../models/User');
 const { sendError, sendUnexpectedError } = require('../utils/http');
 
-const DEV_SECRET = 'nutrilens-development-secret-change-me';
+// No hard-coded fallback: production requires JWT_SECRET; in development a random
+// per-process secret is used (logins are invalidated whenever the server restarts).
+let devSecret = null;
 
 if (!process.env.JWT_SECRET) {
   if (process.env.NODE_ENV === 'production') {
     throw new Error('JWT_SECRET must be set in production');
   }
-  console.warn('⚠️ JWT_SECRET is not set; using an insecure development secret.');
+  devSecret = crypto.randomBytes(48).toString('hex');
+  console.warn('⚠️ JWT_SECRET is not set; using a random secret for this run. Set JWT_SECRET to keep logins across restarts.');
 }
 
-const getSecret = () => process.env.JWT_SECRET || DEV_SECRET;
+const getSecret = () => process.env.JWT_SECRET || devSecret;
 
 function createToken(userId) {
   const header = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64url');

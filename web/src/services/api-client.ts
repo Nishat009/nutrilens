@@ -125,6 +125,13 @@ export const authApi = {
     return res.message || 'Password updated successfully.';
   },
 
+  async changePassword(currentPassword: string, newPassword: string): Promise<void> {
+    await requestEnvelope('/api/auth/change-password', {
+      method: 'POST',
+      body: JSON.stringify({ currentPassword, newPassword }),
+    });
+  },
+
   async getMe(): Promise<{ user: UserProfile; goal: UserGoal }> {
     const res = await request<any>('/api/auth/me');
     return {
@@ -152,6 +159,17 @@ export const userApi = {
       body: JSON.stringify(updates),
     });
     return { user: normalizeUser(res), goal: normalizeGoal(res.goal, res._id || res.id) };
+  },
+
+  async exportData(): Promise<Record<string, unknown>> {
+    return request<Record<string, unknown>>('/api/users/current/export');
+  },
+
+  async deleteAccount(password: string): Promise<void> {
+    await requestEnvelope('/api/users/current', {
+      method: 'DELETE',
+      body: JSON.stringify({ password }),
+    });
   },
 
   async updateGoal(userId: string = 'current', updates: Partial<UserGoal>): Promise<UserGoal> {
@@ -186,6 +204,14 @@ export const mealApi = {
     const res = await request<any>('/api/meals', {
       method: 'POST',
       body: JSON.stringify(meal),
+    });
+    return normalizeMeal(res);
+  },
+
+  async updateMeal(id: string, updates: Partial<Omit<Meal, 'id'>>): Promise<Meal> {
+    const res = await request<any>(`/api/meals/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(updates),
     });
     return normalizeMeal(res);
   },

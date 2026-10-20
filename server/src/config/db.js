@@ -4,6 +4,9 @@ const connectDB = async () => {
   try {
     const uri = process.env.MONGODB_URI;
     if (!uri) {
+      if (process.env.NODE_ENV === 'production') {
+        throw new Error('MONGODB_URI is required in production');
+      }
       console.warn('⚠️ MONGODB_URI is not set in environment variables. Database features will be in fallback mode until configured in Render dashboard.');
       return null;
     }
@@ -11,6 +14,7 @@ const connectDB = async () => {
     console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
     return conn;
   } catch (error) {
+    if (error.message === 'MONGODB_URI is required in production') throw error;
     console.error(`❌ MongoDB Connection Warning: ${error.message}`);
     if (error.message && (error.message.includes('SSL') || error.message.includes('ServerSelection') || error.message.includes('tlsv1'))) {
       console.warn('💡 TIP: Check MongoDB Atlas -> Network Access and ensure your IP is whitelisted (or Allow 0.0.0.0/0).');

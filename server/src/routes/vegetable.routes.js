@@ -9,6 +9,7 @@ const {
   calculateNutrition,
 } = require('../controllers/vegetable.controller');
 
+// Public endpoints: read-only reference data; the POST routes only compute, they store nothing.
 // Specific sub-routes first to avoid :idOrSlug collision
 router.get('/search', searchVegetables);
 router.get('/categories', getCategories);

@@ -168,3 +168,32 @@ exports.resetPassword = async (req, res) => {
     return sendUnexpectedError(res, error, 'Could not reset password');
   }
 };
+
+// @desc    Change password for the signed-in user
+// @route   POST /api/auth/change-password
+exports.changePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    if (typeof currentPassword !== 'string' || !currentPassword) {
+      return sendError(res, 422, 'Current password is required');
+    }
+    if (typeof newPassword !== 'string' || newPassword.length < MIN_PASSWORD_LENGTH) {
+      return sendError(res, 422, `New password must be at least ${MIN_PASSWORD_LENGTH} characters`);
+    }
+    if (newPassword === currentPassword) {
+      return sendError(res, 422, 'New password must be different from the current password');
+    }
+
+    const user = await User.findById(req.user._id).select('+password');
+    if (!user || !verifyPassword(currentPassword, user.password)) {
+      return sendError(res, 403, 'Current password is incorrect');
+    }
+
+    user.password = hashPassword(newPassword);
+    await user.save();
+
+    res.status(200).json({ success: true, code: 200, message: 'Password changed successfully' });
+  } catch (error) {
+    return sendUnexpectedError(res, error, 'Could not change password');
+  }
+};

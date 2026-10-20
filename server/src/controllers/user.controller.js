@@ -1,5 +1,10 @@
 const { sendError, sendUnexpectedError } = require('../utils/http');
 const User = require('../models/User');
+const Meal = require('../models/Meal');
+const FoodScan = require('../models/FoodScan');
+const PlannedMeal = require('../models/PlannedMeal');
+const WeightLog = require('../models/WeightLog');
+const { verifyPassword } = require('../utils/password');
 
 const PROFILE_FIELDS = [
   'name', 'email', 'gender', 'dob', 'heightCm', 'weightKg', 'targetWeightKg',
@@ -92,6 +97,58 @@ exports.updateUserGoal = async (req, res) => {
       message: 'Nutrition goals updated successfully',
       data: user.goal,
     });
+  } catch (error) {
+    return fail(res, error);
+  }
+};
+
+// @desc    Download everything stored about the signed-in user
+// @route   GET /api/users/current/export
+exports.exportUserData = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const [meals, scans, plannedMeals, weightLogs] = await Promise.all([
+      Meal.find({ userId }).sort({ date: 1, time: 1 }).lean(),
+      FoodScan.find({ userId }).sort({ createdAt: 1 }).lean(),
+      PlannedMeal.find({ userId }).lean(),
+      WeightLog.find({ userId }).sort({ date: 1 }).lean(),
+    ]);
+
+    res.status(200).json({
+      success: true,
+      code: 200,
+      message: 'Data export generated successfully',
+      data: { exportedAt: new Date().toISOString(), profile: publicUser(req.user), meals, scans, plannedMeals, weightLogs },
+    });
+  } catch (error) {
+    return fail(res, error);
+  }
+};
+
+// @desc    Permanently delete the account and all of its data
+// @route   DELETE /api/users/current
+exports.deleteAccount = async (req, res) => {
+  try {
+    const { password } = req.body || {};
+    if (typeof password !== 'string' || !password) {
+      return sendError(res, 422, 'Password is required to delete your account');
+    }
+
+    const user = await User.findById(req.user._id).select('+password');
+    if (!user || !verifyPassword(password, user.password)) {
+      return sendError(res, 403, 'Password is incorrect');
+    }
+
+    const userId = user._id;
+    await Promise.all([
+      Meal.deleteMany({ userId }),
+      FoodScan.deleteMany({ userId }),
+      PlannedMeal.deleteMany({ userId }),
+      WeightLog.deleteMany({ userId }),
+    ]);
+    await User.deleteOne({ _id: userId });
+
+    res.status(200).json({ success: true, code: 200, message: 'Account deleted successfully' });
   } catch (error) {
     return fail(res, error);
   }

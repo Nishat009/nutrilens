@@ -171,11 +171,12 @@ const seedDB = async () => {
     console.log('🧹 Cleared existing database collections');
 
 
-    // 1. Seed User
+    // 1. Seed User (password from SEED_USER_PASSWORD, otherwise random and printed once)
+    const seedPassword = process.env.SEED_USER_PASSWORD || require('crypto').randomBytes(9).toString('base64url');
     const user = await User.create({
       name: 'Alex Morgan',
       email: 'alex.morgan@nutrilens.ai',
-      password: hashPassword(process.env.SEED_USER_PASSWORD || 'password123'),
+      password: hashPassword(seedPassword),
       gender: 'male',
       dob: '1998-05-14',
       heightCm: 178,
@@ -197,7 +198,8 @@ const seedDB = async () => {
         isActive: true,
       },
     });
-    console.log(`👤 Seeded User: ${user.name} (${user._id})`);
+    console.log(`👤 Seeded User: ${user.name} <${user.email}> (${user._id})`);
+    if (!process.env.SEED_USER_PASSWORD) console.log(`🔑 Demo login password: ${seedPassword}`);
 
     // 2. Seed Foods from comprehensive 100+ database
     const { NUTRITION_DATABASE } = require('./data/nutrition-database');

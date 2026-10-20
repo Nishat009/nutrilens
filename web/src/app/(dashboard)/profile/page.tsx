@@ -19,6 +19,7 @@ import { Button } from '../../../components/ui/Button';
 import { Input } from '../../../components/ui/Input';
 import { Badge } from '../../../components/ui/Badge';
 import { Select } from '../../../components/ui/Select';
+import { AccountSecurity } from '../../../components/profile/AccountSecurity';
 import { useUserStore } from '../../../lib/stores/user-store';
 import { useAuthStore } from '../../../lib/stores/auth-store';
 import { calculateNutritionTargets } from '../../../services/nutrition';
@@ -524,6 +525,8 @@ export default function ProfilePage() {
           Save Changes & Update Targets in Database
         </Button>
       </form>
+
+      <AccountSecurity />
     </div>
   );
 }

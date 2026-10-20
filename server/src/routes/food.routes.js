@@ -7,6 +7,7 @@ const {
   createFood,
 } = require('../controllers/food.controller');
 
+// Public endpoints: the food catalogue is readable without login; only admins can add to it.
 router.get('/', getFoods);
 router.get('/:id', getFoodById);
 router.post('/', requireAuth, requireAdmin, createFood);

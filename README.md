@@ -104,8 +104,15 @@ graph TB
 
 ## 🚀 Quick Setup & Run Instructions
 
+### 0. Prerequisites
+* Node.js 20+ and npm
+* MongoDB 6+ — either a local install (`mongodb://localhost:27017/nutrilens`) or a free [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) cluster (`mongodb+srv://<user>:<password>@<cluster>.mongodb.net/nutrilens`). The database and collections are created automatically on first use.
+
 ### 1. Clone & Install Dependencies
 ```bash
+# Optional, from the repo root: installs the helper that runs both apps with `npm run dev`
+npm install
+
 # Install server dependencies
 cd server
 npm install
@@ -124,7 +131,12 @@ JWT_SECRET=your_secret_key_here
 NODE_ENV=development
 ```
 
-`JWT_SECRET` is required when `NODE_ENV=production`. See `server/.env.example` for the optional settings:
+Copy `server/.env.example` to `server/.env` and `web/.env.example` to `web/.env.local` first, then edit them.
+Generate a strong `JWT_SECRET` with:
+```bash
+node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
+```
+`JWT_SECRET` and `MONGODB_URI` are required when `NODE_ENV=production`; in development an unset `JWT_SECRET` falls back to a random secret that changes on every restart. See `server/.env.example` for the optional settings:
 `CORS_ORIGIN` (allowed frontend origins), `ADMIN_EMAILS` (who may add foods to the shared catalog),
 `APP_URL` and `SMTP_*` (password reset emails; without `SMTP_HOST` in development, reset links are printed to the server console).
 
@@ -133,7 +145,8 @@ Create `web/.env.local`:
 NEXT_PUBLIC_API_URL=http://localhost:5000
 ```
 
-### 3. Seed Database
+### 3. Seed Database (optional)
+Loads a demo user, foods, vegetables, planner and weight history. **Destructive: it wipes the existing users, foods, vegetables, meals, scans, weight logs and planner.** The demo user's password is `SEED_USER_PASSWORD` if set, otherwise a random one printed in the console.
 ```bash
 cd server
 node src/seed.js

@@ -247,6 +247,70 @@ describe('meals', () => {
   });
 });
 
+describe('meal editing and validation', () => {
+  test('PUT recalculates totals, is owner-scoped, and bad payloads are 422', async () => {
+    const alice = await registerUser('edit-alice@example.com');
+    const bob = await registerUser('edit-bob@example.com');
+    const created = await api('POST', '/api/meals', {
+      token: alice.token,
+      body: { type: 'lunch', date: '2026-02-01', items: [{ foodName: 'Rice', quantity: 100, unit: 'g', calories: 130, protein: 3, carbs: 28, fat: 0.3 }] },
+    });
+    const id = created.body.data._id;
+
+    const updated = await api('PUT', `/api/meals/${id}`, {
+      token: alice.token,
+      body: { type: 'dinner', items: [{ foodName: 'Rice', quantity: 200, unit: 'g', calories: 260, protein: 6, carbs: 56, fat: 0.6 }] },
+    });
+    assert.equal(updated.status, 200, JSON.stringify(updated.body));
+    assert.equal(updated.body.data.type, 'dinner');
+    assert.equal(updated.body.data.totalCalories, 260);
+
+    assert.equal((await api('PUT', `/api/meals/${id}`, { token: bob.token, body: { type: 'snack' } })).status, 404);
+    assert.equal((await api('PUT', `/api/meals/${id}`, { token: alice.token, body: { type: 'brunch' } })).status, 422);
+    const negative = await api('POST', '/api/meals', {
+      token: alice.token,
+      body: { type: 'lunch', items: [{ foodName: 'X', quantity: 1, unit: 'g', calories: -5, protein: 0, carbs: 0, fat: 0 }] },
+    });
+    assert.equal(negative.status, 422);
+  });
+});
+
+describe('account management', () => {
+  test('change password requires the current password', async () => {
+    const { token } = await registerUser('chpw@example.com');
+    const wrong = await api('POST', '/api/auth/change-password', { token, body: { currentPassword: 'nope-nope-1', newPassword: 'brand-new-pass-1' } });
+    assert.equal(wrong.status, 403);
+    const short = await api('POST', '/api/auth/change-password', { token, body: { currentPassword: 'correct-horse-1', newPassword: 'short' } });
+    assert.equal(short.status, 422);
+    const ok = await api('POST', '/api/auth/change-password', { token, body: { currentPassword: 'correct-horse-1', newPassword: 'brand-new-pass-1' } });
+    assert.equal(ok.status, 200, JSON.stringify(ok.body));
+
+    assert.equal((await api('POST', '/api/auth/login', { body: { email: 'chpw@example.com', password: 'correct-horse-1' } })).status, 401);
+    assert.equal((await api('POST', '/api/auth/login', { body: { email: 'chpw@example.com', password: 'brand-new-pass-1' } })).status, 200);
+  });
+
+  test('export returns own data and delete removes the account and its data', async () => {
+    const { token } = await registerUser('gone@example.com');
+    await api('POST', '/api/meals', {
+      token,
+      body: { type: 'lunch', date: '2026-02-02', items: [{ foodName: 'Dal', quantity: 100, unit: 'g', calories: 116, protein: 9, carbs: 20, fat: 0.4 }] },
+    });
+
+    const exported = await api('GET', '/api/users/current/export', { token });
+    assert.equal(exported.status, 200);
+    assert.equal(exported.body.data.meals.length, 1);
+    assert.equal(exported.body.data.profile.password, undefined);
+
+    assert.equal((await api('DELETE', '/api/users/current', { token, body: {} })).status, 422);
+    assert.equal((await api('DELETE', '/api/users/current', { token, body: { password: 'wrong-password-1' } })).status, 403);
+    assert.equal((await api('DELETE', '/api/users/current', { token, body: { password: 'correct-horse-1' } })).status, 200);
+
+    assert.equal((await api('GET', '/api/auth/me', { token })).status, 401);
+    assert.equal((await api('POST', '/api/auth/login', { body: { email: 'gone@example.com', password: 'correct-horse-1' } })).status, 401);
+    assert.equal(await mongoose.model('Meal').countDocuments({ date: '2026-02-02' }), 0);
+  });
+});
+
 describe('planner', () => {
   test('add, list, delete', async () => {
     const { token } = await registerUser('planner@example.com');
