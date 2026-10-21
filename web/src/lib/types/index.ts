@@ -87,6 +87,7 @@ export interface UserProfile {
   dietaryPreferences: string[];
   avatarUrl?: string;
   onboardingCompleted?: boolean;
+  isAdmin?: boolean;
   personalizedPlan?: PersonalizedDietPlan;
 }
 

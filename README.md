@@ -138,6 +138,7 @@ node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
 ```
 `JWT_SECRET` and `MONGODB_URI` are required when `NODE_ENV=production`; in development an unset `JWT_SECRET` falls back to a random secret that changes on every restart. See `server/.env.example` for the optional settings:
 `CORS_ORIGIN` (allowed frontend origins), `ADMIN_EMAILS` (who may add foods to the shared catalog),
+`DEMO_MODE` (one-click demo login — showcase deployments only, pair with `NEXT_PUBLIC_DEMO_MODE=true` on the web app),
 `APP_URL` and `SMTP_*` (password reset emails; without `SMTP_HOST` in development, reset links are printed to the server console).
 
 Create `web/.env.local`:
@@ -146,7 +147,7 @@ NEXT_PUBLIC_API_URL=http://localhost:5000
 ```
 
 ### 3. Seed Database (optional)
-Loads a demo user, foods, vegetables, planner and weight history. **Destructive: it wipes the existing users, foods, vegetables, meals, scans, weight logs and planner.** The demo user's password is `SEED_USER_PASSWORD` if set, otherwise a random one printed in the console.
+Loads a demo user, a demo admin (`admin@nutrilens.ai`), foods, vegetables, planner and weight history. **Destructive: it wipes the existing users, foods, vegetables, meals, scans, weight logs and planner.** The demo user's password is `SEED_USER_PASSWORD` if set, otherwise a random one printed in the console.
 ```bash
 cd server
 node src/seed.js

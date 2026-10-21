@@ -11,6 +11,7 @@ import {
   CalendarDays,
   LineChart,
   User,
+  ShieldCheck,
   Sparkles,
   Flame,
   LogOut,
@@ -21,7 +22,14 @@ import { useAuthStore } from '../../lib/stores/auth-store';
 import { progressApi } from '../../services/api-client';
 import { APP_NAME } from '../../lib/constants';
 
-const navItems = [
+interface NavItem {
+  href: string;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  highlight?: boolean;
+}
+
+const navItems: NavItem[] = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/scan', label: 'AI Food Scanner', icon: Camera, highlight: true },
   { href: '/meals', label: 'Meal History', icon: UtensilsCrossed },
@@ -30,6 +38,8 @@ const navItems = [
   { href: '/progress', label: 'Progress & Trends', icon: LineChart },
   { href: '/profile', label: 'Health Profile', icon: User },
 ];
+
+const adminNavItem: NavItem = { href: '/admin', label: 'Admin Panel', icon: ShieldCheck };
 
 interface SidebarProps {
   isOpen?: boolean;
@@ -54,6 +64,7 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const logout = useAuthStore((state) => state.logout);
+  const isAdmin = useAuthStore((state) => Boolean(state.user?.isAdmin));
   const [streak, setStreak] = useState<{ days: number; loggedToday: boolean } | null>(null);
 
   useEffect(() => {
@@ -102,7 +113,7 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
 
         {/* Navigation links */}
         <nav className="space-y-1.5">
-          {navItems.map((item) => {
+          {(isAdmin ? [...navItems, adminNavItem] : navItems).map((item) => {
             const Icon = item.icon;
             const isActive =
               pathname === item.href || (item.href !== '/dashboard' && pathname?.startsWith(item.href));

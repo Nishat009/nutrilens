@@ -6,6 +6,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 ## [Unreleased]
 
 ### Added
+- Landing page "Live Demo" buttons that lead to the login page.
+- One-click demo login (Demo User and Demo Admin) on the login page — `POST /api/auth/demo-login`, enabled only with `DEMO_MODE=true` on the API and `NEXT_PUBLIC_DEMO_MODE=true` on the web app. `npm run seed` now also creates the demo admin.
+- Admin Panel (`/admin`): catalogue stats, search and add-food form for the shared food catalogue; `isAdmin` is returned on the user profile.
+- Cover images in `docs/` (1080×1080 and 1920×1080).
 - Change password (current password required) — `POST /api/auth/change-password`.
 - Edit a logged meal — `PUT /api/meals/:id`; totals are recalculated from items.
 - Meal input validation (meal type, date, non-negative numbers).

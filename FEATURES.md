@@ -38,5 +38,5 @@ Status key: ✅ done · 🆕 added in this pass · ⬜ not started
 | Dark/light theme switch and Bengali localisation | ⬜ |
 | PWA / offline logging | ⬜ |
 | Wearable / Google Fit step sync (replaces manual NEAT entry) | ⬜ |
-| Admin dashboard for the shared food catalog | ⬜ |
+| Admin dashboard for the shared food catalog (view, search, add; edit/delete still to do) | ✅ |
 | Server-side image storage for scan history | ⬜ |

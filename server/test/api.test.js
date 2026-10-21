@@ -15,6 +15,8 @@ const mongoose = require('mongoose');
 const mailer = require('../src/utils/mailer');
 const app = require('../src/app');
 const { rateLimit } = require('../src/middleware/rate-limit');
+const { DEMO_ACCOUNTS } = require('../src/config/demo');
+const { hashPassword } = require('../src/utils/password');
 
 const TEST_DB_URI = process.env.TEST_MONGODB_URI || 'mongodb://127.0.0.1:27017/nutrilens_test';
 
@@ -463,6 +465,67 @@ describe('foods', () => {
     const admin = await registerUser('admin@example.com');
     const created = await api('POST', '/api/foods', { token: admin.token, body: food });
     assert.equal(created.status, 200, JSON.stringify(created.body));
+  });
+});
+
+describe('demo login', () => {
+  const seedDemoAccounts = async () => {
+    const User = mongoose.model('User');
+    for (const account of Object.values(DEMO_ACCOUNTS)) {
+      await User.create({ ...account, password: hashPassword('unused-demo-password'), onboardingCompleted: true });
+    }
+  };
+
+  test('is disabled unless DEMO_MODE=true', async () => {
+    delete process.env.DEMO_MODE;
+    const res = await api('POST', '/api/auth/demo-login', { body: { role: 'user' } });
+    assert.equal(res.status, 404);
+  });
+
+  test('signs in the seeded user and admin; only the admin can add foods', async () => {
+    process.env.DEMO_MODE = 'true';
+    try {
+      assert.equal((await api('POST', '/api/auth/demo-login', { body: { role: 'user' } })).status, 503);
+      await seedDemoAccounts();
+
+      const user = await api('POST', '/api/auth/demo-login', { body: { role: 'user' } });
+      assert.equal(user.status, 200, JSON.stringify(user.body));
+      assert.equal(user.body.data.user.email, DEMO_ACCOUNTS.user.email);
+      assert.equal(user.body.data.user.isAdmin, false);
+      assert.equal(user.body.data.user.onboardingCompleted, true);
+      assert.equal(user.body.data.user.password, undefined);
+
+      const admin = await api('POST', '/api/auth/demo-login', { body: { role: 'admin' } });
+      assert.equal(admin.status, 200, JSON.stringify(admin.body));
+      assert.equal(admin.body.data.user.isAdmin, true);
+
+      const food = { name: 'Demo Food', category: 'Test', nutrition: { calories: 1, protein: 0, carbs: 0, fat: 0 } };
+      assert.equal((await api('POST', '/api/foods', { token: user.body.data.token, body: food })).status, 403);
+      assert.equal((await api('POST', '/api/foods', { token: admin.body.data.token, body: food })).status, 200);
+    } finally {
+      delete process.env.DEMO_MODE;
+    }
+  });
+
+  test('rejects unknown roles and prototype keys', async () => {
+    process.env.DEMO_MODE = 'true';
+    try {
+      for (const role of ['superuser', '__proto__', 'constructor', undefined, 42]) {
+        const res = await api('POST', '/api/auth/demo-login', { body: { role } });
+        assert.equal(res.status, 422, String(role));
+      }
+    } finally {
+      delete process.env.DEMO_MODE;
+    }
+  });
+
+  test('demo admin has no admin rights when demo mode is off', async () => {
+    const User = mongoose.model('User');
+    const { createToken } = require('../src/middleware/auth');
+    const admin = await User.findOne({ email: DEMO_ACCOUNTS.admin.email });
+    const food = { name: 'Nope', category: 'Test', nutrition: { calories: 1, protein: 0, carbs: 0, fat: 0 } };
+    const res = await api('POST', '/api/foods', { token: createToken(admin._id), body: food });
+    assert.equal(res.status, 403);
   });
 });
 

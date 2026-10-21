@@ -3,16 +3,25 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Mail, Lock, ArrowRight, Sparkles } from 'lucide-react';
+import { Mail, Lock, ArrowRight, Sparkles, UserRound, ShieldCheck, Loader2 } from 'lucide-react';
 import { Button } from '../../../components/ui/Button';
 import { Input } from '../../../components/ui/Input';
 import { Card } from '../../../components/ui/Card';
 import { useAuthStore } from '../../../lib/stores/auth-store';
 import { APP_NAME } from '../../../lib/constants';
 
+// One-click demo sign-in for showcase deployments (the API needs DEMO_MODE=true as well).
+const DEMO_MODE = process.env.NEXT_PUBLIC_DEMO_MODE === 'true';
+
+const DEMO_ROLES = [
+  { role: 'user', label: 'Demo User', desc: 'Scanner, meals, planner, progress', icon: UserRound },
+  { role: 'admin', label: 'Demo Admin', desc: 'Admin panel + food catalogue', icon: ShieldCheck },
+] as const;
+
 export default function LoginPage() {
   const router = useRouter();
-  const { login } = useAuthStore();
+  const { login, demoLogin } = useAuthStore();
+  const [demoRole, setDemoRole] = useState<'user' | 'admin' | null>(null);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -38,6 +47,21 @@ export default function LoginPage() {
       setError(err instanceof Error ? err.message : 'Invalid credentials. Please try again.');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleDemoLogin = async (role: 'user' | 'admin') => {
+    setDemoRole(role);
+    setError('');
+
+    try {
+      await demoLogin(role);
+      const user = useAuthStore.getState().user;
+      router.push(role === 'admin' && user?.isAdmin ? '/admin' : user?.onboardingCompleted ? '/dashboard' : '/onboarding');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Demo login failed. Please try again.');
+    } finally {
+      setDemoRole(null);
     }
   };
 
@@ -101,6 +125,35 @@ export default function LoginPage() {
           Sign In
         </Button>
       </form>
+
+      {DEMO_MODE && (
+        <div className="mt-8 pt-6 border-t border-slate-800">
+          <p className="text-center text-xs font-semibold uppercase tracking-wider text-emerald-400 mb-3">
+            Try the live demo — no sign-up
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {DEMO_ROLES.map(({ role, label, desc, icon: Icon }) => (
+              <button
+                key={role}
+                type="button"
+                disabled={demoRole !== null || isLoading}
+                onClick={() => handleDemoLogin(role)}
+                className="flex flex-col items-start gap-1 px-4 py-3 rounded-xl text-left bg-slate-800 hover:bg-slate-700 border border-slate-700/80 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+              >
+                <span className="flex items-center gap-2 text-sm font-semibold text-white">
+                  {demoRole === role ? (
+                    <Loader2 className="w-4 h-4 animate-spin text-emerald-400" />
+                  ) : (
+                    <Icon className="w-4 h-4 text-emerald-400" />
+                  )}
+                  {label}
+                </span>
+                <span className="text-[11px] text-slate-400">{desc}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="mt-8 text-center text-xs text-slate-400">
         Don&apos;t have an account yet?{' '}

@@ -24,6 +24,8 @@ services:
         sync: false # Your Vercel frontend URL, e.g. https://nutrilens.vercel.app
       - key: ADMIN_EMAILS
         sync: false # (Optional) Emails allowed to add foods to the shared catalog
+      - key: DEMO_MODE
+        sync: false # Set to true only on a public showcase deployment (one-click demo login after `npm run seed`)
       - key: APP_URL
         sync: false # Frontend URL used in password reset links
       - key: SMTP_HOST

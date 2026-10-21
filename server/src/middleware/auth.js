@@ -2,6 +2,7 @@ const crypto = require('crypto');
 const mongoose = require('mongoose');
 const User = require('../models/User');
 const { sendError, sendUnexpectedError } = require('../utils/http');
+const { DEMO_ACCOUNTS, isDemoMode } = require('../config/demo');
 
 // No hard-coded fallback: production requires JWT_SECRET; in development a random
 // per-process secret is used (logins are invalidated whenever the server restarts).
@@ -65,16 +66,22 @@ async function requireAuth(req, res, next) {
   }
 }
 
-// Use after requireAuth. Admins are listed in ADMIN_EMAILS (comma-separated).
-function requireAdmin(req, res, next) {
+// Admins are listed in ADMIN_EMAILS (comma-separated); in demo mode the demo admin counts too.
+function isAdminEmail(email) {
   const admins = (process.env.ADMIN_EMAILS || '')
     .split(',')
-    .map((email) => email.trim().toLowerCase())
+    .map((entry) => entry.trim().toLowerCase())
     .filter(Boolean);
-  if (!req.user || !admins.includes(String(req.user.email).toLowerCase())) {
+  if (isDemoMode()) admins.push(DEMO_ACCOUNTS.admin.email);
+  return admins.includes(String(email).toLowerCase());
+}
+
+// Use after requireAuth.
+function requireAdmin(req, res, next) {
+  if (!req.user || !isAdminEmail(req.user.email)) {
     return sendError(res, 403, 'Admin access required');
   }
   next();
 }
 
-module.exports = { createToken, requireAuth, requireAdmin };
+module.exports = { createToken, requireAuth, requireAdmin, isAdminEmail };

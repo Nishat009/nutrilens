@@ -12,6 +12,7 @@ import {
   Utensils,
   Dumbbell,
   HeartPulse,
+  PlayCircle,
 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
@@ -42,8 +43,13 @@ export default function LandingPage() {
           </nav>
 
           <div className="flex items-center gap-3">
-            <Link href="/login">
+            <Link href="/login" className="hidden sm:block">
               <Button variant="ghost" size="sm">Sign In</Button>
+            </Link>
+            <Link href="/login">
+              <Button variant="outline" size="sm" leftIcon={<PlayCircle className="w-4 h-4" />}>
+                Live Demo
+              </Button>
             </Link>
             <Link href="/register">
               <Button variant="glow" size="sm" rightIcon={<ArrowRight className="w-4 h-4" />}>
@@ -73,8 +79,13 @@ export default function LandingPage() {
         </p>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
+          <Link href="/login" className="w-full sm:w-auto">
+            <Button variant="glow" size="lg" className="w-full text-base px-8 py-4" leftIcon={<PlayCircle className="w-5 h-5" />}>
+              Live Demo
+            </Button>
+          </Link>
           <Link href="/register" className="w-full sm:w-auto">
-            <Button variant="glow" size="lg" className="w-full text-base px-8 py-4">
+            <Button variant="secondary" size="lg" className="w-full text-base px-8 py-4 border-slate-700">
               Start Free Today
             </Button>
           </Link>
@@ -264,11 +275,18 @@ export default function LandingPage() {
         <p className="text-slate-400 mb-8 max-w-xl mx-auto">
           Join thousands who transformed their body composition with precision AI nutrition intelligence.
         </p>
-        <Link href="/register">
-          <Button variant="glow" size="lg" className="px-10 py-4 text-base">
-            Create Your Profile Now
-          </Button>
-        </Link>
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+          <Link href="/login">
+            <Button variant="glow" size="lg" className="px-10 py-4 text-base" leftIcon={<PlayCircle className="w-5 h-5" />}>
+              Live Demo
+            </Button>
+          </Link>
+          <Link href="/register">
+            <Button variant="secondary" size="lg" className="px-10 py-4 text-base border-slate-700">
+              Create Your Profile
+            </Button>
+          </Link>
+        </div>
       </section>
 
       {/* Simple Footer */}

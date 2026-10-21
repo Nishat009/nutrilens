@@ -12,6 +12,7 @@ const PlannedMeal = require('./models/PlannedMeal');
 const Vegetable = require('./models/Vegetable');
 const { VEGETABLES_DATA } = require('./data/vegetables-data');
 const { hashPassword } = require('./utils/password');
+const { DEMO_ACCOUNTS } = require('./config/demo');
 
 const FOODS_DATA = [
   {
@@ -174,8 +175,8 @@ const seedDB = async () => {
     // 1. Seed User (password from SEED_USER_PASSWORD, otherwise random and printed once)
     const seedPassword = process.env.SEED_USER_PASSWORD || require('crypto').randomBytes(9).toString('base64url');
     const user = await User.create({
-      name: 'Alex Morgan',
-      email: 'alex.morgan@nutrilens.ai',
+      name: DEMO_ACCOUNTS.user.name,
+      email: DEMO_ACCOUNTS.user.email,
       password: hashPassword(seedPassword),
       gender: 'male',
       dob: '1998-05-14',
@@ -183,6 +184,7 @@ const seedDB = async () => {
       weightKg: 74.5,
       targetWeightKg: 72.0,
       activityLevel: 'moderately_active',
+      onboardingCompleted: true,
       activeDietId: 'mediterranean_fusion',
       dietaryPreferences: ['Deshi Mediterranean Longevity Protocol'],
       allergies: ['Peanuts'],
@@ -199,6 +201,20 @@ const seedDB = async () => {
       },
     });
     console.log(`👤 Seeded User: ${user.name} <${user.email}> (${user._id})`);
+
+    // Demo admin for the shared food catalogue (admin rights come from DEMO_MODE or ADMIN_EMAILS)
+    const admin = await User.create({
+      name: DEMO_ACCOUNTS.admin.name,
+      email: DEMO_ACCOUNTS.admin.email,
+      password: hashPassword(seedPassword),
+      gender: 'female',
+      dob: '1992-03-21',
+      heightCm: 165,
+      weightKg: 61,
+      targetWeightKg: 60,
+      onboardingCompleted: true,
+    });
+    console.log(`🛡️  Seeded Admin: ${admin.name} <${admin.email}> (${admin._id})`);
     if (!process.env.SEED_USER_PASSWORD) console.log(`🔑 Demo login password: ${seedPassword}`);
 
     // 2. Seed Foods from comprehensive 100+ database

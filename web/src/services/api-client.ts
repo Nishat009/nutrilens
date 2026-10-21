@@ -109,6 +109,14 @@ export const authApi = {
     return { user: normalizeUser(res.user), token: res.token };
   },
 
+  async demoLogin(role: 'user' | 'admin'): Promise<{ user: UserProfile; token: string }> {
+    const res = await request<{ user: unknown; token: string }>('/api/auth/demo-login', {
+      method: 'POST',
+      body: JSON.stringify({ role }),
+    });
+    return { user: normalizeUser(res.user), token: res.token };
+  },
+
   async forgotPassword(email: string): Promise<string> {
     const res = await requestEnvelope('/api/auth/forgot-password', {
       method: 'POST',
@@ -244,6 +252,15 @@ export const foodApi = {
 
   async searchFoods(search: string, category?: string): Promise<Food[]> {
     return this.getFoods({ search, category });
+  },
+
+  // Admin only: adds a food to the shared catalogue.
+  async createFood(food: Omit<Food, 'id'>): Promise<Food> {
+    const res = await request<unknown>('/api/foods', {
+      method: 'POST',
+      body: JSON.stringify(food),
+    });
+    return normalizeFood(res);
   },
 };
 
@@ -491,6 +508,7 @@ function normalizeUser(doc: any): UserProfile {
     activeDietId: doc.activeDietId,
     avatarUrl: doc.avatarUrl,
     onboardingCompleted: Boolean(doc.onboardingCompleted || doc.personalizedPlan),
+    isAdmin: Boolean(doc.isAdmin),
     personalizedPlan: doc.personalizedPlan,
   };
 }

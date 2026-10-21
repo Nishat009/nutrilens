@@ -1,6 +1,7 @@
 const crypto = require('crypto');
 const User = require('../models/User');
-const { createToken } = require('../middleware/auth');
+const { createToken, isAdminEmail } = require('../middleware/auth');
+const { DEMO_ACCOUNTS, isDemoMode } = require('../config/demo');
 const { hashPassword, verifyPassword } = require('../utils/password');
 const { sendError, sendUnexpectedError } = require('../utils/http');
 const mailer = require('../utils/mailer');
@@ -14,6 +15,7 @@ const serializeUser = (user) => {
   delete result.passwordResetTokenHash;
   delete result.passwordResetExpires;
   result.onboardingCompleted = Boolean(result.onboardingCompleted || result.personalizedPlan);
+  result.isAdmin = isAdminEmail(result.email);
   return result;
 };
 
@@ -77,6 +79,30 @@ exports.login = async (req, res) => {
     });
   } catch (error) {
     return sendUnexpectedError(res, error, 'An error occurred during login');
+  }
+};
+
+// @desc    One-click sign-in to a seeded demo account (only when DEMO_MODE=true)
+// @route   POST /api/auth/demo-login
+exports.demoLogin = async (req, res) => {
+  try {
+    if (!isDemoMode()) return sendError(res, 404, 'Demo login is not enabled');
+
+    const role = req.body.role;
+    const account = typeof role === 'string' && Object.hasOwn(DEMO_ACCOUNTS, role) ? DEMO_ACCOUNTS[role] : null;
+    if (!account) return sendError(res, 422, `Role must be one of: ${Object.keys(DEMO_ACCOUNTS).join(', ')}`);
+
+    const user = await User.findOne({ email: account.email });
+    if (!user) return sendError(res, 503, 'Demo accounts are not set up yet. Run the seed script.');
+
+    res.status(200).json({
+      success: true,
+      code: 200,
+      message: 'Demo login successful',
+      data: { user: serializeUser(user), token: createToken(user._id) },
+    });
+  } catch (error) {
+    return sendUnexpectedError(res, error, 'An error occurred during demo login');
   }
 };
 
