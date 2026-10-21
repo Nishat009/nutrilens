@@ -10,9 +10,9 @@ import {
   Cpu,
   Sparkles,
   ArrowRight,
-  PlayCircle,
   Info,
 } from 'lucide-react';
+import { DemoButton } from '../components/landing/DemoButton';
 import { APP_NAME } from '../lib/constants';
 
 // Matches the login page: the demo entry point only exists on showcase deployments.
@@ -218,10 +218,7 @@ export default function LandingPage() {
                   <ArrowRight className="w-4 h-4" aria-hidden="true" />
                 </Link>
                 {DEMO_MODE ? (
-                  <Link href="/login" className={`${btnSecondary} px-7 py-3.5 text-base`}>
-                    <PlayCircle className="w-4 h-4" aria-hidden="true" />
-                    Try the live demo
-                  </Link>
+                  <DemoButton className={`${btnSecondary} px-7 py-3.5 text-base`}>Try the live demo</DemoButton>
                 ) : (
                   <a href="#how-it-works" className={`${btnSecondary} px-7 py-3.5 text-base`}>
                     See how it works
@@ -393,12 +390,6 @@ export default function LandingPage() {
                 Create free account
                 <ArrowRight className="w-4 h-4" aria-hidden="true" />
               </Link>
-              {DEMO_MODE && (
-                <Link href="/login" className={`${btnSecondary} px-8 py-3.5 text-base`}>
-                  <PlayCircle className="w-4 h-4" aria-hidden="true" />
-                  Try the live demo
-                </Link>
-              )}
             </div>
             <p className="mt-10 mx-auto max-w-2xl text-xs leading-relaxed text-slate-500">
               {APP_NAME} gives educational estimates from a photo and your profile. It is not a medical device and does
