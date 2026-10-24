@@ -11,8 +11,8 @@ import {
   Sparkles,
   ArrowRight,
   Info,
+  PlayCircle,
 } from 'lucide-react';
-import { DemoButton } from '../components/landing/DemoButton';
 import { APP_NAME } from '../lib/constants';
 
 // Matches the login page: the demo entry point only exists on showcase deployments.
@@ -218,7 +218,10 @@ export default function LandingPage() {
                   <ArrowRight className="w-4 h-4" aria-hidden="true" />
                 </Link>
                 {DEMO_MODE ? (
-                  <DemoButton className={`${btnSecondary} px-7 py-3.5 text-base`}>Try the live demo</DemoButton>
+                  <Link href="/login" className={`${btnSecondary} px-7 py-3.5 text-base`}>
+                    <PlayCircle className="w-4 h-4" aria-hidden="true" />
+                    Live Demo
+                  </Link>
                 ) : (
                   <a href="#how-it-works" className={`${btnSecondary} px-7 py-3.5 text-base`}>
                     See how it works
