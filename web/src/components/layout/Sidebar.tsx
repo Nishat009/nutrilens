@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   LayoutDashboard,
   Camera,
@@ -14,9 +14,12 @@ import {
   Sparkles,
   Flame,
   X,
+  ShieldCheck,
+  LogOut,
 } from 'lucide-react';
 import { cn } from '../../lib/utils/format';
 import { APP_NAME } from '../../lib/constants';
+import { useAuthStore } from '../../lib/stores/auth-store';
 
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -35,6 +38,13 @@ interface SidebarProps {
 
 export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
   const pathname = usePathname();
+  const router = useRouter();
+  const { user, logout } = useAuthStore();
+
+  const handleLogout = () => {
+    logout();
+    router.replace('/login');
+  };
 
   const sidebarContent = (
     <div className="flex flex-col h-full justify-between">
@@ -103,23 +113,43 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
               </Link>
             );
           })}
+          {user?.role === 'admin' && (
+            <Link
+              href="/admin"
+              onClick={onClose}
+              className="flex items-center gap-3.5 px-4 py-3 rounded-2xl text-sm font-medium text-purple-300 hover:text-purple-200 hover:bg-slate-900/80 border border-transparent transition-all duration-200"
+            >
+              <ShieldCheck className="w-5 h-5" />
+              <span className="flex-1">Admin Panel</span>
+            </Link>
+          )}
         </nav>
       </div>
 
-      {/* Daily Streak Card */}
-      <div className="p-4 rounded-2xl bg-gradient-to-b from-slate-900/90 to-slate-900/50 border border-slate-800/90 text-slate-200 mt-6">
-        <div className="flex items-center gap-3 mb-2">
-          <div className="p-2 rounded-xl bg-amber-500/15 text-amber-400 border border-amber-500/20">
-            <Flame className="w-5 h-5 animate-pulse" />
+      <div className="space-y-3 mt-6">
+        {/* Daily Streak Card */}
+        <div className="p-4 rounded-2xl bg-gradient-to-b from-slate-900/90 to-slate-900/50 border border-slate-800/90 text-slate-200">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="p-2 rounded-xl bg-amber-500/15 text-amber-400 border border-amber-500/20">
+              <Flame className="w-5 h-5 animate-pulse" />
+            </div>
+            <div>
+              <div className="text-xs font-semibold text-white">12-Day Streak</div>
+              <div className="text-[11px] text-slate-400">Consistent tracking</div>
+            </div>
           </div>
-          <div>
-            <div className="text-xs font-semibold text-white">12-Day Streak</div>
-            <div className="text-[11px] text-slate-400">Consistent tracking</div>
-          </div>
+          <p className="text-xs text-slate-400 leading-relaxed">
+            Log 1 more meal today to secure your streak milestone!
+          </p>
         </div>
-        <p className="text-xs text-slate-400 leading-relaxed">
-          Log 1 more meal today to secure your streak milestone!
-        </p>
+
+        <button
+          type="button"
+          onClick={handleLogout}
+          className="w-full flex items-center gap-3 px-4 py-2.5 rounded-2xl text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-900/80 border border-slate-800 transition-colors cursor-pointer"
+        >
+          <LogOut className="w-4 h-4" /> Log out
+        </button>
       </div>
     </div>
   );

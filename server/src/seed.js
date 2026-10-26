@@ -12,6 +12,7 @@ const DietPlan = require('./models/DietPlan');
 const PlannedMeal = require('./models/PlannedMeal');
 const Vegetable = require('./models/Vegetable');
 const { VEGETABLES_DATA } = require('./data/vegetables-data');
+const { DEMO_ACCOUNTS, ensureDemoAccounts, isDemoModeEnabled } = require('./services/demo-accounts');
 
 const FOODS_DATA = [
   {
@@ -283,6 +284,12 @@ const seedDB = async () => {
 
     const weightLogs = await WeightLog.insertMany(weightLogsData);
     console.log(`⚖️  Seeded ${weightLogs.length} weight history logs`);
+
+    // 8. Demo logins (member + admin), sample members and their recent activity
+    if (isDemoModeEnabled()) {
+      await ensureDemoAccounts();
+      DEMO_ACCOUNTS.forEach((account) => console.log(`🔑 Demo ${account.role}: ${account.email} / ${account.password}`));
+    }
 
     console.log('✨ Database seeding successfully finished!');
     process.exit(0);

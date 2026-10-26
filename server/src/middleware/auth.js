@@ -36,4 +36,24 @@ async function requireAuth(req, res, next) {
   }
 }
 
-module.exports = { createToken, requireAuth };
+// Use after requireAuth.
+function requireAdmin(req, res, next) {
+  if (req.user?.role !== 'admin') {
+    return res.status(422).json({ success: false, code: 422, errors: ['Admin access required'] });
+  }
+  next();
+}
+
+// The demo admin is shared by every visitor, so it can browse but not change data.
+function blockDemoWrites(req, res, next) {
+  if (req.user?.isDemo) {
+    return res.status(422).json({
+      success: false,
+      code: 422,
+      errors: ['This action is disabled for the shared demo admin account'],
+    });
+  }
+  next();
+}
+
+module.exports = { createToken, requireAuth, requireAdmin, blockDemoWrites };

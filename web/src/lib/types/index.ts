@@ -88,7 +88,11 @@ export interface UserProfile {
   avatarUrl?: string;
   onboardingCompleted?: boolean;
   personalizedPlan?: PersonalizedDietPlan;
+  role?: UserRole;
+  isDemo?: boolean;
 }
+
+export type UserRole = 'user' | 'admin';
 
 export interface UserGoal {
   id: string;

@@ -7,8 +7,18 @@ import {
   PlannedMealSlot,
   UserGoal,
   UserProfile,
+  UserRole,
   WeightLog,
 } from '../lib/types';
+import {
+  AdminCatalog,
+  AdminDietCatalog,
+  AdminOverview,
+  AdminScanList,
+  AdminUserDetail,
+  AdminUserList,
+  CatalogType,
+} from '../lib/types/admin';
 
 // Use deployed backend URL if set, otherwise relative path
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL
@@ -95,7 +105,7 @@ export const authApi = {
     return { user: normalizeUser(res.user), token: res.token };
   },
 
-  async login(body: { email: string; password?: string }): Promise<{ user: UserProfile; token: string }> {
+  async login(body: { email: string; password?: string; clientDate?: string }): Promise<{ user: UserProfile; token: string }> {
     const res = await request<any>('/api/auth/login', {
       method: 'POST',
       body: JSON.stringify(body),
@@ -431,6 +441,55 @@ export const plannerApi = {
 };
 
 // ----------------------------------------------------
+// 9. Admin Panel API (admin role only)
+// ----------------------------------------------------
+const toQuery = (params: Record<string, string | number | undefined>) => {
+  const query = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== '') query.append(key, String(value));
+  });
+  return query.toString() ? `?${query.toString()}` : '';
+};
+
+export const adminApi = {
+  getOverview(today: string): Promise<AdminOverview> {
+    return request<AdminOverview>(`/api/admin/overview${toQuery({ today })}`);
+  },
+
+  getUsers(params: { search?: string; role?: string; page?: number; limit?: number }): Promise<AdminUserList> {
+    return request<AdminUserList>(`/api/admin/users${toQuery(params)}`);
+  },
+
+  getUser(id: string): Promise<AdminUserDetail> {
+    return request<AdminUserDetail>(`/api/admin/users/${id}`);
+  },
+
+  updateUserRole(id: string, role: UserRole): Promise<{ id: string; role: UserRole }> {
+    return request(`/api/admin/users/${id}`, { method: 'PATCH', body: JSON.stringify({ role }) });
+  },
+
+  deleteUser(id: string): Promise<{ id: string }> {
+    return request(`/api/admin/users/${id}`, { method: 'DELETE' });
+  },
+
+  getScans(params: { page?: number; limit?: number }): Promise<AdminScanList> {
+    return request<AdminScanList>(`/api/admin/scans${toQuery(params)}`);
+  },
+
+  getDiets(): Promise<AdminDietCatalog> {
+    return request<AdminDietCatalog>('/api/admin/diets');
+  },
+
+  getCatalog(params: { type: CatalogType; search?: string; category?: string; page?: number; limit?: number }): Promise<AdminCatalog> {
+    return request<AdminCatalog>(`/api/admin/catalog${toQuery(params)}`);
+  },
+
+  setVegetablePublished(id: string, isActive: boolean): Promise<{ id: string; isActive: boolean }> {
+    return request(`/api/admin/vegetables/${id}`, { method: 'PATCH', body: JSON.stringify({ isActive }) });
+  },
+};
+
+// ----------------------------------------------------
 // Normalizer Helpers (Transform MongoDB documents to frontend interfaces)
 // ----------------------------------------------------
 function normalizeUser(doc: any): UserProfile {
@@ -472,6 +531,8 @@ function normalizeUser(doc: any): UserProfile {
     avatarUrl: doc.avatarUrl,
     onboardingCompleted: Boolean(doc.onboardingCompleted || doc.personalizedPlan),
     personalizedPlan: doc.personalizedPlan,
+    role: doc.role === 'admin' ? 'admin' : 'user',
+    isDemo: Boolean(doc.isDemo),
   };
 }
 

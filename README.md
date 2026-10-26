@@ -155,3 +155,17 @@ node src/test-intelligence.js
 ## Account data persistence
 
 Visitors start at the landing page, create an account, and complete the eight-step nutrition assessment before opening the dashboard. Registration, assessment answers, generated plan, profile edits, and nutrition targets are stored in MongoDB on the authenticated user's record. Profile and target changes are saved together through `PUT /api/users/current`; the UI shows success only after the database confirms the write. A failed write shows an error and can be retried. `GET /api/users/current` reloads the saved profile and goal on a later visit. Set `MONGODB_URI` on the API server and `NEXT_PUBLIC_API_URL` on the web app for deployed persistence.
+
+## Live demo, demo logins & admin panel
+
+* **Product showcase (`/showcase`)**: buyer-facing landing page with features, roles, real screens and tech stack. Every **Live Demo** button opens `/login`. Use this URL as the live demo link; the member landing page at `/` is unchanged.
+* **One-click demo logins (`/login`)**: buttons for each role, with the credentials shown and copyable.
+
+  | Role | Email | Password | Opens |
+  |------|-------|----------|-------|
+  | Member | `demo.member@nutrilens.app` | `Demo@1234` | `/dashboard` |
+  | Admin | `demo.admin@nutrilens.app` | `Admin@1234` | `/admin` |
+
+* **Admin panel (`/admin`)**: overview KPIs and 14-day activity, member directory (role changes, deletion), AI scan feed with confidence and visual-memory corrections, the 20-protocol catalogue with adoption, and the food/vegetable catalogue with publish/hide for the vegetable explorer. Served by `GET|PATCH|DELETE /api/admin/*`, restricted to `role: "admin"`.
+* **Demo data**: when the API connects to MongoDB it creates the two demo logins and a few sample members (`@example.com`), and each demo sign-in tops up the last 14 days of meals, scans and weight logs. Only missing days are filled, so nothing a visitor logs is overwritten. The demo admin is read-only, and the demo member's email cannot be changed. Set `DEMO_MODE=false` (API) and `NEXT_PUBLIC_DEMO_MODE=false` (web) to turn this off.
+* **Marketplace images**: `marketing/nutrilens-cover-1920x1080.png` and `marketing/nutrilens-landing-1080x1080.png`. Re-render them with `node marketing/build.js` (needs Google Chrome) after recapturing the screens in `web/public/showcase`.

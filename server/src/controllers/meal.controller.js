@@ -1,16 +1,7 @@
 const mongoose = require('mongoose');
 const Meal = require('../models/Meal');
-const User = require('../models/User');
 
-async function resolveUserId(rawId) {
-  if (!rawId || rawId === 'current' || rawId === 'default' || !mongoose.Types.ObjectId.isValid(rawId)) {
-    const defaultUser = await User.findOne();
-    return defaultUser ? defaultUser._id : null;
-  }
-  return rawId;
-}
-
-// @desc    Get meals (with optional filters by userId and date)
+// @desc    Get the signed-in member's meals (optionally for one date)
 // @route   GET /api/meals
 exports.getMeals = async (req, res) => {
   try {
@@ -24,17 +15,9 @@ exports.getMeals = async (req, res) => {
       });
     }
 
-    const { userId, date } = req.query;
-    const filter = {};
+    const { date } = req.query;
+    const filter = { userId: req.user._id };
 
-    if (userId && userId !== 'current' && userId !== 'default') {
-      if (mongoose.Types.ObjectId.isValid(userId)) {
-        filter.userId = userId;
-      } else {
-        const resolved = await resolveUserId(userId);
-        if (resolved) filter.userId = resolved;
-      }
-    }
     if (date) {
       filter.date = date;
     }

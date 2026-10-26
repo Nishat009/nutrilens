@@ -49,6 +49,18 @@ const UserSchema = new mongoose.Schema(
       default: 'password123',
       select: false,
     },
+    role: {
+      type: String,
+      enum: ['user', 'admin'],
+      default: 'user',
+      index: true,
+    },
+    // Shared showcase accounts (one-click demo logins and sample members)
+    isDemo: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
     gender: {
       type: String,
       enum: ['male', 'female', 'other'],

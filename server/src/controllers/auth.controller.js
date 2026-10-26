@@ -1,21 +1,7 @@
 const User = require('../models/User');
-const crypto = require('crypto');
 const { createToken } = require('../middleware/auth');
-
-const hashPassword = (password, salt = crypto.randomBytes(16).toString('hex')) => ({
-  salt,
-  hash: crypto.scryptSync(password, salt, 64).toString('hex'),
-});
-
-const passwordMatches = (password, storedPassword) => {
-  if (!storedPassword) return false;
-  if (storedPassword.startsWith('scrypt$')) {
-    const [, salt, hash] = storedPassword.split('$');
-    const derived = crypto.scryptSync(password, salt, 64).toString('hex');
-    return crypto.timingSafeEqual(Buffer.from(derived, 'hex'), Buffer.from(hash, 'hex'));
-  }
-  return password === storedPassword;
-};
+const { encodePassword, passwordMatches } = require('../utils/password');
+const { refreshDemoActivity } = require('../services/demo-accounts');
 
 const serializeUser = (user) => {
   const result = user.toObject ? user.toObject() : { ...user };
@@ -51,10 +37,7 @@ exports.register = async (req, res) => {
     user = await User.create({
       name,
       email,
-      password: (() => {
-        const { salt, hash } = hashPassword(password);
-        return `scrypt$${salt}$${hash}`;
-      })(),
+      password: encodePassword(password),
       gender: gender || 'male',
       dob: dob || '1998-05-14',
       heightCm: heightCm || 178,
@@ -85,7 +68,7 @@ exports.register = async (req, res) => {
 // @route   POST /api/auth/login
 exports.login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, clientDate } = req.body;
 
     if (!email || !password) {
       return res.status(422).json({
@@ -105,9 +88,15 @@ exports.login = async (req, res) => {
     }
 
     if (!user.password.startsWith('scrypt$')) {
-      const { salt, hash } = hashPassword(password);
-      user.password = `scrypt$${salt}$${hash}`;
+      user.password = encodePassword(password);
       await user.save();
+    }
+
+    // Keep the shared demo workspace populated up to the visitor's local "today".
+    if (user.isDemo) {
+      await refreshDemoActivity(clientDate).catch((error) => {
+        console.warn('Demo activity refresh skipped:', error.message);
+      });
     }
 
     res.status(200).json({
