@@ -3,6 +3,26 @@ import { ActivityLevel, GoalType, MealType } from '../types';
 export const APP_NAME = 'NutriLens';
 export const APP_TAGLINE = 'Precision AI Food Recognition & Intelligent Health Dashboard';
 
+// One-click demo logins on /login. Keep in sync with DEMO_ACCOUNTS in server/src/services/demo-accounts.js.
+export const DEMO_MODE_ENABLED = process.env.NEXT_PUBLIC_DEMO_MODE !== 'false';
+
+export const DEMO_LOGINS = [
+  {
+    role: 'user',
+    label: 'Member App',
+    description: 'Dashboard, AI food scanner, diet plan, planner & progress',
+    email: 'demo.member@nutrilens.app',
+    password: 'Demo@1234',
+  },
+  {
+    role: 'admin',
+    label: 'Admin Panel',
+    description: 'Members, AI scan activity, diet protocols & food catalogue',
+    email: 'demo.admin@nutrilens.app',
+    password: 'Admin@1234',
+  },
+] as const;
+
 export const ACTIVITY_LEVEL_MULTIPLIERS: Record<ActivityLevel, number> = {
   sedentary: 1.2, // Little or no exercise
   lightly_active: 1.375, // Light exercise 1-3 days/week

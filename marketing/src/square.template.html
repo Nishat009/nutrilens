@@ -1,0 +1,103 @@
+<!doctype html>
+<!-- Marketplace landing page image, 1:1. Built by marketing/build.js; edit this template, not square.html. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>NutriLens Landing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1080px; height: 1080px; overflow: hidden; }
+  body { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; color: #0b1324; background: #f6fcfa; position: relative; }
+
+  .bg { position: absolute; inset: 0; background:
+      radial-gradient(700px 520px at 50% 0%, rgba(16,185,129,.18), transparent 65%),
+      radial-gradient(600px 420px at 100% 100%, rgba(45,212,191,.16), transparent 60%),
+      linear-gradient(180deg, #f7fdfb 0%, #ffffff 45%, #eefcf7 100%); }
+  .dots { position: absolute; inset: 0; background-image: radial-gradient(rgba(15,23,42,.07) 1px, transparent 1.2px); background-size: 22px 22px;
+      -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 45%, #000 100%); }
+  .disc { position: absolute; left: 140px; top: 360px; width: 800px; height: 800px; border-radius: 50%;
+      background: linear-gradient(160deg, #34d399 0%, #10b981 45%, #0d9488 100%); }
+
+  .top { position: absolute; left: 0; right: 0; top: 52px; text-align: center; }
+  .brand { display: inline-flex; align-items: center; gap: 12px; }
+  .mark { width: 48px; height: 48px; border-radius: 15px; background: linear-gradient(135deg, #10b981, #2dd4bf);
+      display: grid; place-items: center; box-shadow: 0 10px 22px rgba(16,185,129,.35); }
+  .mark svg { width: 25px; height: 25px; }
+  .name { font-size: 32px; font-weight: 800; letter-spacing: -.025em; }
+  .name span { color: #059669; }
+  h1 { margin-top: 20px; font-size: 58px; line-height: 1.04; font-weight: 800; letter-spacing: -.04em; }
+  h1 .accent { background: linear-gradient(90deg, #059669 0%, #0d9488 55%, #0891b2 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .tags { margin-top: 18px; display: flex; justify-content: center; gap: 10px; }
+  .tag { display: inline-flex; align-items: center; gap: 7px; font-size: 15px; font-weight: 700; color: #065f46; background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 999px; padding: 7px 14px; }
+  .tag svg { width: 16px; height: 16px; }
+
+  .browser { position: absolute; left: 90px; top: 352px; width: 820px; border-radius: 16px; overflow: hidden; background: #0b1220;
+      border: 1px solid #1e293b; box-shadow: 0 30px 70px rgba(2,6,23,.35); }
+  .bar { height: 32px; display: flex; align-items: center; gap: 7px; padding: 0 14px; background: #111a2e; border-bottom: 1px solid #1e293b; }
+  .bar i { width: 10px; height: 10px; border-radius: 50%; display: block; }
+  .browser img { display: block; width: 100%; height: auto; }
+
+  .phone { position: absolute; left: 812px; top: 560px; width: 196px; height: 412px; border-radius: 32px; background: #0b1220; padding: 7px;
+      box-shadow: 0 30px 60px rgba(2,6,23,.45); border: 1px solid #334155; }
+  .phone img { width: 100%; height: 100%; object-fit: cover; object-position: top; border-radius: 26px; display: block; }
+  .phone::before { content: ''; position: absolute; left: 50%; top: 13px; transform: translateX(-50%); width: 56px; height: 14px; border-radius: 10px; background: #0b1220; z-index: 2; }
+
+  .demo { position: absolute; left: 56px; top: 820px; background: #fff; border-radius: 18px; box-shadow: 0 18px 40px rgba(2,6,23,.18); border: 1px solid #e2e8f0;
+      padding: 14px 18px; display: flex; align-items: center; gap: 14px; }
+  .demo .ic { width: 46px; height: 46px; border-radius: 14px; background: linear-gradient(135deg, #10b981, #2dd4bf); display: grid; place-items: center; }
+  .demo .ic svg { width: 24px; height: 24px; }
+  .demo .t1 { font-size: 18px; font-weight: 800; }
+  .demo .t2 { font-size: 14px; color: #64748b; font-weight: 600; margin-top: 2px; }
+
+  .stack { position: absolute; left: 0; right: 0; bottom: 40px; display: flex; justify-content: center; gap: 10px; }
+  .logo { width: 54px; height: 54px; border-radius: 16px; background: #fff; border: 1px solid #e2e8f0; display: grid; place-items: center; box-shadow: 0 6px 16px rgba(2,6,23,.12); }
+  .logo svg { width: 26px; height: 26px; }
+</style>
+</head>
+<body>
+  <div class="bg"></div>
+  <div class="dots"></div>
+  <div class="disc"></div>
+
+  <div class="top">
+    <div class="brand">
+      <div class="mark">{{icon:sparkles:#04201a}}</div>
+      <div class="name">Nutri<span>Lens</span></div>
+    </div>
+    <h1>AI Nutrition &amp;<br><span class="accent">Clinical Diet Platform</span></h1>
+    <div class="tags">
+      <span class="tag">{{icon:camera:#047857}}AI Food Scanner</span>
+      <span class="tag">{{icon:shield-check:#047857}}5-Tier Safety</span>
+      <span class="tag">{{icon:book-open:#047857}}20 Diet Protocols</span>
+      <span class="tag">{{icon:layout-dashboard:#047857}}Admin Panel</span>
+    </div>
+  </div>
+
+  <div class="browser">
+    <div class="bar"><i style="background:#fb7185"></i><i style="background:#fbbf24"></i><i style="background:#34d399"></i></div>
+    <img src="screens/landing-hero.png" alt="">
+  </div>
+  <div class="phone"><img src="../../web/public/showcase/mobile-dashboard.png" alt=""></div>
+
+  <div class="demo">
+    <div class="ic">{{icon:scan-line:#04201a}}</div>
+    <div>
+      <div class="t1">Live demo</div>
+      <div class="t2">One-click Member &amp; Admin logins</div>
+    </div>
+  </div>
+
+  <div class="stack">
+    <div class="logo">{{logo:nextdotjs:#000000}}</div>
+    <div class="logo">{{logo:react:#0ea5c6}}</div>
+    <div class="logo">{{logo:typescript:#3178C6}}</div>
+    <div class="logo">{{logo:tailwindcss:#06B6D4}}</div>
+    <div class="logo">{{logo:nodedotjs:#5FA04E}}</div>
+    <div class="logo">{{logo:express:#000000}}</div>
+    <div class="logo">{{logo:mongodb:#47A248}}</div>
+    <div class="logo">{{logo:tensorflow:#FF6F00}}</div>
+  </div>
+</body>
+</html>

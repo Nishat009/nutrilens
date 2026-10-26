@@ -60,6 +60,8 @@ exports.updateUserProfile = async (req, res) => {
     }
 
     for (const field of PROFILE_FIELDS) {
+      // Shared demo logins keep their published email so the one-click login keeps working.
+      if (field === 'email' && user.isDemo) continue;
       if (Object.prototype.hasOwnProperty.call(req.body, field)) user.set(field, req.body[field]);
     }
     if (req.body.goal && typeof req.body.goal === 'object') {

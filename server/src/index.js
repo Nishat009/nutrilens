@@ -4,12 +4,16 @@ const morgan = require('morgan');
 const dotenv = require('dotenv');
 const mongoose = require('mongoose');
 const connectDB = require('./config/db');
+const { ensureDemoAccounts } = require('./services/demo-accounts');
 
 // Load environment variables
 dotenv.config();
 
-// Connect to MongoDB
-connectDB();
+// Connect to MongoDB, then make sure the one-click demo accounts exist
+connectDB().then((conn) => {
+  if (!conn) return;
+  ensureDemoAccounts().catch((error) => console.warn(`⚠️ Demo accounts not prepared: ${error.message}`));
+});
 
 const app = express();
 
@@ -78,6 +82,7 @@ app.use('/api/scan', require('./routes/scan.routes')); // Alias so both /api/sca
 app.use('/api/progress', require('./routes/progress.routes'));
 app.use('/api/diets', require('./routes/diet.routes'));
 app.use('/api/planner', require('./routes/planner.routes'));
+app.use('/api/admin', require('./routes/admin.routes'));
 
 // 404 handler
 app.use((req, res) => {

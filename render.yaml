@@ -18,3 +18,5 @@ services:
         sync: false # (Optional) Google Gemini API Key for multimodal AI vision
       - key: HF_TOKEN
         sync: false # (Optional) Hugging Face token for open Food-101 vision model
+      - key: DEMO_MODE
+        value: "true" # One-click demo member/admin logins for the live demo

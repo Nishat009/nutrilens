@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { UserProfile } from '../types';
 import { authApi } from '../../services/api-client';
+import { getTodayDateString } from '../utils/format';
 
 interface AuthState {
   isAuthenticated: boolean;
@@ -38,7 +39,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   login: async (email: string, password?: string) => {
     set({ isLoading: true });
     try {
-      const result = await authApi.login({ email, password });
+      const result = await authApi.login({ email, password, clientDate: getTodayDateString() });
       if (typeof window !== 'undefined') window.localStorage.setItem('nutrilens_token', result.token);
       set({
         isAuthenticated: true,
