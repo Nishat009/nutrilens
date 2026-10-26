@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import Link from 'next/link';
 import { useUserStore } from '../../lib/stores/user-store';
 import { getGreeting } from '../../lib/utils/format';
@@ -12,8 +12,13 @@ interface TopBarProps {
 }
 
 export function TopBar({ onOpenSidebar }: TopBarProps) {
-  const { profile } = useUserStore();
+  const { profile, fetchUserProfile } = useUserStore();
   const greeting = getGreeting(profile?.name?.split(' ')[0]);
+
+  // The store starts with a placeholder profile (id "current"); load the signed-in member on any page.
+  useEffect(() => {
+    if (profile.id === 'current') fetchUserProfile().catch(() => undefined);
+  }, [profile.id, fetchUserProfile]);
 
   return (
     <header className="sticky top-0 z-20 w-full bg-slate-950/70 backdrop-blur-xl border-b border-slate-800/80 px-4 sm:px-8 py-3.5 flex items-center justify-between">

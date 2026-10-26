@@ -42,7 +42,7 @@ import { MOCK_DIETS } from '../../../data/mock/diets';
 
 export default function DashboardPage() {
   const { profile, goal, fetchUserProfile } = useUserStore();
-  const { getDailyNutritionForDate, getMealsByDate, waterIntakeMl, addWater, fetchMeals } = useMealStore();
+  const { meals, getDailyNutritionForDate, getMealsByDate, waterIntakeMl, addWater, fetchMeals } = useMealStore();
 
   const [activeTab, setActiveTab] = useState<'workout' | 'neat'>('neat');
   const [selectedPlanDay, setSelectedPlanDay] = useState(1);
@@ -54,11 +54,12 @@ export default function DashboardPage() {
     fetchMeals(today);
   }, [fetchUserProfile, fetchMeals, today]);
 
+  // `meals` is a dependency so totals recompute once the fetch resolves.
   const todayNutrition = useMemo(
     () => getDailyNutritionForDate(today),
-    [getDailyNutritionForDate, today, waterIntakeMl]
+    [getDailyNutritionForDate, today, waterIntakeMl, meals]
   );
-  const todayMeals = useMemo(() => getMealsByDate(today), [getMealsByDate, today]);
+  const todayMeals = useMemo(() => getMealsByDate(today), [getMealsByDate, today, meals]);
 
   const targets = useMemo(
     () => calculateNutritionTargets(profile, goal.type),
