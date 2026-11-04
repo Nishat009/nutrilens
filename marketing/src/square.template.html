@@ -20,7 +20,8 @@
   .disc { position: absolute; left: 140px; top: 360px; width: 800px; height: 800px; border-radius: 50%;
       background: linear-gradient(160deg, #34d399 0%, #10b981 45%, #0d9488 100%); }
 
-  .top { position: absolute; left: 0; right: 0; top: 52px; text-align: center; }
+  .head { position: absolute; left: 56px; right: 56px; top: 44px; display: flex; align-items: center; justify-content: space-between; }
+  .top { position: absolute; left: 0; right: 0; top: 102px; text-align: center; }
   .brand { display: inline-flex; align-items: center; gap: 12px; }
   .mark { width: 48px; height: 48px; border-radius: 15px; background: linear-gradient(135deg, #10b981, #2dd4bf);
       display: grid; place-items: center; box-shadow: 0 10px 22px rgba(16,185,129,.35); }
@@ -54,6 +55,14 @@
   .stack { position: absolute; left: 0; right: 0; bottom: 40px; display: flex; justify-content: center; gap: 10px; }
   .logo { width: 54px; height: 54px; border-radius: 16px; background: #fff; border: 1px solid #e2e8f0; display: grid; place-items: center; box-shadow: 0 6px 16px rgba(2,6,23,.12); }
   .logo svg { width: 26px; height: 26px; }
+
+  /* Marketplace badge, as in the Vibe96 approved examples */
+  .vibe { display: flex; align-items: center; gap: 10px; background: #fff; border-radius: 16px; border: 1px solid #e2e8f0;
+      box-shadow: 0 14px 34px rgba(2,6,23,.14); padding: 11px 20px; font-size: 20px; font-weight: 800; letter-spacing: -.01em; }
+  .vibe img { height: 31px; display: block; }
+  .vibe .com { margin-left: -9px; }
+  .site { position: absolute; right: 18px; bottom: 16px; background: #0b1220; color: #fff; border-radius: 9px; padding: 7px 13px;
+      font-size: 18px; font-weight: 700; letter-spacing: .01em; }
 </style>
 </head>
 <body>
@@ -61,11 +70,15 @@
   <div class="dots"></div>
   <div class="disc"></div>
 
-  <div class="top">
+  <div class="head">
     <div class="brand">
       <div class="mark">{{icon:sparkles:#04201a}}</div>
       <div class="name">Nutri<span>Lens</span></div>
     </div>
+    <div class="vibe">Available on <img src="logos/vibe96.png" alt="Vibe96"><span class="com">.com</span></div>
+  </div>
+
+  <div class="top">
     <h1>AI Nutrition &amp;<br><span class="accent">Clinical Diet Platform</span></h1>
     <div class="tags">
       <span class="tag">{{icon:camera:#047857}}AI Food Scanner</span>
@@ -99,5 +112,7 @@
     <div class="logo">{{logo:mongodb:#47A248}}</div>
     <div class="logo">{{logo:tensorflow:#FF6F00}}</div>
   </div>
+
+  <div class="site">vibe96.com</div>
 </body>
 </html>

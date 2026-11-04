@@ -58,7 +58,11 @@ async function request<T>(
 
   const data: ApiResponse<T> = await response.json().catch(() => ({
     success: false,
-    errors: ['Failed to parse JSON response from server'],
+    errors: [
+      response.status >= 500
+        ? 'Cannot reach the API server. Make sure the API is running and MongoDB is started (see HowToSetup.md).'
+        : 'Failed to parse JSON response from server',
+    ],
   }));
 
   const authFailed = response.status === 401 || (

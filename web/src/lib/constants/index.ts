@@ -1,6 +1,9 @@
 import { ActivityLevel, GoalType, MealType } from '../types';
 
-export const APP_NAME = 'NutriLens';
+// Branding: override per deployment with NEXT_PUBLIC_APP_NAME / NEXT_PUBLIC_APP_LOGO_URL (see HowToSetup.md).
+export const APP_NAME = process.env.NEXT_PUBLIC_APP_NAME?.trim() || 'NutriLens';
+// Path under web/public (e.g. /brand/logo.svg) or an absolute https URL. Empty = built-in icon.
+export const APP_LOGO_URL = process.env.NEXT_PUBLIC_APP_LOGO_URL?.trim() || '';
 export const APP_TAGLINE = 'Precision AI Food Recognition & Intelligent Health Dashboard';
 
 // One-click demo logins on /login. Keep in sync with DEMO_ACCOUNTS in server/src/services/demo-accounts.js.

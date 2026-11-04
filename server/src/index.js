@@ -71,6 +71,18 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// Fail fast with a clear setup error when MongoDB is not connected (instead of a hanging request / 500)
+app.use('/api', (req, res, next) => {
+  if (req.path === '/health' || mongoose.connection.readyState === 1) return next();
+  res.status(503).json({
+    success: false,
+    code: 503,
+    errors: [
+      'Database unavailable: MongoDB is not connected. Install and start MongoDB, set MONGODB_URI in server/.env, run "npm run seed", then restart the API. See HowToSetup.md.',
+    ],
+  });
+});
+
 // Mount Routes
 app.use('/api/auth', require('./routes/auth.routes'));
 app.use('/api/users', require('./routes/user.routes'));

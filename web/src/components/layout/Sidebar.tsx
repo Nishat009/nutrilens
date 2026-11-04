@@ -1,4 +1,5 @@
 'use client';
+import BrandLogo from '../brand/BrandLogo';
 
 import React from 'react';
 import Link from 'next/link';
@@ -52,9 +53,7 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
         {/* Brand Header */}
         <div className="flex items-center justify-between">
           <Link href="/dashboard" onClick={onClose} className="flex items-center gap-3 group">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center shadow-lg shadow-emerald-500/25 group-hover:scale-105 transition-transform">
-              <Sparkles className="w-5 h-5 text-slate-950 stroke-[2.5]" />
-            </div>
+            <BrandLogo className="group-hover:scale-105 transition-transform" />
             <div>
               <span className="text-xl font-black tracking-tight text-white flex items-center gap-1.5">
                 {APP_NAME}
