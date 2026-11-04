@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const Vegetable = require('../models/Vegetable');
-const { VEGETABLES_DATA } = require('../data/vegetables-data');
+const { escapeRegex } = require('../utils/regex');
+const { sendError } = require('../utils/http');
 
 /**
  * Normalization helper for fuzzy & alias vegetable matching
@@ -19,40 +20,6 @@ function normalizeQuery(str) {
 exports.getVegetables = async (req, res) => {
   try {
     const { category, search, sortBy = 'name', order = 'asc', page = 1, limit = 50 } = req.query;
-
-    if (mongoose.connection.readyState !== 1) {
-      let filtered = [...VEGETABLES_DATA];
-      if (category && category !== 'All') {
-        filtered = filtered.filter((v) => v.category === category);
-      }
-      if (search && search.trim()) {
-        const q = search.toLowerCase().trim();
-        filtered = filtered.filter(
-          (v) =>
-            v.name?.toLowerCase().includes(q) ||
-            v.bengaliName?.includes(q) ||
-            v.scientificName?.toLowerCase().includes(q) ||
-            v.category?.toLowerCase().includes(q)
-        );
-      }
-      const pageNum = Math.max(1, parseInt(page, 10) || 1);
-      const limitNum = Math.min(150, Math.max(1, parseInt(limit, 10) || 50));
-      const skip = (pageNum - 1) * limitNum;
-      const paginated = filtered.slice(skip, skip + limitNum);
-      const categories = [...new Set(VEGETABLES_DATA.map((v) => v.category).filter(Boolean))];
-
-      return res.status(200).json({
-        success: true,
-        code: 200,
-        message: 'Vegetables retrieved (offline fallback mode)',
-        count: paginated.length,
-        total: filtered.length,
-        page: pageNum,
-        totalPages: Math.ceil(filtered.length / limitNum),
-        categories,
-        data: paginated,
-      });
-    }
 
     const filter = { isActive: true };
 
@@ -108,11 +75,7 @@ exports.getVegetables = async (req, res) => {
       data: vegetables,
     });
   } catch (error) {
-    res.status(422).json({
-      success: false,
-      code: 422,
-      errors: [error.message || 'Failed to retrieve vegetables'],
-    });
+    sendError(res, error, 'Failed to retrieve vegetables');
   }
 };
 
@@ -176,11 +139,7 @@ exports.searchVegetables = async (req, res) => {
       data: ranked,
     });
   } catch (error) {
-    res.status(422).json({
-      success: false,
-      code: 422,
-      errors: [error.message || 'Vegetable search failed'],
-    });
+    sendError(res, error, 'Vegetable search failed');
   }
 };
 
@@ -199,17 +158,13 @@ exports.getVegetableByIdOrSlug = async (req, res) => {
       vegetable = await Vegetable.findOne({
         $or: [
           { slug: idOrSlug.toLowerCase() },
-          { name: new RegExp(`^${idOrSlug}$`, 'i') },
+          { name: new RegExp(`^${escapeRegex(idOrSlug)}$`, 'i') },
         ],
       });
     }
 
     if (!vegetable) {
-      return res.status(422).json({
-        success: false,
-        code: 422,
-        errors: [`Vegetable '${idOrSlug}' not found in database`],
-      });
+      return sendError(res, `Vegetable '${idOrSlug}' not found in database`);
     }
 
 
@@ -220,11 +175,7 @@ exports.getVegetableByIdOrSlug = async (req, res) => {
       data: vegetable,
     });
   } catch (error) {
-    res.status(422).json({
-      success: false,
-      code: 422,
-      errors: [error.message || 'Failed to retrieve vegetable'],
-    });
+    sendError(res, error, 'Failed to retrieve vegetable');
   }
 };
 
@@ -240,11 +191,7 @@ exports.matchVegetables = async (req, res) => {
       : [];
 
     if (namesToMatch.length === 0) {
-      return res.status(422).json({
-        success: false,
-        code: 422,
-        errors: ['Please provide at least one vegetable name or label to match'],
-      });
+      return sendError(res, 'Please provide at least one vegetable name or label to match');
     }
 
     const allVegetables = await Vegetable.find({ isActive: true });
@@ -326,11 +273,7 @@ exports.matchVegetables = async (req, res) => {
       data: matches,
     });
   } catch (error) {
-    res.status(422).json({
-      success: false,
-      code: 422,
-      errors: [error.message || 'Vegetable matching failed'],
-    });
+    sendError(res, error, 'Vegetable matching failed');
   }
 };
 
@@ -351,17 +294,13 @@ exports.calculateNutrition = async (req, res) => {
       vegetable = await Vegetable.findOne({
         $or: [
           { slug: idOrSlug.toLowerCase() },
-          { name: new RegExp(`^${idOrSlug}$`, 'i') },
+          { name: new RegExp(`^${escapeRegex(idOrSlug)}$`, 'i') },
         ],
       });
     }
 
     if (!vegetable) {
-      return res.status(422).json({
-        success: false,
-        code: 422,
-        errors: [`Vegetable '${idOrSlug}' not found`],
-      });
+      return sendError(res, `Vegetable '${idOrSlug}' not found`);
     }
 
 
@@ -399,11 +338,7 @@ exports.calculateNutrition = async (req, res) => {
       data: calculated,
     });
   } catch (error) {
-    res.status(422).json({
-      success: false,
-      code: 422,
-      errors: [error.message || 'Failed to calculate nutrition'],
-    });
+    sendError(res, error, 'Failed to calculate nutrition');
   }
 };
 
@@ -423,10 +358,6 @@ exports.getCategories = async (req, res) => {
       data: summary.map((s) => ({ category: s._id, count: s.count })),
     });
   } catch (error) {
-    res.status(422).json({
-      success: false,
-      code: 422,
-      errors: [error.message || 'Failed to retrieve categories'],
-    });
+    sendError(res, error, 'Failed to retrieve categories');
   }
 };

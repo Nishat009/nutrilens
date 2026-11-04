@@ -86,9 +86,10 @@ NEXT_PUBLIC_DEMO_MODE=true
 
 ## 5. Create the empty database and seed it
 
-MongoDB creates the `nutrilens` database automatically on first write, so there is nothing to create by hand. (Optional explicit check: `mongosh nutrilens --eval "db.createCollection('users')"`.)
+Create every collection and its indexes from the Mongoose models, then load the data. The SQL files in `database/` are documentation only (see `database/README.md`).
 
 ```bash
+npm run db:migrate
 npm run seed
 ```
 Expected output ends with `✨ Database seeding successfully finished!` and prints the demo credentials. It loads about 98 foods, 106 vegetables, the diet protocols, a sample planner, weight history and the two demo logins.

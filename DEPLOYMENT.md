@@ -19,7 +19,7 @@ This comprehensive guide covers deploying the full **NutriLens** stack to produc
                                ┌──────────────────────────────────────────────┐
                                │          Render (Express API Server)         │
                                │       https://nutrilens-api.onrender.com     │
-                               │      (Node.js 18+ / Vision AI Engine)        │
+                               │      (Node.js 20+ / Vision AI Engine)        │
                                └──────────────────────┬───────────────────────┘
                                                       │
                                                       │ MONGODB_URI (TLS/SSL)

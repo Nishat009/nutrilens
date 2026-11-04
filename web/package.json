@@ -2,6 +2,9 @@
   "name": "nutrilens-web",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -9,24 +12,30 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@tensorflow-models/mobilenet": "^2.1.1",
-    "@tensorflow/tfjs": "^4.22.0",
-    "clsx": "^2.1.1",
-    "lucide-react": "^0.475.0",
-    "next": "^15.1.7",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "recharts": "^2.15.1",
-    "tailwind-merge": "^3.0.1",
-    "zustand": "^5.0.3"
+    "@tensorflow-models/mobilenet": "2.1.1",
+    "@tensorflow/tfjs": "4.22.0",
+    "clsx": "2.1.1",
+    "eslint-config-next": "15.5.29",
+    "lucide-react": "0.475.0",
+    "next": "15.5.29",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "recharts": "2.15.4",
+    "tailwind-merge": "3.6.0",
+    "zustand": "5.0.15"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4.0.6",
-    "@types/node": "^20.17.19",
-    "@types/react": "^19.0.8",
-    "@types/react-dom": "^19.0.3",
-    "postcss": "^8.5.2",
-    "tailwindcss": "^4.0.6",
-    "typescript": "^5.7.3"
+    "@tailwindcss/postcss": "4.3.3",
+    "@types/node": "20.19.43",
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.4",
+    "postcss": "8.5.26",
+    "tailwindcss": "4.3.3",
+    "typescript": "5.9.3"
+  },
+  "overrides": {
+    "next": {
+      "postcss": "8.5.26"
+    }
   }
 }

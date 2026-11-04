@@ -14,7 +14,7 @@ const {
 router.post('/analyze', requireAuth, analyzeFoodScan);
 router.post('/evaluate', requireAuth, evaluateScanFood);
 router.post('/teach', requireAuth, teachFoodScan);
-router.get('/learned', getLearnedMatches);
+router.get('/learned', requireAuth, getLearnedMatches);
 router.get('/', requireAuth, getScans);
 router.get('/:id', requireAuth, getScanById);
 router.post('/', requireAuth, createScan);

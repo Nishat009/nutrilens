@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const { sendError } = require('../utils/http');
 
 const PROFILE_FIELDS = [
   'name', 'email', 'gender', 'dob', 'heightCm', 'weightKg', 'targetWeightKg',
@@ -12,13 +13,7 @@ const GOAL_FIELDS = [
   'targetFiberG', 'targetWaterMl', 'weeklyWeightChangeKg', 'isActive',
 ];
 
-const fail = (res, error) => res.status(422).json({
-  success: false,
-  code: 422,
-  errors: error.errors
-    ? Object.values(error.errors).map((item) => item.message)
-    : [error.message || 'Database operation failed'],
-});
+const fail = (res, error) => sendError(res, error, 'Database operation failed');
 const publicUser = (user) => {
   const result = user.toObject();
   delete result.password;
@@ -29,10 +24,7 @@ const publicUser = (user) => {
 // @route   GET /api/users/:id
 exports.getUserProfile = async (req, res) => {
   try {
-    const user = req.user;
-    if (!user || (req.params.id !== 'current' && req.params.id !== String(user._id))) {
-      return fail(res, new Error('User profile not found'));
-    }
+    const user = req.user; // ownership checked by requireSelf
 
     res.status(200).json({
       success: true,
@@ -49,15 +41,7 @@ exports.getUserProfile = async (req, res) => {
 // @route   PUT /api/users/:id
 exports.updateUserProfile = async (req, res) => {
   try {
-    const user = req.user;
-
-    if (!user || (req.params.id !== 'current' && req.params.id !== String(user._id))) {
-      return res.status(422).json({
-        success: false,
-        code: 422,
-        errors: ['User not found'],
-      });
-    }
+    const user = req.user; // ownership checked by requireSelf
 
     for (const field of PROFILE_FIELDS) {
       // Shared demo logins keep their published email so the one-click login keeps working.
@@ -86,15 +70,7 @@ exports.updateUserProfile = async (req, res) => {
 // @route   PUT /api/users/:id/goal
 exports.updateUserGoal = async (req, res) => {
   try {
-    const user = req.user;
-
-    if (!user || (req.params.id !== 'current' && req.params.id !== String(user._id))) {
-      return res.status(422).json({
-        success: false,
-        code: 422,
-        errors: ['User not found'],
-      });
-    }
+    const user = req.user; // ownership checked by requireSelf
 
     for (const field of GOAL_FIELDS) {
       if (Object.prototype.hasOwnProperty.call(req.body, field)) user.set(`goal.${field}`, req.body[field]);

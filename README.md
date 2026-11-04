@@ -106,12 +106,14 @@ graph TB
 
 > **Full clean-machine guide (MongoDB install, service start, seeding, first login, branding, troubleshooting): [HowToSetup.md](HowToSetup.md).**
 
-Short version, with Node 20+ and a running MongoDB:
+Short version, with Node 20+ (see `.nvmrc`) and a running MongoDB:
 ```bash
-npm install && npm --prefix server install && npm --prefix web install
+npm run install:all                  # npm ci in root, server/ and web/ (exact lockfile versions)
 cp server/.env.example server/.env   # set MONGODB_URI=mongodb://127.0.0.1:27017/nutrilens and JWT_SECRET
 cp web/.env.example web/.env.local   # NEXT_PUBLIC_API_URL must match the API PORT
+npm --prefix server run db:migrate   # collections + indexes from the Mongoose models
 npm run seed                         # wipes and reloads the database (dev only)
+npm run check                        # server syntax check + web production build
 npm run dev                          # API + web
 ```
 First login: open http://localhost:3000/login and click **Member App** (`demo.member@nutrilens.app` / `Demo@1234`). If MongoDB is down, the API answers HTTP 503 with a "Database unavailable" setup message instead of a 500.

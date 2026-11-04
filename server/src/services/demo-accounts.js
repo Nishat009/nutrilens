@@ -11,11 +11,13 @@ const { generatePersonalizedDietRecommendation } = require('./diet-recommendatio
 const isDemoModeEnabled = () => process.env.DEMO_MODE !== 'false';
 
 // Shown on the login page — keep in sync with web/src/lib/constants (DEMO_LOGINS).
+// The defaults are public showcase passwords; override them per deployment with
+// DEMO_MEMBER_PASSWORD / DEMO_ADMIN_PASSWORD (and the matching NEXT_PUBLIC_* values in web/).
 const DEMO_ACCOUNTS = [
   {
     role: 'user',
     email: 'demo.member@nutrilens.app',
-    password: 'Demo@1234',
+    password: process.env.DEMO_MEMBER_PASSWORD || 'Demo@1234',
     profile: {
       name: 'Ayesha Rahman',
       gender: 'female',
@@ -37,7 +39,7 @@ const DEMO_ACCOUNTS = [
   {
     role: 'admin',
     email: 'demo.admin@nutrilens.app',
-    password: 'Admin@1234',
+    password: process.env.DEMO_ADMIN_PASSWORD || 'Admin@1234',
     profile: {
       name: 'Demo Admin',
       gender: 'male',

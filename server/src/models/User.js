@@ -46,7 +46,7 @@ const UserSchema = new mongoose.Schema(
     },
     password: {
       type: String,
-      default: 'password123',
+      required: [true, 'Password is required'], // scrypt$<salt>$<hash>, set via utils/password
       select: false,
     },
     role: {

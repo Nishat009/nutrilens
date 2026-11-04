@@ -3,16 +3,20 @@
   "version": "1.0.0",
   "description": "NutriLens — AI Fitness & Nutrition Platform",
   "private": true,
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "dev": "concurrently -n \"SERVER,CLIENT\" -c \"blue,green\" \"npm --prefix server run dev\" \"npm --prefix web run dev\"",
     "server": "npm --prefix server run dev",
     "web": "npm --prefix web run dev",
     "build": "npm --prefix web run build",
     "start": "npm --prefix web run start",
-    "seed": "npm --prefix server run seed"
+    "seed": "npm --prefix server run seed",
+    "install:all": "npm ci && npm --prefix server ci && npm --prefix web ci",
+    "check": "npm --prefix server run build && npm --prefix web run build"
   },
   "devDependencies": {
-    "concurrently": "^9.1.2"
+    "concurrently": "9.2.5"
   }
 }
-

@@ -11,14 +11,12 @@ const encodePassword = (password) => {
   return `scrypt$${salt}$${hash}`;
 };
 
+// Only scrypt hashes are accepted; a plain-text stored value never matches.
 const passwordMatches = (password, storedPassword) => {
-  if (!storedPassword) return false;
-  if (storedPassword.startsWith('scrypt$')) {
-    const [, salt, hash] = storedPassword.split('$');
-    const derived = crypto.scryptSync(password, salt, 64).toString('hex');
-    return crypto.timingSafeEqual(Buffer.from(derived, 'hex'), Buffer.from(hash, 'hex'));
-  }
-  return password === storedPassword;
+  if (typeof password !== 'string' || !storedPassword || !storedPassword.startsWith('scrypt$')) return false;
+  const [, salt, hash] = storedPassword.split('$');
+  const derived = crypto.scryptSync(password, salt, 64).toString('hex');
+  return crypto.timingSafeEqual(Buffer.from(derived, 'hex'), Buffer.from(hash, 'hex'));
 };
 
 module.exports = { encodePassword, passwordMatches };

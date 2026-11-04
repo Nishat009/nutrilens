@@ -1,5 +1,6 @@
 const DietPlan = require('../models/DietPlan');
 const User = require('../models/User');
+const { sendError } = require('../utils/http');
 const {
   generatePersonalizedDietRecommendation,
   getFoodSwaps,
@@ -51,10 +52,10 @@ exports.getDietBySlug = async (req, res) => {
     const query = req.params.slug;
     let diet = await DietPlan.findOne({ $or: [{ slug: query }, { id: query }, { name: query }] });
     if (!diet) diet = resolveDietPlan(query);
-    if (!diet) return res.status(422).json({ success: false, code: 422, errors: ['Diet protocol not found'] });
+    if (!diet) return sendError(res, 'Diet protocol not found');
     res.status(200).json({ success: true, code: 200, message: 'Diet protocol retrieved successfully', data: diet });
   } catch (error) {
-    res.status(422).json({ success: false, code: 422, errors: [error.message || 'Failed to retrieve diet protocol'] });
+    sendError(res, error, 'Failed to retrieve diet protocol');
   }
 };
 
@@ -66,20 +67,12 @@ exports.adoptDiet = async (req, res) => {
 
     const targetIdentifier = dietId || dietName;
     if (!targetIdentifier) {
-      return res.status(422).json({
-        success: false,
-        code: 422,
-        errors: ['Diet identifier (id, slug, or name) is required'],
-      });
+      return sendError(res, 'Diet identifier (id, slug, or name) is required');
     }
 
     const user = req.user;
     if (!user) {
-      return res.status(422).json({
-        success: false,
-        code: 422,
-        errors: ['User profile not found'],
-      });
+      return sendError(res, 'User profile not found');
     }
 
     // Step 1: Safety & Eligibility Validation
@@ -128,11 +121,7 @@ exports.adoptDiet = async (req, res) => {
       },
     });
   } catch (error) {
-    res.status(422).json({
-      success: false,
-      code: 422,
-      errors: [error.message || 'Failed to adopt diet plan'],
-    });
+    sendError(res, error, 'Failed to adopt diet plan');
   }
 };
 
@@ -168,11 +157,7 @@ exports.getPersonalizedRecommendation = async (req, res) => {
       data: recommendation,
     });
   } catch (error) {
-    res.status(422).json({
-      success: false,
-      code: 422,
-      errors: [error.message || 'Failed to generate personalized diet recommendation'],
-    });
+    sendError(res, error, 'Failed to generate personalized diet recommendation');
   }
 };
 
@@ -182,11 +167,7 @@ exports.getFoodSwapAlternatives = async (req, res) => {
   try {
     const { foodId, allergies = [], dietType = 'balanced' } = req.body;
     if (!foodId) {
-      return res.status(422).json({
-        success: false,
-        code: 422,
-        errors: ['Please provide a foodId to get swap alternatives'],
-      });
+      return sendError(res, 'Please provide a foodId to get swap alternatives');
     }
 
     const swaps = getFoodSwaps(foodId, allergies, dietType);
@@ -198,11 +179,7 @@ exports.getFoodSwapAlternatives = async (req, res) => {
       data: swaps,
     });
   } catch (error) {
-    res.status(422).json({
-      success: false,
-      code: 422,
-      errors: [error.message || 'Failed to retrieve food swap alternatives'],
-    });
+    sendError(res, error, 'Failed to retrieve food swap alternatives');
   }
 };
 
@@ -220,11 +197,7 @@ exports.submitAdaptiveReview = async (req, res) => {
       data: reviewResult,
     });
   } catch (error) {
-    res.status(422).json({
-      success: false,
-      code: 422,
-      errors: [error.message || 'Failed to review adaptive progress'],
-    });
+    sendError(res, error, 'Failed to review adaptive progress');
   }
 };
 

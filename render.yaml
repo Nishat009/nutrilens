@@ -3,11 +3,13 @@ services:
     name: nutrilens-api
     env: node
     rootDir: server
-    buildCommand: npm install
+    buildCommand: npm ci
     startCommand: npm start
     plan: free
     healthCheckPath: /api/health
     envVars:
+      - key: NODE_VERSION
+        value: "20" # Same major as .nvmrc and package.json engines
       - key: NODE_ENV
         value: production
       - key: PORT

@@ -1,20 +1,10 @@
-const mongoose = require('mongoose');
 const Meal = require('../models/Meal');
+const { sendError } = require('../utils/http');
 
 // @desc    Get the signed-in member's meals (optionally for one date)
 // @route   GET /api/meals
 exports.getMeals = async (req, res) => {
   try {
-    if (mongoose.connection.readyState !== 1) {
-      return res.status(200).json({
-        success: true,
-        code: 200,
-        message: 'Meals retrieved (offline mode)',
-        count: 0,
-        data: [],
-      });
-    }
-
     const { date } = req.query;
     const filter = { userId: req.user._id };
 
@@ -31,13 +21,7 @@ exports.getMeals = async (req, res) => {
       data: meals,
     });
   } catch (error) {
-    res.status(200).json({
-      success: true,
-      code: 200,
-      message: 'Meals retrieved (fallback)',
-      count: 0,
-      data: [],
-    });
+    sendError(res, error, 'Failed to retrieve meals');
   }
 };
 
@@ -47,11 +31,7 @@ exports.getMealById = async (req, res) => {
   try {
     const meal = await Meal.findOne({ _id: req.params.id, userId: req.user._id });
     if (!meal) {
-      return res.status(422).json({
-        success: false,
-        code: 422,
-        errors: ['Meal not found'],
-      });
+      return sendError(res, 'Meal not found');
     }
     res.status(200).json({
       success: true,
@@ -60,11 +40,7 @@ exports.getMealById = async (req, res) => {
       data: meal,
     });
   } catch (error) {
-    res.status(422).json({
-      success: false,
-      code: 422,
-      errors: [error.message || 'Failed to retrieve meal details'],
-    });
+    sendError(res, error, 'Failed to retrieve meal details');
   }
 };
 
@@ -112,15 +88,7 @@ exports.createMeal = async (req, res) => {
       data: meal,
     });
   } catch (error) {
-    const errors = error.errors
-      ? Object.values(error.errors).map((e) => e.message)
-      : [error.message || 'Failed to create meal'];
-
-    res.status(422).json({
-      success: false,
-      code: 422,
-      errors,
-    });
+    sendError(res, error, 'Failed to create meal');
   }
 };
 
@@ -130,11 +98,7 @@ exports.deleteMeal = async (req, res) => {
   try {
     const meal = await Meal.findOneAndDelete({ _id: req.params.id, userId: req.user._id });
     if (!meal) {
-      return res.status(422).json({
-        success: false,
-        code: 422,
-        errors: ['Meal not found'],
-      });
+      return sendError(res, 'Meal not found');
     }
     res.status(200).json({
       success: true,
@@ -142,10 +106,6 @@ exports.deleteMeal = async (req, res) => {
       message: 'Meal deleted successfully',
     });
   } catch (error) {
-    res.status(422).json({
-      success: false,
-      code: 422,
-      errors: [error.message || 'Failed to delete meal'],
-    });
+    sendError(res, error, 'Failed to delete meal');
   }
 };

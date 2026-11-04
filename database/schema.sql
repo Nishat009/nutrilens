@@ -1,12 +1,14 @@
--- NutriLens database schema (PostgreSQL dialect)
+-- NutriLens database schema (PostgreSQL dialect) -- DOCUMENTATION / REFERENCE ONLY
 --
--- The running application stores its data in MongoDB through the Mongoose models in
--- server/src/models/. MongoDB creates collections and indexes automatically on first
--- start (`npm run seed` in server/ fills them). This file is the same data model written
--- as SQL so the database can be created from scratch in a relational engine and reviewed
--- as a whole. Table = Mongoose model; the JSON columns hold the nested sub-documents.
+-- The running application does NOT use this file. It stores its data in MongoDB through
+-- the Mongoose models in server/src/models/. To create the runtime database run, in server/:
+--   npm run db:migrate   (creates every collection and its indexes from the models)
+--   npm run seed         (loads diets, foods, vegetables and demo accounts)
+-- This file is the same data model written as SQL so it can be reviewed as a whole (or
+-- loaded into PostgreSQL for analysis). Table = Mongoose model, nested sub-documents become
+-- child tables or JSON columns. The model-to-table mapping is in database/README.md.
 --
--- Usage:  psql "$DATABASE_URL" -f database/schema.sql && psql "$DATABASE_URL" -f database/seed.sql
+-- Optional reference load:  psql "$DATABASE_URL" -f database/schema.sql && psql "$DATABASE_URL" -f database/seed.sql
 
 BEGIN;
 
@@ -97,6 +99,7 @@ CREATE TABLE IF NOT EXISTS meals (
 );
 CREATE INDEX IF NOT EXISTS idx_meals_user ON meals (user_id);
 CREATE INDEX IF NOT EXISTS idx_meals_date ON meals (date);
+CREATE INDEX IF NOT EXISTS idx_meals_user_date ON meals (user_id, date);
 
 CREATE TABLE IF NOT EXISTS meal_items (
   id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -135,6 +138,7 @@ CREATE TABLE IF NOT EXISTS food_scans (
   updated_at          TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS idx_food_scans_user ON food_scans (user_id);
+CREATE INDEX IF NOT EXISTS idx_food_scans_user_created ON food_scans (user_id, created_at DESC);
 
 CREATE TABLE IF NOT EXISTS scan_items (
   id                 UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -203,6 +207,7 @@ CREATE TABLE IF NOT EXISTS weight_logs (
 );
 CREATE INDEX IF NOT EXISTS idx_weight_logs_user ON weight_logs (user_id);
 CREATE INDEX IF NOT EXISTS idx_weight_logs_date ON weight_logs (date);
+CREATE INDEX IF NOT EXISTS idx_weight_logs_user_date ON weight_logs (user_id, date DESC);
 
 -- ---------------------------------------------------------------------------
 -- diet_plans  (server/src/models/DietPlan.js)

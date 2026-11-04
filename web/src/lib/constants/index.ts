@@ -7,6 +7,7 @@ export const APP_LOGO_URL = process.env.NEXT_PUBLIC_APP_LOGO_URL?.trim() || '';
 export const APP_TAGLINE = 'Precision AI Food Recognition & Intelligent Health Dashboard';
 
 // One-click demo logins on /login. Keep in sync with DEMO_ACCOUNTS in server/src/services/demo-accounts.js.
+// Passwords default to the public showcase values; set NEXT_PUBLIC_DEMO_*_PASSWORD to match the API's DEMO_*_PASSWORD.
 export const DEMO_MODE_ENABLED = process.env.NEXT_PUBLIC_DEMO_MODE !== 'false';
 
 export const DEMO_LOGINS = [
@@ -15,14 +16,14 @@ export const DEMO_LOGINS = [
     label: 'Member App',
     description: 'Dashboard, AI food scanner, diet plan, planner & progress',
     email: 'demo.member@nutrilens.app',
-    password: 'Demo@1234',
+    password: process.env.NEXT_PUBLIC_DEMO_MEMBER_PASSWORD || 'Demo@1234',
   },
   {
     role: 'admin',
     label: 'Admin Panel',
     description: 'Members, AI scan activity, diet protocols & food catalogue',
     email: 'demo.admin@nutrilens.app',
-    password: 'Admin@1234',
+    password: process.env.NEXT_PUBLIC_DEMO_ADMIN_PASSWORD || 'Admin@1234',
   },
 ] as const;
 

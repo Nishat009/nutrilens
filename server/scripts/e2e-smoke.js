@@ -22,12 +22,21 @@ async function main() {
   const health = await call('GET', '/api/health');
   assert.equal(health.database?.connected, true, 'API is up but MongoDB is not connected — see HowToSetup.md');
 
-  const login = await call('POST', '/api/auth/login', { body: { email: 'demo.member@nutrilens.app', password: 'Demo@1234' } });
+  const login = await call('POST', '/api/auth/login', { body: { email: 'demo.member@nutrilens.app', password: process.env.DEMO_MEMBER_PASSWORD || 'Demo@1234' } });
   const token = login.data?.token;
   assert.ok(token, 'member login failed — did you run "npm run seed"?');
   await call('POST', '/api/auth/login', { body: { email: 'demo.member@nutrilens.app', password: 'wrong-password' }, expect: 422 });
   await call('GET', '/api/auth/me', { token });
   await call('GET', '/api/auth/me', { expect: 422 });
+  // Member-only routes reject anonymous callers; profiles can only be changed by their owner.
+  await call('POST', '/api/vegetables/match', { body: { query: 'tomato' }, expect: 422 });
+  await call('POST', '/api/vegetables/tomato/calculate', { body: { quantityGrams: 100 }, expect: 422 });
+  await call('GET', '/api/scan/learned', { expect: 422 });
+  await call('GET', '/api/diets/recommendations', { expect: 422 });
+  await call('PUT', '/api/users/000000000000000000000000', { token, body: { name: 'Not mine' }, expect: 422 });
+  await call('PUT', '/api/users/000000000000000000000000/goal', { token, body: { targetCalories: 1 }, expect: 422 });
+  // Search text is matched literally, so regex metacharacters cannot break the query.
+  await call('GET', '/api/foods?search=(((');
 
   const email = `e2e-${Date.now()}@example.com`;
   const reg = await call('POST', '/api/auth/register', { body: { name: 'E2E Tester', email, password: 'E2e@12345' } });
@@ -61,7 +70,7 @@ async function main() {
   await call('GET', '/api/scans', { token });
   await call('GET', '/api/scan/learned', { token });
 
-  const admin = await call('POST', '/api/auth/login', { body: { email: 'demo.admin@nutrilens.app', password: 'Admin@1234' } });
+  const admin = await call('POST', '/api/auth/login', { body: { email: 'demo.admin@nutrilens.app', password: process.env.DEMO_ADMIN_PASSWORD || 'Admin@1234' } });
   const at = admin.data?.token;
   for (const p of ['overview', 'users', 'scans', 'diets', 'catalog']) await call('GET', `/api/admin/${p}`, { token: at });
   await call('GET', '/api/admin/overview', { token, expect: 422 });

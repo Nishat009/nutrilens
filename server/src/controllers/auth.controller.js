@@ -2,6 +2,7 @@ const User = require('../models/User');
 const { createToken } = require('../middleware/auth');
 const { encodePassword, passwordMatches } = require('../utils/password');
 const { refreshDemoActivity } = require('../services/demo-accounts');
+const { sendError } = require('../utils/http');
 
 const serializeUser = (user) => {
   const result = user.toObject ? user.toObject() : { ...user };
@@ -17,21 +18,13 @@ exports.register = async (req, res) => {
     const { name, email, password, gender, dob, heightCm, weightKg, activityLevel } = req.body;
 
     if (!name || !email || !password || password.length < 8) {
-      return res.status(422).json({
-        success: false,
-        code: 422,
-        errors: ['Name, email, and a password of at least 8 characters are required'],
-      });
+      return sendError(res, 'Name, email, and a password of at least 8 characters are required');
     }
 
     // Check if user already exists
     let user = await User.findOne({ email });
     if (user) {
-      return res.status(422).json({
-        success: false,
-        code: 422,
-        errors: ['User already exists with this email'],
-      });
+      return sendError(res, 'User already exists with this email');
     }
 
     user = await User.create({
@@ -52,15 +45,7 @@ exports.register = async (req, res) => {
       data: { user: serializeUser(user), token: createToken(user._id) },
     });
   } catch (error) {
-    const errors = error.errors
-      ? Object.values(error.errors).map((e) => e.message)
-      : [error.message || 'An error occurred during registration'];
-
-    res.status(422).json({
-      success: false,
-      code: 422,
-      errors,
-    });
+    sendError(res, error, 'An error occurred during registration');
   }
 };
 
@@ -71,20 +56,12 @@ exports.login = async (req, res) => {
     const { email, password, clientDate } = req.body;
 
     if (!email || !password) {
-      return res.status(422).json({
-        success: false,
-        code: 422,
-        errors: ['Please provide both email and password'],
-      });
+      return sendError(res, 'Please provide both email and password');
     }
 
     const user = await User.findOne({ email }).select('+password');
     if (!user || !passwordMatches(password, user.password)) {
-      return res.status(422).json({
-        success: false,
-        code: 422,
-        errors: ['Invalid email or password'],
-      });
+      return sendError(res, 'Invalid email or password');
     }
 
     if (!user.password.startsWith('scrypt$')) {
@@ -106,15 +83,7 @@ exports.login = async (req, res) => {
       data: { user: serializeUser(user), token: createToken(user._id) },
     });
   } catch (error) {
-    const errors = error.errors
-      ? Object.values(error.errors).map((e) => e.message)
-      : [error.message || 'An error occurred during login'];
-
-    res.status(422).json({
-      success: false,
-      code: 422,
-      errors,
-    });
+    sendError(res, error, 'An error occurred during login');
   }
 };
 
@@ -124,11 +93,7 @@ exports.getMe = async (req, res) => {
   try {
     const user = req.user;
     if (!user) {
-      return res.status(422).json({
-        success: false,
-        code: 422,
-        errors: ['No user profile found'],
-      });
+      return sendError(res, 'No user profile found');
     }
     res.status(200).json({
       success: true,
@@ -137,10 +102,6 @@ exports.getMe = async (req, res) => {
       data: serializeUser(user),
     });
   } catch (error) {
-    res.status(422).json({
-      success: false,
-      code: 422,
-      errors: [error.message || 'An error occurred retrieving user profile'],
-    });
+    sendError(res, error, 'An error occurred retrieving user profile');
   }
 };

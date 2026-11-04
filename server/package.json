@@ -1,24 +1,29 @@
 {
   "name": "nutrilens-server",
   "version": "1.0.0",
+  "engines": {
+    "node": ">=20"
+  },
   "description": "NutriLens Express + MongoDB API Server",
   "main": "src/index.js",
   "scripts": {
     "build": "node scripts/check-syntax.js",
     "test:e2e": "node scripts/e2e-smoke.js",
+    "verify:live": "node scripts/verify-live.js",
     "test:persistence": "node scripts/test-user-persistence.js",
     "dev": "nodemon src/index.js",
     "start": "node src/index.js",
-    "seed": "node src/seed.js"
+    "seed": "node src/seed.js",
+    "db:migrate": "node scripts/migrate.js"
   },
   "dependencies": {
-    "cors": "^2.8.5",
-    "dotenv": "^16.4.7",
-    "express": "^4.21.2",
-    "mongoose": "^8.12.1",
-    "morgan": "^1.10.0"
+    "cors": "2.8.6",
+    "dotenv": "16.6.1",
+    "express": "4.22.3",
+    "mongoose": "8.24.8",
+    "morgan": "1.12.1"
   },
   "devDependencies": {
-    "nodemon": "^3.1.9"
+    "nodemon": "3.1.14"
   }
 }

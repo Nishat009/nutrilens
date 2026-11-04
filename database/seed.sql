@@ -1,4 +1,5 @@
--- NutriLens demo data (PostgreSQL). Run after database/schema.sql.
+-- NutriLens demo data (PostgreSQL) -- DOCUMENTATION / REFERENCE ONLY. Run after database/schema.sql.
+-- The live app seeds MongoDB with `npm run seed` (server/src/seed.js); this file mirrors that data.
 --
 -- Mirrors the demo data the API creates on start when DEMO_MODE=true
 -- (server/src/services/demo-accounts.js) so a reviewer or buyer sees a working system:

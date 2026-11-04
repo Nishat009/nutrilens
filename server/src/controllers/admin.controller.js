@@ -8,18 +8,13 @@ const Food = require('../models/Food');
 const Vegetable = require('../models/Vegetable');
 const LearnedFoodMatch = require('../models/LearnedFoodMatch');
 const { CANONICAL_DIETS } = require('../services/nutrition-intelligence');
+const { escapeRegex } = require('../utils/regex');
+const { sendError } = require('../utils/http');
 
 const ok = (res, data, message = 'Admin data retrieved successfully') =>
   res.status(200).json({ success: true, code: 200, message, data });
 
-const fail = (res, error) =>
-  res.status(422).json({
-    success: false,
-    code: 422,
-    errors: [typeof error === 'string' ? error : error.message || 'Admin request failed'],
-  });
-
-const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const fail = (res, error) => sendError(res, error, 'Admin request failed');
 
 const pageParams = (query, defaultLimit = 10) => {
   const page = Math.max(1, parseInt(query.page, 10) || 1);

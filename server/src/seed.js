@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 
@@ -180,7 +181,8 @@ const seedDB = async () => {
     const user = await User.create({
       name: 'Alex Morgan',
       email: 'alex.morgan@nutrilens.ai',
-      password: encodePassword('password123'),
+      // Sample data owner only: random password, nobody can sign in as this account.
+      password: encodePassword(crypto.randomBytes(24).toString('hex')),
       gender: 'male',
       dob: '1998-05-14',
       heightCm: 178,

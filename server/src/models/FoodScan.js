@@ -51,4 +51,7 @@ const FoodScanSchema = new mongoose.Schema(
   }
 );
 
+// Scan history is listed per user, newest first.
+FoodScanSchema.index({ userId: 1, createdAt: -1 });
+
 module.exports = mongoose.model('FoodScan', FoodScanSchema);

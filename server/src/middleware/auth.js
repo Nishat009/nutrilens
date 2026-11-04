@@ -1,10 +1,17 @@
 const crypto = require('crypto');
 const User = require('../models/User');
 
+// Without JWT_SECRET (local development only) a random per-process secret is used, so no
+// shared fallback key ships in the repo; dev logins reset when the server restarts.
+let devSecret = null;
 const getSecret = () => {
   if (process.env.JWT_SECRET) return process.env.JWT_SECRET;
   if (process.env.NODE_ENV === 'production') throw new Error('JWT_SECRET must be set in production');
-  return 'nutrilens-development-secret-change-me'; // local development only
+  if (!devSecret) {
+    devSecret = crypto.randomBytes(48).toString('hex');
+    console.warn('JWT_SECRET is not set; using a random development secret (logins reset on restart).');
+  }
+  return devSecret;
 };
 
 function createToken(userId) {
@@ -48,6 +55,16 @@ function requireAdmin(req, res, next) {
   next();
 }
 
+// Use after requireAuth on /:id routes: members may only read or change their own record
+// (`:id` is `current` or the caller's own id), so ownership is enforced before any handler runs.
+function requireSelf(req, res, next) {
+  const { id } = req.params;
+  if (id !== 'current' && id !== String(req.user?._id)) {
+    return res.status(422).json({ success: false, code: 422, errors: ['User not found'] });
+  }
+  next();
+}
+
 // The demo admin is shared by every visitor, so it can browse but not change data.
 function blockDemoWrites(req, res, next) {
   if (req.user?.isDemo) {
@@ -60,4 +77,4 @@ function blockDemoWrites(req, res, next) {
   next();
 }
 
-module.exports = { createToken, requireAuth, requireAdmin, blockDemoWrites };
+module.exports = { createToken, requireAuth, requireAdmin, requireSelf, blockDemoWrites };
