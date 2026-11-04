@@ -1,7 +1,11 @@
 const crypto = require('crypto');
 const User = require('../models/User');
 
-const getSecret = () => process.env.JWT_SECRET || 'nutrilens-development-secret-change-me';
+const getSecret = () => {
+  if (process.env.JWT_SECRET) return process.env.JWT_SECRET;
+  if (process.env.NODE_ENV === 'production') throw new Error('JWT_SECRET must be set in production');
+  return 'nutrilens-development-secret-change-me'; // local development only
+};
 
 function createToken(userId) {
   const header = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64url');

@@ -122,9 +122,13 @@ export async function teachVisualMemory(
     const base = process.env.NEXT_PUBLIC_API_URL
       ? process.env.NEXT_PUBLIC_API_URL.replace(/\/+$/, '')
       : '';
+    const token = typeof window !== 'undefined' ? window.localStorage.getItem('nutrilens_token') : null;
     fetch(`${base}/api/scans/teach`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
       body: JSON.stringify({
         foodId: food.id,
         foodName: food.name,

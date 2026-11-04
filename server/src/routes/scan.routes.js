@@ -12,8 +12,8 @@ const {
 } = require('../controllers/scan.controller');
 
 router.post('/analyze', requireAuth, analyzeFoodScan);
-router.post('/evaluate', evaluateScanFood);
-router.post('/teach', teachFoodScan);
+router.post('/evaluate', requireAuth, evaluateScanFood);
+router.post('/teach', requireAuth, teachFoodScan);
 router.get('/learned', getLearnedMatches);
 router.get('/', requireAuth, getScans);
 router.get('/:id', requireAuth, getScanById);

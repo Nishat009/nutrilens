@@ -11,6 +11,7 @@ const WeightLog = require('./models/WeightLog');
 const DietPlan = require('./models/DietPlan');
 const PlannedMeal = require('./models/PlannedMeal');
 const Vegetable = require('./models/Vegetable');
+const { encodePassword } = require('./utils/password');
 const { VEGETABLES_DATA } = require('./data/vegetables-data');
 const { DEMO_ACCOUNTS, ensureDemoAccounts, isDemoModeEnabled } = require('./services/demo-accounts');
 
@@ -179,7 +180,7 @@ const seedDB = async () => {
     const user = await User.create({
       name: 'Alex Morgan',
       email: 'alex.morgan@nutrilens.ai',
-      password: 'password123',
+      password: encodePassword('password123'),
       gender: 'male',
       dob: '1998-05-14',
       heightCm: 178,
