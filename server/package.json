@@ -5,6 +5,7 @@
   "main": "src/index.js",
   "scripts": {
     "build": "node scripts/check-syntax.js",
+    "test:e2e": "node scripts/e2e-smoke.js",
     "test:persistence": "node scripts/test-user-persistence.js",
     "dev": "nodemon src/index.js",
     "start": "node src/index.js",

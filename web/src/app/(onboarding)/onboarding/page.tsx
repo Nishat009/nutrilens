@@ -44,6 +44,8 @@ import {
 } from '../../../lib/types';
 import { cmToFeetInches, feetInchesToCm } from '../../../lib/utils/format';
 import { generatePersonalizedDietRecommendation } from '../../../services/diet-recommender';
+import { APP_NAME } from '../../../lib/constants';
+import BrandLogo from '../../../components/brand/BrandLogo';
 import { PersonalizedDietPlanView } from '../../../components/diets/PersonalizedDietPlanView';
 
 const GOAL_OPTIONS_LIST: { id: GoalType; title: string; desc: string; icon: string }[] = [
@@ -337,10 +339,8 @@ export default function OnboardingPage() {
       <div className="max-w-3xl w-full mx-auto space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center shadow-md shadow-emerald-500/20">
-              <Sparkles className="w-4 h-4 text-slate-950" />
-            </div>
-            <span className="font-black tracking-tight text-white text-lg">NutriLens</span>
+            <BrandLogo size="sm" />
+            <span className="font-black tracking-tight text-white text-lg">{APP_NAME}</span>
           </div>
 
           <div className="text-xs font-semibold text-slate-400">
@@ -651,7 +651,7 @@ export default function OnboardingPage() {
             <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs leading-relaxed flex items-start gap-2.5">
               <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
               <div>
-                <span className="font-bold">Clinical Safety Notice:</span> NutriLens does not diagnose or treat medical conditions. If you have kidney disease, are pregnant, or take diabetes medications, always review diet plans with your physician.
+                <span className="font-bold">Clinical Safety Notice:</span> {APP_NAME} does not diagnose or treat medical conditions. If you have kidney disease, are pregnant, or take diabetes medications, always review diet plans with your physician.
               </div>
             </div>
 
@@ -963,7 +963,7 @@ export default function OnboardingPage() {
 
       {/* Footer Info */}
       <div className="text-center text-[11px] text-slate-500 py-4 max-w-xl mx-auto">
-        NutriLens Nutrition Engine • Calibrated with USDA & Clinical Health Guidelines • Data stays private & secure.
+        {APP_NAME} Nutrition Engine • Calibrated with USDA & Clinical Health Guidelines • Data stays private & secure.
       </div>
     </div>
   );

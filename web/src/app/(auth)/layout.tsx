@@ -1,4 +1,5 @@
 'use client';
+import BrandLogo from '../../components/brand/BrandLogo';
 
 import React from 'react';
 import Link from 'next/link';
@@ -16,9 +17,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
 
         <div className="relative z-10">
           <Link href="/" className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center shadow-lg shadow-emerald-500/25">
-              <Sparkles className="w-5 h-5 text-slate-950 stroke-[2.5]" />
-            </div>
+            <BrandLogo />
             <span className="text-2xl font-black tracking-tight text-white">{APP_NAME}</span>
           </Link>
         </div>

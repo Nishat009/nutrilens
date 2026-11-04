@@ -1,10 +1,11 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import { APP_NAME } from '../lib/constants';
 
 export const metadata: Metadata = {
-  title: 'NutriLens — Precision AI Food Scanner & Nutrition Intelligence',
+  title: `${APP_NAME} — Precision AI Food Scanner & Nutrition Intelligence`,
   description:
-    'NutriLens gives you instant nutritional breakdown of your meals with AI computer vision, personalized macro targets, and clinical-grade health tracking.',
+    `${APP_NAME} gives you instant nutritional breakdown of your meals with AI computer vision, personalized macro targets, and clinical-grade health tracking.`,
 };
 
 export default function RootLayout({

@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { cn } from '../../lib/utils/format';
 import { APP_NAME } from '../../lib/constants';
+import BrandLogo from '../brand/BrandLogo';
 import { useAuthStore } from '../../lib/stores/auth-store';
 
 const adminNavItems = [
@@ -41,9 +42,11 @@ function AdminSidebarContent({ onNavigate }: { onNavigate?: () => void }) {
     <div className="flex flex-col h-full justify-between gap-6">
       <div className="space-y-8">
         <Link href="/admin" onClick={onNavigate} className="flex items-center gap-3 group">
-          <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-purple-500 to-emerald-400 flex items-center justify-center shadow-lg shadow-purple-500/20 group-hover:scale-105 transition-transform">
-            <ShieldCheck className="w-5 h-5 text-slate-950 stroke-[2.5]" />
-          </div>
+          <BrandLogo
+            gradient="from-purple-500 to-emerald-400 shadow-purple-500/20"
+            icon={<ShieldCheck className="w-5 h-5 text-slate-950 stroke-[2.5]" />}
+            className="group-hover:scale-105 transition-transform"
+          />
           <div>
             <span className="text-xl font-black tracking-tight text-white flex items-center gap-1.5">
               {APP_NAME}

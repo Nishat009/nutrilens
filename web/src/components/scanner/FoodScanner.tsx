@@ -9,6 +9,7 @@ import { CameraCapture } from './CameraCapture';
 import { FoodAnalysisLoader } from './FoodAnalysisLoader';
 import { FoodAnalysisResult } from './FoodAnalysisResult';
 import { recognizeFoodFromImage, FoodRecognitionResult } from '../../services/food-recognition';
+import { APP_NAME } from '../../lib/constants';
 
 export function FoodScanner() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -99,7 +100,7 @@ export function FoodScanner() {
             Scan Your Meal
           </h1>
           <p className="text-xs sm:text-sm text-slate-400">
-            Photograph your food or upload from your gallery. NutriLens will identify ingredients, estimate portions, and calculate verified nutrition macros.
+            Photograph your food or upload from your gallery. {APP_NAME} will identify ingredients, estimate portions, and calculate verified nutrition macros.
           </p>
         </div>
       )}

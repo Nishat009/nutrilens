@@ -10,6 +10,7 @@ import { Modal } from '../../../../components/ui/Modal';
 import { Skeleton } from '../../../../components/ui/Skeleton';
 import { ErrorState } from '../../../../components/ui/ErrorState';
 import { EmptyState } from '../../../../components/ui/EmptyState';
+import { APP_NAME } from '../../../../lib/constants';
 import { adminApi } from '../../../../services/api-client';
 import { useAuthStore } from '../../../../lib/stores/auth-store';
 import { AdminUserDetail, AdminUserList } from '../../../../lib/types/admin';
@@ -272,7 +273,7 @@ export default function AdminUsersPage() {
     <div className="space-y-6">
       <PageHeader
         title="Members"
-        description="Everyone with a NutriLens account, their assessment status, assigned plan and logging activity."
+        description={`Everyone with a ${APP_NAME} account, their assessment status, assigned plan and logging activity.`}
       />
 
       <Card padding="none">

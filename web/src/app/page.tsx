@@ -1,3 +1,4 @@
+import BrandLogo from '../components/brand/BrandLogo';
 import React from 'react';
 import Link from 'next/link';
 import {
@@ -29,9 +30,7 @@ export default function LandingPage() {
       <header className="sticky top-0 z-50 backdrop-blur-xl bg-slate-950/70 border-b border-slate-800/60 px-6 lg:px-12 py-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center shadow-lg shadow-emerald-500/25">
-              <Sparkles className="w-5 h-5 text-slate-950 stroke-[2.5]" />
-            </div>
+            <BrandLogo />
             <span className="text-xl font-extrabold tracking-tight text-white">{APP_NAME}</span>
           </Link>
 

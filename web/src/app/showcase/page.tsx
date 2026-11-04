@@ -26,6 +26,7 @@ import {
   KeyRound,
 } from 'lucide-react';
 import { APP_NAME, DEMO_LOGINS } from '../../lib/constants';
+import BrandLogo from '../../components/brand/BrandLogo';
 
 export const metadata: Metadata = {
   title: 'NutriLens — AI Nutrition & Clinical Diet Platform · Live Demo',
@@ -176,9 +177,7 @@ export default function ShowcasePage() {
       <header className="sticky top-0 z-50 backdrop-blur-xl bg-slate-950/75 border-b border-slate-800/70 px-4 sm:px-6 lg:px-12 py-3.5">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
           <Link href="/showcase" className="flex items-center gap-3 shrink-0">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center shadow-lg shadow-emerald-500/25">
-              <Sparkles className="w-5 h-5 text-slate-950 stroke-[2.5]" />
-            </div>
+            <BrandLogo />
             <span className="text-xl font-extrabold tracking-tight text-white">{APP_NAME}</span>
           </Link>
           <nav className="hidden lg:flex items-center gap-7 text-sm font-medium text-slate-300" aria-label="Sections">

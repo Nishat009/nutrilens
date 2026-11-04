@@ -104,47 +104,19 @@ graph TB
 
 ## 🚀 Quick Setup & Run Instructions
 
-### 1. Clone & Install Dependencies
+> **Full clean-machine guide (MongoDB install, service start, seeding, first login, branding, troubleshooting): [HowToSetup.md](HowToSetup.md).**
+
+Short version, with Node 20+ and a running MongoDB:
 ```bash
-# Install server dependencies
-cd server
-npm install
-
-# Install web dependencies
-cd ../web
-npm install
+npm install && npm --prefix server install && npm --prefix web install
+cp server/.env.example server/.env   # set MONGODB_URI=mongodb://127.0.0.1:27017/nutrilens and JWT_SECRET
+cp web/.env.example web/.env.local   # NEXT_PUBLIC_API_URL must match the API PORT
+npm run seed                         # wipes and reloads the database (dev only)
+npm run dev                          # API + web
 ```
+First login: open http://localhost:3000/login and click **Member App** (`demo.member@nutrilens.app` / `Demo@1234`). If MongoDB is down, the API answers HTTP 503 with a "Database unavailable" setup message instead of a 500.
 
-### 2. Environment Configuration
-Create `server/.env`:
-```env
-PORT=5000
-MONGODB_URI=mongodb://localhost:27017/nutrilens
-JWT_SECRET=your_secret_key_here
-NODE_ENV=development
-```
-
-Create `web/.env.local`:
-```env
-NEXT_PUBLIC_API_URL=http://localhost:5000
-```
-
-### 3. Seed Database
-```bash
-cd server
-node src/seed.js
-```
-
-### 4. Run Development Servers
-```bash
-# Start Backend (Port 5000)
-cd server
-npm run dev
-
-# Start Frontend (Port 3000)
-cd ../web
-npm run dev
-```
+Branding: set `NEXT_PUBLIC_APP_NAME` and `NEXT_PUBLIC_APP_LOGO_URL` in `web/.env.local`. End-to-end check: `npm --prefix server run test:e2e`.
 
 ### 5. Run Nutrition Intelligence Tests
 ```bash
