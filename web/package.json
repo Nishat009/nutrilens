@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "engines": {
-    "node": ">=20"
+    "node": "24.x"
   },
   "scripts": {
     "dev": "next dev",
@@ -17,8 +17,8 @@
     "clsx": "2.1.1",
     "lucide-react": "0.475.0",
     "next": "15.5.29",
-    "react": "19.2.8",
-    "react-dom": "19.2.8",
+    "react": "19.2.9",
+    "react-dom": "19.2.9",
     "recharts": "2.15.4",
     "tailwind-merge": "3.6.0",
     "zustand": "5.0.15"
@@ -36,6 +36,9 @@
   "overrides": {
     "next": {
       "postcss": "8.5.26"
+    },
+    "@typescript-eslint/typescript-estree": {
+      "minimatch": "11.0.4"
     }
   }
 }

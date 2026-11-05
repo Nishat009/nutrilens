@@ -107,7 +107,7 @@ graph TB
 
 > **Full clean-machine guide (MongoDB install, service start, seeding, first login, branding, troubleshooting): [HowToSetup.md](HowToSetup.md).**
 
-Short version, with Node 20+ (see `.nvmrc`) and a running MongoDB:
+Short version, with Node 24 LTS (see `.nvmrc`) and a running MongoDB:
 ```bash
 npm run install:all                  # npm ci in root, server/ and web/ (exact lockfile versions)
 cp server/.env.example server/.env   # set MONGODB_URI=mongodb://127.0.0.1:27017/nutrilens and JWT_SECRET

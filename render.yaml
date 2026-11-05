@@ -9,7 +9,7 @@ services:
     healthCheckPath: /api/health
     envVars:
       - key: NODE_VERSION
-        value: "20" # Same major as .nvmrc and package.json engines
+        value: "24" # Same major as .nvmrc and every package.json "engines" (Node 24 LTS)
       - key: NODE_ENV
         value: production
       - key: PORT

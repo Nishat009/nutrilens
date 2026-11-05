@@ -3,23 +3,38 @@ const { sendError } = require('../utils/http');
 const { sumNutrients } = require('../utils/nutrients');
 const { MAX_SCAN_IMAGE_BYTES } = require('../config/app');
 
-// @desc    Get the signed-in member's meals (optionally for one date)
+const DEFAULT_PAGE_SIZE = 100;
+const MAX_PAGE_SIZE = 200;
+
+// @desc    Get the signed-in member's meals (optionally for one date), newest first, one page at a time
+//          (?page=1&limit=100, max 200). The photo is left out of the list; GET /api/meals/:id returns it.
 // @route   GET /api/meals
 exports.getMeals = async (req, res) => {
   try {
     const { date } = req.query;
     const filter = { userId: req.user._id };
+    const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+    const limit = Math.min(MAX_PAGE_SIZE, Math.max(1, parseInt(req.query.limit, 10) || DEFAULT_PAGE_SIZE));
 
     if (date) {
-      filter.date = date;
+      filter.date = String(date);
     }
 
-    const meals = await Meal.find(filter).sort({ createdAt: -1 });
+    const [total, meals] = await Promise.all([
+      Meal.countDocuments(filter),
+      Meal.find(filter)
+        .select('-imageUrl')
+        .sort({ createdAt: -1 })
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .lean(),
+    ]);
     res.status(200).json({
       success: true,
       code: 200,
       message: 'Meals retrieved successfully',
       count: meals.length,
+      pagination: { page, limit, total, pages: Math.ceil(total / limit) },
       data: meals,
     });
   } catch (error) {

@@ -9,7 +9,9 @@ exports.getPlannedMeals = async (req, res) => {
     const filter = { userId: req.user._id };
 
     if (dayOfWeek !== undefined && dayOfWeek !== '') {
-      filter.dayOfWeek = parseInt(dayOfWeek, 10);
+      const day = parseInt(dayOfWeek, 10);
+      if (!(day >= 0 && day <= 6)) return sendError(res, 'Day of week must be 0-6');
+      filter.dayOfWeek = day;
     }
 
     const plannedMeals = await PlannedMeal.find(filter).sort({
@@ -39,7 +41,8 @@ exports.addPlannedMeal = async (req, res) => {
       return sendError(res, 'Food name is required');
     }
 
-    if (dayOfWeek === undefined) {
+    const day = parseInt(dayOfWeek, 10);
+    if (!(day >= 0 && day <= 6)) {
       return sendError(res, 'Day of week is required (0-6)');
     }
 
@@ -47,7 +50,7 @@ exports.addPlannedMeal = async (req, res) => {
 
     const plannedMeal = await PlannedMeal.create({
       userId,
-      dayOfWeek: parseInt(dayOfWeek, 10),
+      dayOfWeek: day,
       mealType: mealType || 'lunch',
       foodName,
       calories: Number(calories) || 0,

@@ -14,8 +14,8 @@ Follow these steps top to bottom on a machine with nothing installed.
 
 ## 1. Install prerequisites
 
-### Node.js 20 or newer (includes npm)
-Download the LTS installer from <https://nodejs.org> (or `winget install OpenJS.NodeJS.LTS` on Windows, `brew install node` on macOS). Check: `node -v`.
+### Node.js 24 LTS (includes npm)
+Download the LTS installer from <https://nodejs.org> (or `winget install OpenJS.NodeJS.LTS` on Windows, `brew install node` on macOS). Check: `node -v` prints `v24.x`. With nvm: `nvm install && nvm use` (reads `.nvmrc`).
 
 ### Git
 <https://git-scm.com/downloads>. Check: `git --version`.
@@ -172,7 +172,4 @@ Put the logo in `web/public/brand/` (SVG or PNG, square works best) or use an ab
 
 ## `npm audit` status
 
-`npm audit fix` was applied to root, `server` and `web`. This resolved the critical Next.js RCE advisories, `shell-quote`, `body-parser`, `brace-expansion` and `sharp`. Unused `zod`, `react-hook-form` and `@hookform/resolvers` were removed from `web`. Remaining findings, deliberately not force-fixed:
-
-* **web: `postcss` bundled inside `next` (build-time tooling, no untrusted CSS reaches it).** Clearing it needs `npm audit fix --force`, which jumps Next.js 15 → 16, a breaking major upgrade. Do that as a separate change with a full regression pass.
-* **server: `minimatch` via `nodemon` (dev-only) and `qs` via `express` (moderate).** The offered fix downgrades `nodemon` to 1.0.2; track upstream patches instead.
+`npm audit` reports **0 vulnerabilities** in root, `server/` and `web/`, production and dev (2026-11-05; `next` 15.5.29, `react` 19.2.9). The transitive fixes are scoped `overrides` in `package.json`: `minimatch@11.0.4` (server: `nodemon`; web: `@typescript-eslint/typescript-estree`) and `postcss@8.5.26` inside `next`. Details in [SECURITY.md](SECURITY.md#dependencies).

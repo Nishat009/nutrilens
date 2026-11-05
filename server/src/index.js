@@ -22,6 +22,10 @@ const app = express();
 // Enable Trust Proxy for Render / cloud reverse proxy
 app.enable('trust proxy');
 
+// Query values are always plain strings (last value wins). The default `qs` parser turns
+// `?category[$ne]=x` into an object that MongoDB reads as an operator, and `?q[]=a` into an array.
+app.set('query parser', (str) => Object.fromEntries(new URLSearchParams(str)));
+
 // Middleware
 app.use(helmet());
 app.use('/api', apiLimiter);

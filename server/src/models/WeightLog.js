@@ -29,5 +29,7 @@ const WeightLogSchema = new mongoose.Schema(
 
 // Weight history is listed per user, newest first.
 WeightLogSchema.index({ userId: 1, date: -1 });
+// One entry per member per day: POST /api/progress/weight upserts on this key.
+WeightLogSchema.index({ userId: 1, date: 1 }, { unique: true });
 
 module.exports = mongoose.model('WeightLog', WeightLogSchema);

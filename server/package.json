@@ -2,14 +2,14 @@
   "name": "nutrilens-server",
   "version": "1.0.0",
   "engines": {
-    "node": ">=20"
+    "node": "24.x"
   },
   "description": "NutriLens Express + MongoDB API Server",
   "main": "src/index.js",
   "scripts": {
     "build": "node scripts/check-syntax.js && node scripts/check-schema-docs.js",
     "check:schema-docs": "node scripts/check-schema-docs.js",
-    "test:unit": "node tests/route-guards.test.js && node tests/auth-token.test.js && node tests/diet-engine.test.js && node tests/intelligence.test.js",
+    "test:unit": "node tests/route-guards.test.js && node tests/auth-token.test.js && node tests/diet-engine.test.js && node tests/intelligence.test.js && node tests/nutrition-parity.test.js",
     "test:e2e": "node scripts/e2e-smoke.js",
     "verify:live": "node scripts/verify-live.js",
     "test:persistence": "node scripts/test-user-persistence.js",

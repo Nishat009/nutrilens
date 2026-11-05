@@ -1,3 +1,5 @@
+// Mirrors web/src/services/nutrition-engine.ts (the on-device scanner); tests/nutrition-parity.test.js
+// fails if the two drift apart.
 const { NUTRITION_DATABASE } = require('../data/nutrition-database');
 
 function calculateNutrition(food, quantityGrams) {
@@ -38,8 +40,9 @@ function searchNutritionDatabase(query, category) {
     const matchesName = item.name.toLowerCase().includes(cleanQuery);
     const matchesAlias = item.aliases.some((a) => a.toLowerCase().includes(cleanQuery));
     const matchesTag = item.tags.some((t) => t.toLowerCase().includes(cleanQuery));
+    const matchesVisual = (item.visualDescription || '').toLowerCase().includes(cleanQuery);
 
-    return matchesCategory && (matchesName || matchesAlias || matchesTag);
+    return matchesCategory && (matchesName || matchesAlias || matchesTag || matchesVisual);
   });
 }
 
@@ -74,7 +77,7 @@ function findBestFoodMatch(rawLabel) {
 
   for (const food of NUTRITION_DATABASE) {
     let score = 0;
-    const foodTokens = `${food.name} ${food.aliases.join(' ')}`.toLowerCase().split(/\s+/);
+    const foodTokens = `${food.name} ${food.aliases.join(' ')} ${food.visualDescription || ''}`.toLowerCase().split(/\s+/);
     for (const token of labelTokens) {
       if (token.length > 2 && foodTokens.includes(token)) {
         score++;

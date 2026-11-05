@@ -37,7 +37,7 @@ model field has no matching table or column here, so drift is caught before rele
 | `FoodScan` (FoodScan.js) | `foodscans` | `food_scans` + `scan_items` (embedded `detectedItems[]`) | `userId`; `userId + createdAt desc` |
 | `LearnedFoodMatch` (LearnedFoodMatch.js) | `learnedfoodmatches` | `learned_food_matches` | `userId`; `foodId`; `perceptualHash` |
 | `PlannedMeal` (PlannedMeal.js) | `plannedmeals` | `planned_meals` | `userId`; `userId + dayOfWeek` |
-| `WeightLog` (WeightLog.js) | `weightlogs` | `weight_logs` | `userId`; `date`; `userId + date desc` |
+| `WeightLog` (WeightLog.js) | `weightlogs` | `weight_logs` | `userId`; `date`; `userId + date desc`; unique `userId + date` (one entry per day) |
 | `DietPlan` (DietPlan.js) | `dietplans` | `diet_plans` | unique `slug`; `id` |
 | `Vegetable` (Vegetable.js) | `vegetables` | `vegetables` | unique `slug`; `name`; `aliases`; `category`; `isActive`; weighted text search |
 

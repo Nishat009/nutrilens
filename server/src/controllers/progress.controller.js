@@ -3,13 +3,20 @@ const Meal = require('../models/Meal');
 const User = require('../models/User');
 const { sendError } = require('../utils/http');
 
-// @desc    Get weight logs
+const MAX_WEIGHT_LOGS = 365;
+const MAX_HISTORY_DAYS = 365;
+// YYYY-MM-DD, optionally followed by an ISO time (which is dropped: one weight entry per day).
+const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}(T[\d:.]+(Z|[+-]\d{2}:\d{2})?)?$/;
+
+// The newest `MAX_WEIGHT_LOGS` entries, returned oldest first for the trend chart.
+const recentWeightLogs = async (userId) =>
+  (await WeightLog.find({ userId }).sort({ date: -1 }).limit(MAX_WEIGHT_LOGS).lean()).reverse();
+
+// @desc    Get weight logs (latest 365 entries, oldest first)
 // @route   GET /api/progress/weight
 exports.getWeightLogs = async (req, res) => {
   try {
-    const filter = { userId: req.user._id };
-
-    const logs = await WeightLog.find(filter).sort({ date: 1 });
+    const logs = await recentWeightLogs(req.user._id);
     res.status(200).json({
       success: true,
       code: 200,
@@ -26,27 +33,29 @@ exports.getWeightLogs = async (req, res) => {
 // @route   POST /api/progress/weight
 exports.logWeight = async (req, res) => {
   try {
-    let { date, weightKg, notes } = req.body;
+    const { date, notes } = req.body;
+    const weightKg = Number(req.body.weightKg);
 
-    if (!weightKg) {
-      return sendError(res, 'Please provide a weight value in kg');
+    if (!Number.isFinite(weightKg) || weightKg < 20 || weightKg > 400) {
+      return sendError(res, 'Please provide a weight value in kg (20-400)');
+    }
+    // `date` goes into the upsert filter, so it must be a plain YYYY-MM-DD string.
+    if (date !== undefined && !(typeof date === 'string' && DATE_PATTERN.test(date))) {
+      return sendError(res, 'Date must be YYYY-MM-DD (or an ISO date-time)');
     }
 
     const userId = req.user._id;
-
-    const logDate = date || new Date().toISOString().split('T')[0];
+    const logDate = (date || new Date().toISOString()).slice(0, 10);
 
     // Upsert weight log for the given date
     const log = await WeightLog.findOneAndUpdate(
       { userId, date: logDate },
-      { weightKg, notes: notes || '' },
-      { new: true, upsert: true }
+      { weightKg, notes: typeof notes === 'string' ? notes.slice(0, 500) : '' },
+      { new: true, upsert: true, runValidators: true }
     );
 
     // Also update current weight on User profile
-    if (userId) {
-      await User.findByIdAndUpdate(userId, { weightKg });
-    }
+    await User.updateOne({ _id: userId }, { weightKg });
 
     res.status(200).json({
       success: true,
@@ -63,8 +72,7 @@ exports.logWeight = async (req, res) => {
 // @route   GET /api/progress/nutrition
 exports.getNutritionHistory = async (req, res) => {
   try {
-    const { days = 30 } = req.query;
-    const daysCount = parseInt(days, 10) || 30;
+    const daysCount = Math.min(MAX_HISTORY_DAYS, Math.max(1, parseInt(req.query.days, 10) || 30));
 
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - daysCount);
@@ -72,7 +80,10 @@ exports.getNutritionHistory = async (req, res) => {
 
     const filter = { userId: req.user._id, date: { $gte: startDateStr } };
 
-    const meals = await Meal.find(filter).sort({ date: 1 });
+    const meals = await Meal.find(filter)
+      .sort({ date: 1 })
+      .select('date totalCalories totalProtein totalCarbs totalFat totalFiber')
+      .lean();
 
     // Group meals by date
     const historyMap = {};
@@ -115,11 +126,9 @@ exports.getNutritionHistory = async (req, res) => {
 // @route   GET /api/progress
 exports.getProgressSummary = async (req, res) => {
   try {
-    const filter = { userId: req.user._id };
-
-    const [weightLogs, meals] = await Promise.all([
-      WeightLog.find(filter).sort({ date: 1 }),
-      Meal.find(filter).sort({ date: -1 }).limit(30),
+    const [weightLogs, mealCount] = await Promise.all([
+      recentWeightLogs(req.user._id),
+      Meal.countDocuments({ userId: req.user._id }),
     ]);
 
     res.status(200).json({
@@ -128,7 +137,7 @@ exports.getProgressSummary = async (req, res) => {
       message: 'Progress summary retrieved successfully',
       data: {
         weightLogs,
-        recentMealsCount: meals.length,
+        recentMealsCount: Math.min(mealCount, 30),
       },
     });
   } catch (error) {

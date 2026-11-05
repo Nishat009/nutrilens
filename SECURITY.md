@@ -94,13 +94,13 @@ placeholders. Test scripts generate passwords at runtime with `crypto.randomByte
 
 All versions are pinned exactly, with a committed `package-lock.json` in the root, `server/` and `web/`.
 
-`npm audit` on 2026-11-04:
+`npm audit` on 2026-11-05 (`next` 15.5.29, `react`/`react-dom` 19.2.9):
 
 | Project | Production (`--omit=dev`) | All, including dev tools |
 |---|---|---|
 | root | 0 | 0 |
 | `server/` | 0 | 0 (the `nodemon` → `minimatch` advisory is fixed by an `overrides` pin to `minimatch@11.0.4`) |
-| `web/` | 0 | 14 moderate, all `minimatch` < 11.0.1 (GHSA-g3hv-75wg-m249, ReDoS in glob patterns) inside the ESLint toolchain (`eslint-config-next`). Development-only, never shipped or run on user input; no fix without breaking ESLint plugins that need `minimatch` 3. |
+| `web/` | 0 | 0 (the ESLint toolchain's `@typescript-eslint/typescript-estree` → `minimatch` advisory, GHSA-g3hv-75wg-m249, is fixed by an `overrides` pin to `minimatch@11.0.4`; `next`'s bundled `postcss` is pinned to 8.5.26 the same way) |
 
 No critical or high advisories. Re-run with `npm audit` in each folder before a release.
 

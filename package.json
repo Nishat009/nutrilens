@@ -4,7 +4,7 @@
   "description": "NutriLens — AI Fitness & Nutrition Platform",
   "private": true,
   "engines": {
-    "node": ">=20"
+    "node": "24.x"
   },
   "scripts": {
     "dev": "concurrently -n \"SERVER,CLIENT\" -c \"blue,green\" \"npm --prefix server run dev\" \"npm --prefix web run dev\"",

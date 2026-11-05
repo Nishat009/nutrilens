@@ -211,6 +211,7 @@ CREATE TABLE IF NOT EXISTS weight_logs (
 CREATE INDEX IF NOT EXISTS idx_weight_logs_user ON weight_logs (user_id);
 CREATE INDEX IF NOT EXISTS idx_weight_logs_date ON weight_logs (date);
 CREATE INDEX IF NOT EXISTS idx_weight_logs_user_date ON weight_logs (user_id, date DESC);
+CREATE UNIQUE INDEX IF NOT EXISTS uq_weight_logs_user_day ON weight_logs (user_id, date);
 
 -- ---------------------------------------------------------------------------
 -- diet_plans  (server/src/models/DietPlan.js)

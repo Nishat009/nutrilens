@@ -2,6 +2,30 @@
 
 All notable changes to NutriLens. Format: [Keep a Changelog](https://keepachangelog.com/), versions follow [SemVer](https://semver.org/).
 
+## [1.0.10] - 2026-11-05
+### Security
+- Upgraded `react` and `react-dom` 19.2.8 → **19.2.9** (latest 19.2.x). `next` stays on **15.5.29**, the latest 15.x release (patched for CVE-2025-29927 and the RSC advisories).
+- `web/`: the last 6 moderate advisories (`minimatch` < 11.0.1, GHSA-g3hv-75wg-m249, via `@typescript-eslint` in `eslint-config-next`) are fixed with a scoped `overrides` pin to `minimatch@11.0.4`; `npm audit fix` could not resolve them on its own.
+
+**`npm audit` (2026-11-05):** root 0, `server/` 0, `web/` 0 (production and dev). `web/` production build passes.
+
+### Database access
+- **Fixed query-operator injection.** Express's default `qs` parser turned `?category[$ne]=x` into a MongoDB operator (`GET /api/foods?category[$ne]=…` returned every food) and `?search[]=a` into an array (`GET /api/vegetables` crashed with `search.trim is not a function`). The API now parses query strings into plain string values only (`server/src/index.js`), for every route.
+- `POST /api/progress/weight`: `date` must be `YYYY-MM-DD` or an ISO date-time (stored as the day) before it reaches the upsert filter, `weightKg` must be a number 20–400, and `notes` is capped at 500 characters. New unique index `weightlogs {userId, date}` (one entry per member per day; `uq_weight_logs_user_day` in `schema.sql`). Run `npm run db:migrate` to create it; it fails if a member already has two entries for one day.
+- `GET /api/meals` is paginated (`?page`, `limit` default 100, max 200, with a `pagination` block) and leaves out `imageUrl`; `GET /api/meals/:id` returns the photo. `GET /api/foods` is paginated (default 50, max 100).
+- `GET /api/progress/weight` and `GET /api/progress` return the latest 365 weight entries; `GET /api/progress/nutrition?days=` is capped at 365 and reads only the total fields. `GET /api/progress` counts meals instead of loading them.
+- `POST /api/foods` only accepts the `Food` schema fields (`_id` and timestamps can no longer be set). `GET/POST /api/planner` reject a `dayOfWeek` outside 0–6.
+
+### Code structure
+- **One copy of the food data.** `server/src/data/nutrition-database.js` (98 foods) and `bangladeshi-foods.js` now load `server/src/nutrition/nutrition-database.json` and `bangladeshi-foods.json`, and `web/src/data/` imports the same JSON (as `web/src/data/mock/diets.ts` already did for diet plans). Before, the web kept its own copies: the bangladeshi foods were identical, but the web scanner's database had only 58 of the server's 98 foods.
+- `server/src/services/nutrition-engine.js` matches the web engine again (search and token match also read `visualDescription`). New `server/tests/nutrition-parity.test.js` (in `npm run test:unit`) runs both engines on every food name and alias, search query and portion: 1518 checks.
+- Removed six unused mock files (`web/src/data/mock/{foods,meals,scans,progress,recommendations,user}.ts`).
+- Not merged yet: the diet recommender exists twice (`web/src/services/diet-recommender.ts`, `server/src/services/diet-recommendation-engine.js`) and the two already give different results (only the server applies `calculateSafeCalorieAndMacroTargets`). Merging changes the plans members see, so it is left for a separate change.
+
+### Build reproducibility
+- **One Node version everywhere: 24 LTS.** `.nvmrc` said 20 and Render pinned 20, but `engines` was `>=20`, so Vercel built the web app on its newest Node. Node 20 reached end of life in April 2026. `.nvmrc` is now `24`, every `package.json` (and lockfile) has `"engines": { "node": "24.x" }`, and `render.yaml` sets `NODE_VERSION=24`. Docs updated.
+- Verified from a clean copy of the repository (no `node_modules`, no `.env`): `npm run install:all` (`npm ci` from the three lockfiles), `npm run check` and `npm run test:unit` all pass on Node 24.18 / npm 12.0.1.
+
 ## [1.0.9] - 2026-11-04
 Fixes from audit run #1844 (version 1.0.8).
 
