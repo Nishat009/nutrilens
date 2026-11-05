@@ -50,16 +50,18 @@ function CopyValue({ value, label }: { value: string; label: string }) {
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login } = useAuthStore();
+  const { login, demoLogin } = useAuthStore();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [demoLoading, setDemoLoading] = useState<DemoLogin['role'] | null>(null);
   const [error, setError] = useState('');
 
+  const goToWorkspace = () => router.push(destinationFor(useAuthStore.getState().user));
+
   const signIn = async (signInEmail: string, signInPassword: string) => {
     await login(signInEmail, signInPassword);
-    router.push(destinationFor(useAuthStore.getState().user));
+    goToWorkspace();
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -82,13 +84,12 @@ export default function LoginPage() {
   };
 
   const handleDemoLogin = async (demo: DemoLogin) => {
-    setEmail(demo.email);
-    setPassword(demo.password);
     setDemoLoading(demo.role);
     setError('');
 
     try {
-      await signIn(demo.email, demo.password);
+      await demoLogin(demo.role);
+      goToWorkspace();
     } catch {
       setError('The demo server is waking up or unreachable. Please try again in a few seconds.');
       setDemoLoading(null);
@@ -159,10 +160,7 @@ export default function LoginPage() {
                     </Button>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-[1fr_8rem] gap-1.5">
-                    <CopyValue value={demo.email} label={`${demo.label} email`} />
-                    <CopyValue value={demo.password} label={`${demo.label} password`} />
-                  </div>
+                  <CopyValue value={demo.email} label={`${demo.label} email`} />
                 </div>
               );
             })}

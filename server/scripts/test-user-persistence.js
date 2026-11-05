@@ -4,6 +4,7 @@ const crypto = require('node:crypto');
 const mongoose = require('mongoose');
 const User = require('../src/models/User');
 const { getUserProfile, updateUserProfile } = require('../src/controllers/user.controller');
+const { requireSelf } = require('../src/middleware/auth');
 
 async function invoke(handler, user, id, body = {}) {
   const response = {
@@ -15,15 +16,19 @@ async function invoke(handler, user, id, body = {}) {
   return response;
 }
 
+// Generated per run so no password-like literal is committed.
+const randomPassword = () => crypto.randomBytes(12).toString('base64url');
+
 async function main() {
   if (!process.env.MONGODB_URI) throw new Error('MONGODB_URI is required');
   await mongoose.connect(process.env.MONGODB_URI, { serverSelectionTimeoutMS: 10000 });
   let testUser;
+  const originalPassword = randomPassword();
   try {
     testUser = await User.create({
       name: 'Persistence Test',
       email: `persistence-${crypto.randomUUID()}@example.com`,
-      password: 'temporary-test-password',
+      password: originalPassword,
     });
     const answer = await invoke(updateUserProfile, testUser, 'current', {
       name: 'Saved Assessment',
@@ -32,7 +37,7 @@ async function main() {
       personalizedPlan: { selectedDiet: { name: 'Test Plan' } },
       onboardingCompleted: true,
       goal: { type: 'gain_muscle', targetCalories: 2400 },
-      password: 'must-not-change',
+      password: randomPassword(),
     });
     assert.equal(answer.statusCode, 200);
     assert.equal(answer.body.data.password, undefined);
@@ -41,12 +46,13 @@ async function main() {
     assert.equal(reloaded.goal.targetCalories, 2400);
     assert.equal(reloaded.personalizedPlan.selectedDiet.name, 'Test Plan');
     assert.equal(reloaded.onboardingCompleted, true);
-    assert.equal(reloaded.password, 'temporary-test-password');
+    assert.equal(reloaded.password, originalPassword);
     const read = await invoke(getUserProfile, reloaded, 'current');
     assert.equal(read.statusCode, 200);
     assert.equal(read.body.data.password, undefined);
-    const forbidden = await invoke(getUserProfile, reloaded, new mongoose.Types.ObjectId().toString());
-    assert.equal(forbidden.statusCode, 422);
+    // Another member's id is refused by requireSelf before the handler runs.
+    const forbidden = await invoke(requireSelf, reloaded, new mongoose.Types.ObjectId().toString());
+    assert.equal(forbidden.statusCode, 403);
     console.log('MongoDB profile and goal persistence round trip passed.');
   } finally {
     if (testUser) await User.deleteOne({ _id: testUser._id });

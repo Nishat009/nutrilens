@@ -65,11 +65,8 @@ async function request<T>(
     ],
   }));
 
-  const authFailed = response.status === 401 || (
-    response.status === 422 && data.errors?.some((message) =>
-      ['Authentication required', 'Invalid token', 'Token expired', 'User account not found'].includes(message)
-    )
-  );
+  // The API answers 401 for a missing, invalid or expired token (403 means signed in but not allowed).
+  const authFailed = response.status === 401;
   if (authFailed && typeof window !== 'undefined') {
     window.localStorage.removeItem('nutrilens_token');
     if (window.location.pathname !== '/login') {
@@ -111,6 +108,15 @@ export const authApi = {
 
   async login(body: { email: string; password?: string; clientDate?: string }): Promise<{ user: UserProfile; token: string }> {
     const res = await request<any>('/api/auth/login', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    });
+    return { user: normalizeUser(res.user), token: res.token };
+  },
+
+  // One-click demo sign-in: only the role is sent, the server holds the demo credentials.
+  async demoLogin(body: { role: 'user' | 'admin'; clientDate?: string }): Promise<{ user: UserProfile; token: string }> {
+    const res = await request<any>('/api/auth/demo-login', {
       method: 'POST',
       body: JSON.stringify(body),
     });

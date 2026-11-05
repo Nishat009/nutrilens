@@ -1,13 +1,15 @@
+// Load environment variables before any module reads them
+require('dotenv').config();
+
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
 const morgan = require('morgan');
-const dotenv = require('dotenv');
 const mongoose = require('mongoose');
 const connectDB = require('./config/db');
 const { ensureDemoAccounts } = require('./services/demo-accounts');
-
-// Load environment variables
-dotenv.config();
+const { apiLimiter } = require('./middleware/rate-limit');
+const { corsOrigins, BODY_LIMIT, DB_UNAVAILABLE_MESSAGE } = require('./config/app');
 
 // Connect to MongoDB, then make sure the one-click demo accounts exist
 connectDB().then((conn) => {
@@ -21,15 +23,17 @@ const app = express();
 app.enable('trust proxy');
 
 // Middleware
+app.use(helmet());
+app.use('/api', apiLimiter);
 app.use(
   cors({
-    origin: '*',
+    origin: corsOrigins(),
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'x-requested-with'],
   })
 );
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(express.json({ limit: BODY_LIMIT }));
+app.use(express.urlencoded({ extended: true, limit: BODY_LIMIT }));
 
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
@@ -77,9 +81,7 @@ app.use('/api', (req, res, next) => {
   res.status(503).json({
     success: false,
     code: 503,
-    errors: [
-      'Database unavailable: MongoDB is not connected. Install and start MongoDB, set MONGODB_URI in server/.env, run "npm run seed", then restart the API. See HowToSetup.md.',
-    ],
+    errors: [DB_UNAVAILABLE_MESSAGE],
   });
 });
 
@@ -90,7 +92,6 @@ app.use('/api/meals', require('./routes/meal.routes'));
 app.use('/api/foods', require('./routes/food.routes'));
 app.use('/api/vegetables', require('./routes/vegetable.routes'));
 app.use('/api/scans', require('./routes/scan.routes'));
-app.use('/api/scan', require('./routes/scan.routes')); // Alias so both /api/scan and /api/scans work
 app.use('/api/progress', require('./routes/progress.routes'));
 app.use('/api/diets', require('./routes/diet.routes'));
 app.use('/api/planner', require('./routes/planner.routes'));
@@ -98,23 +99,33 @@ app.use('/api/admin', require('./routes/admin.routes'));
 
 // 404 handler
 app.use((req, res) => {
-  res.status(422).json({
+  res.status(404).json({
     success: false,
-    code: 422,
+    code: 404,
     errors: [`Route ${req.originalUrl} not found`],
   });
 });
 
-// Global Error Handler
-app.use((err, req, res, next) => {
-  console.error('Server error:', err);
-  const errors = err.errors
-    ? Object.values(err.errors).map((e) => e.message)
-    : [err.message || 'Internal Server Error'];
+// Global error handler. Status comes from the error: 4xx from body-parser (bad JSON 400, too large 413),
+// 422 for Mongoose validation/cast errors, otherwise 500 with a generic message (details stay in the log).
+const errorStatus = (err) => {
+  const status = Number(err.status || err.statusCode);
+  if (status >= 400 && status < 600) return status;
+  if (err.name === 'ValidationError' || err.name === 'CastError') return 422;
+  return 500;
+};
 
-  res.status(422).json({
+app.use((err, req, res, next) => {
+  const status = errorStatus(err);
+  if (status >= 500) console.error('Server error:', err);
+  let errors;
+  if (status >= 500) errors = ['Internal Server Error'];
+  else if (err.name === 'ValidationError' && err.errors) errors = Object.values(err.errors).map((e) => e.message);
+  else errors = [err.message || 'Request failed'];
+
+  res.status(status).json({
     success: false,
-    code: 422,
+    code: status,
     errors,
     ...(process.env.NODE_ENV === 'development' && { stack: err.stack }),
   });

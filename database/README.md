@@ -13,15 +13,19 @@ npm run seed                # loads diets, foods, vegetables and demo accounts
 ```
 
 `npm run db:migrate` ([`server/scripts/migrate.js`](../server/scripts/migrate.js)) can be re-run safely.
-It runs `createCollection()` and `syncIndexes()` for each model, so the database ends up with exactly
-the indexes the models declare. An index that is in the database but not in the models is dropped.
+It runs `createCollection()` for each model and compares the database indexes with the model indexes
+(`diffIndexes()`). Missing indexes are always created. An index that is in the database but not in the
+models is dropped in development; **with `NODE_ENV=production` it is only listed and kept** until you
+review it and re-run `npm run db:migrate -- --confirm`.
 
 ## The SQL files: documentation only
 
 [`schema.sql`](schema.sql) and [`seed.sql`](seed.sql) are **documentation / reference only**. The app never
 reads them and they cannot create the MongoDB database. They describe the same data model in PostgreSQL
 so it can be reviewed in one place, or loaded into PostgreSQL for analysis.
-Keep them in step with the models whenever a model changes.
+Keep them in step with the models whenever a model changes. `npm run build` in `server/` runs
+[`scripts/check-schema-docs.js`](../server/scripts/check-schema-docs.js), which fails when a model or
+model field has no matching table or column here, so drift is caught before release.
 
 ## Model ↔ collection ↔ SQL table mapping
 
@@ -31,7 +35,7 @@ Keep them in step with the models whenever a model changes.
 | `Food` (Food.js) | `foods` | `foods` | `name`; text(`name`, `category`, `tags`) |
 | `Meal` (Meal.js) | `meals` | `meals` + `meal_items` (embedded `items[]`) | `userId`; `date`; `userId + date` |
 | `FoodScan` (FoodScan.js) | `foodscans` | `food_scans` + `scan_items` (embedded `detectedItems[]`) | `userId`; `userId + createdAt desc` |
-| `LearnedFoodMatch` (LearnedFoodMatch.js) | `learnedfoodmatches` | `learned_food_matches` | `foodId`; `perceptualHash` |
+| `LearnedFoodMatch` (LearnedFoodMatch.js) | `learnedfoodmatches` | `learned_food_matches` | `userId`; `foodId`; `perceptualHash` |
 | `PlannedMeal` (PlannedMeal.js) | `plannedmeals` | `planned_meals` | `userId`; `userId + dayOfWeek` |
 | `WeightLog` (WeightLog.js) | `weightlogs` | `weight_logs` | `userId`; `date`; `userId + date desc` |
 | `DietPlan` (DietPlan.js) | `dietplans` | `diet_plans` | unique `slug`; `id` |

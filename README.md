@@ -1,9 +1,10 @@
 # 🥗 NutriLens — Multimodal Vision-Based AI Nutrition & Clinical Health Platform
 
-[![Next.js](https://img.shields.io/badge/Next.js-15.1-black?style=flat&logo=next.js)](https://nextjs.org/)
+[![Next.js](https://img.shields.io/badge/Next.js-15.5-black?style=flat&logo=next.js)](https://nextjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178c6?style=flat&logo=typescript)](https://www.typescriptlang.org/)
 [![React](https://img.shields.io/badge/React-19-blue?style=flat&logo=react)](https://react.dev/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-v4-38bdf8?style=flat&logo=tailwindcss)](https://tailwindcss.com/)
-[![Express.js](https://img.shields.io/badge/Express-4.21-lightgrey?style=flat&logo=express)](https://expressjs.com/)
+[![Express.js](https://img.shields.io/badge/Express-4.22-lightgrey?style=flat&logo=express)](https://expressjs.com/)
 [![MongoDB](https://img.shields.io/badge/MongoDB-Mongoose%208-green?style=flat&logo=mongodb)](https://www.mongodb.com/)
 [![TensorFlow.js](https://img.shields.io/badge/TensorFlow.js-MobileNetV2-orange?style=flat&logo=tensorflow)](https://js.tensorflow.org/)
 
@@ -29,7 +30,7 @@ graph TB
     end
 
     subgraph Server ["Backend (Express.js - Port 5000)"]
-        API["REST API Routes (200 Success / 422 Error)"]
+        API["REST API Routes (200 / 401 / 403 / 422)"]
         INTELLIGENCE["Centralized Nutrition Intelligence Engine"]
         SEED["DB Seeder (Users, Diets, Vegetables)"]
     end
@@ -113,18 +114,23 @@ cp server/.env.example server/.env   # set MONGODB_URI=mongodb://127.0.0.1:27017
 cp web/.env.example web/.env.local   # NEXT_PUBLIC_API_URL must match the API PORT
 npm --prefix server run db:migrate   # collections + indexes from the Mongoose models
 npm run seed                         # wipes and reloads the database (dev only)
-npm run check                        # server syntax check + web production build
+npm run check                        # server syntax + schema-docs check, then web production build
 npm run dev                          # API + web
 ```
-First login: open http://localhost:3000/login and click **Member App** (`demo.member@nutrilens.app` / `Demo@1234`). If MongoDB is down, the API answers HTTP 503 with a "Database unavailable" setup message instead of a 500.
+First login: open http://localhost:3000/login and click **Member App** (one-click demo sign-in, no password). If MongoDB is down, the API answers HTTP 503 with a "Database unavailable" setup message instead of a 500.
 
 Branding: set `NEXT_PUBLIC_APP_NAME` and `NEXT_PUBLIC_APP_LOGO_URL` in `web/.env.local`. End-to-end check: `npm --prefix server run test:e2e`.
 
 ### 5. Run Nutrition Intelligence Tests
 ```bash
-cd server
-node src/test-intelligence.js
+npm --prefix server run test:unit   # route-guard matrix, token tests, diet engine, nutrition intelligence
 ```
+
+Security model, the per-route access-control matrix and the latest `npm audit` result: [SECURITY.md](SECURITY.md).
+
+**Database:** MongoDB through Mongoose. The models in `server/src/models/` and `npm run db:migrate` are the
+source of truth. `database/schema.sql` and `database/seed.sql` are a **reference-only** PostgreSQL view of the
+same data model; the app never loads them. A build check keeps them in step with the models (see [database/README.md](database/README.md)).
 
 ## Account data persistence
 
@@ -133,13 +139,14 @@ Visitors start at the landing page, create an account, and complete the eight-st
 ## Live demo, demo logins & admin panel
 
 * **Product showcase (`/showcase`)**: buyer-facing landing page with features, roles, real screens and tech stack. Every **Live Demo** button opens `/login`. Use this URL as the live demo link; the member landing page at `/` is unchanged.
-* **One-click demo logins (`/login`)**: buttons for each role, with the credentials shown and copyable.
+* **Live demo:** <https://nutrilens-nu-five.vercel.app/showcase> → **Live Demo** → `/login`. **Demo credentials: none needed** — click **Log in as Member** or **Log in as Admin**. Check a deployment with `cd server && npm run verify:live -- https://nutrilens-nu-five.vercel.app` (health, database, both demo logins).
+* **One-click demo logins (`/login`)**: one button per role. The browser calls `POST /api/auth/demo-login` with only the role, so no demo password is shipped in the web bundle or written in these docs. Email + password sign-in for the demo accounts works only when the API sets `DEMO_MEMBER_PASSWORD` / `DEMO_ADMIN_PASSWORD`.
 
-  | Role | Email | Password | Opens |
-  |------|-------|----------|-------|
-  | Member | `demo.member@nutrilens.app` | `Demo@1234` | `/dashboard` |
-  | Admin | `demo.admin@nutrilens.app` | `Admin@1234` | `/admin` |
+  | Role | Email | Opens |
+  |------|-------|-------|
+  | Member | `demo.member@nutrilens.app` | `/dashboard` |
+  | Admin (read-only) | `demo.admin@nutrilens.app` | `/admin` |
 
 * **Admin panel (`/admin`)**: overview KPIs and 14-day activity, member directory (role changes, deletion), AI scan feed with confidence and visual-memory corrections, the 20-protocol catalogue with adoption, and the food/vegetable catalogue with publish/hide for the vegetable explorer. Served by `GET|PATCH|DELETE /api/admin/*`, restricted to `role: "admin"`.
-* **Demo data**: when the API connects to MongoDB it creates the two demo logins and a few sample members (`@example.com`), and each demo sign-in tops up the last 14 days of meals, scans and weight logs. Only missing days are filled, so nothing a visitor logs is overwritten. The demo admin is read-only, and the demo member's email cannot be changed. Set `DEMO_MODE=false` (API) and `NEXT_PUBLIC_DEMO_MODE=false` (web) to turn this off.
+* **Demo data**: when the API connects to MongoDB it creates the two demo logins and a few sample members (`@example.com`), and each demo sign-in tops up the last 14 days of meals, scans and weight logs. Only missing days are filled, so nothing a visitor logs is overwritten. The demo admin is read-only and sees real (non-demo) members only with a masked name and email and no health data; the demo member's email cannot be changed. **Do not enable `DEMO_MODE` on a production server with real members.** Demo mode is on by default in development and **off in production unless `DEMO_MODE=true`**; set `NEXT_PUBLIC_DEMO_MODE=false` (web) to hide the buttons.
 * **Marketplace images**: `marketing/nutrilens-cover-1920x1080.png` and `marketing/nutrilens-landing-1080x1080.png`. Re-render them with `node marketing/build.js` (needs Google Chrome) after recapturing the screens in `web/public/showcase`.

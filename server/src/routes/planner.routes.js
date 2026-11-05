@@ -1,3 +1,5 @@
+// Meal planner: every route needs requireAuth; controllers scope by userId: req.user._id.
+// Checked by tests/route-guards.test.js.
 const express = require('express');
 const router = express.Router();
 const { requireAuth } = require('../middleware/auth');

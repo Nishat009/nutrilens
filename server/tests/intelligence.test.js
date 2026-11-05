@@ -3,7 +3,7 @@ const {
   validateDietAdoption,
   calculatePersonalizedTargets,
   rankDietsForUser,
-} = require('./services/nutrition-intelligence');
+} = require('../src/services/nutrition-intelligence');
 
 console.log('=== RUNNING CLINICAL NUTRITION INTELLIGENCE TESTS ===\n');
 

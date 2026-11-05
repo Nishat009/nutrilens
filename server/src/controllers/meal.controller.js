@@ -1,5 +1,7 @@
 const Meal = require('../models/Meal');
 const { sendError } = require('../utils/http');
+const { sumNutrients } = require('../utils/nutrients');
+const { MAX_SCAN_IMAGE_BYTES } = require('../config/app');
 
 // @desc    Get the signed-in member's meals (optionally for one date)
 // @route   GET /api/meals
@@ -50,6 +52,9 @@ exports.createMeal = async (req, res) => {
   try {
     let { type, date, time, items, imageUrl, notes } = req.body;
     const userId = req.user._id;
+    if (imageUrl && (typeof imageUrl !== 'string' || imageUrl.length > MAX_SCAN_IMAGE_BYTES)) {
+      return sendError(res, 'Meal photo is too large. Please upload a smaller photo.');
+    }
 
     // Compute totals if items array provided and totals not explicitly set
     let totalCalories = req.body.totalCalories || 0;
@@ -59,11 +64,7 @@ exports.createMeal = async (req, res) => {
     let totalFiber = req.body.totalFiber || 0;
 
     if (items && items.length > 0 && !req.body.totalCalories) {
-      totalCalories = items.reduce((sum, item) => sum + (item.calories || 0), 0);
-      totalProtein = items.reduce((sum, item) => sum + (item.protein || 0), 0);
-      totalCarbs = items.reduce((sum, item) => sum + (item.carbs || 0), 0);
-      totalFat = items.reduce((sum, item) => sum + (item.fat || 0), 0);
-      totalFiber = items.reduce((sum, item) => sum + (item.fiber || 0), 0);
+      ({ calories: totalCalories, protein: totalProtein, carbs: totalCarbs, fat: totalFat, fiber: totalFiber } = sumNutrients(items));
     }
 
     const meal = await Meal.create({

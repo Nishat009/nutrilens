@@ -15,7 +15,6 @@ const {
   rankDietsForUser,
 } = require('../services/nutrition-intelligence');
 
-// Helper to resolve or find active user
 // @desc    Get all diet plans (Canonical 20)
 // @route   GET /api/diets
 exports.getDiets = async (req, res) => {
@@ -36,6 +35,7 @@ exports.getDiets = async (req, res) => {
       data: CANONICAL_DIETS,
     });
   } catch (error) {
+    console.warn(`Diet catalogue read failed, serving the built-in list: ${error.message}`);
     res.status(200).json({
       success: true,
       code: 200,
@@ -50,7 +50,8 @@ exports.getDiets = async (req, res) => {
 exports.getDietBySlug = async (req, res) => {
   try {
     const query = req.params.slug;
-    let diet = await DietPlan.findOne({ $or: [{ slug: query }, { id: query }, { name: query }] });
+    // Indexed lookups only (slug is unique, id is indexed); names resolve through the built-in catalogue.
+    let diet = await DietPlan.findOne({ $or: [{ slug: query }, { id: query }] });
     if (!diet) diet = resolveDietPlan(query);
     if (!diet) return sendError(res, 'Diet protocol not found');
     res.status(200).json({ success: true, code: 200, message: 'Diet protocol retrieved successfully', data: diet });
@@ -205,8 +206,8 @@ exports.submitAdaptiveReview = async (req, res) => {
 // @route   GET /api/diets/recommendations
 exports.getRecommendations = async (req, res) => {
   try {
-    const user = req.user;
-    const rankedDiets = rankDietsForUser(user || {});
+    // requireAuth guarantees req.user; there is no anonymous fallback.
+    const rankedDiets = rankDietsForUser(req.user);
 
     res.status(200).json({
       success: true,
@@ -215,13 +216,7 @@ exports.getRecommendations = async (req, res) => {
       data: rankedDiets,
     });
   } catch (error) {
-    const defaultRanked = rankDietsForUser({});
-    res.status(200).json({
-      success: true,
-      code: 200,
-      message: 'Default diet recommendations calculated',
-      data: defaultRanked,
-    });
+    sendError(res, error, 'Failed to calculate diet recommendations');
   }
 };
 

@@ -9,7 +9,9 @@ web/ (Next.js 15, React 19, Tailwind 4, port 3000)
 ```
 - Auth: HMAC-SHA256 signed bearer tokens (`server/src/middleware/auth.js`), scrypt password hashes only (`server/src/utils/password.js`). Roles: `user`, `admin`.
 - Node 20+ (`.nvmrc`). Install with `npm run install:all` (npm ci); `npm run check` builds everything.
-- Errors use `{ success:false, code:422, errors:[...] }`; the API answers 503 when MongoDB is down.
+- Stack versions: Next.js 15.5, React 19.2, TypeScript 5.9, Tailwind 4, Express 4.22, Mongoose 8.24, MongoDB 7 or 8.
+- Errors use `{ success:false, code, errors:[...] }`: 400 for malformed JSON, 401 for a missing/invalid/revoked token, 403 for a forbidden action, 404 for an unknown route, 413 for a too-large body, 422 for validation, 429 when rate-limited, 500 for unexpected errors (generic message), 503 when MongoDB is down.
+- Deployment settings (CORS origins, body/photo limits, token lifetime) live in `server/src/config/app.js`, read from env.
 
 ## Folder map
 | Path | What |
@@ -21,6 +23,7 @@ web/ (Next.js 15, React 19, Tailwind 4, port 3000)
 | `server/src/services/` | Nutrition engine, diet recommendation, food recognition, demo accounts |
 | `server/src/data/`, `server/src/nutrition/` | Static food, diet and medical-rule data |
 | `server/src/seed.js` | `npm run seed` — loads diets, vegetables and demo data |
+| `server/tests/` | Unit tests (`npm run test:unit`): `route-guards.test.js` (access-control matrix for every route), `auth-token.test.js`, diet engine |
 | `server/scripts/` | `check-syntax.js` (build), `migrate.js` (MongoDB collections + indexes), `e2e-smoke.js` (end-to-end test), `verify-live.js` (deployed demo check) |
 | `web/src/app/` | App Router pages: `(auth)`, `(dashboard)`, `(admin)`, `(onboarding)`, `showcase` |
 | `web/src/components/` | UI: scanner, diets, layout, admin, brand |
@@ -29,13 +32,16 @@ web/ (Next.js 15, React 19, Tailwind 4, port 3000)
 | `HowToSetup.md`, `DEPLOYMENT.md` | Clean-machine setup and production deploy |
 
 ## Conventions
-- Every route that creates, changes or deletes data uses `requireAuth`; admin routes add `requireAdmin` and `blockDemoWrites`. New mutating endpoints must follow this.
+- Every route that creates, changes or deletes data uses `requireAuth`; admin routes add `requireAdmin` and `blockDemoWrites`. New mutating endpoints must follow this, and new public routes must be added to the allow-list in `server/tests/route-guards.test.js`.
+- The shared demo admin sees real (non-demo) members masked in admin reads; keep using `privacyFor` / `maskScans` in `admin.controller.js` for new admin reads that return member data.
+- List endpoints are paginated (`page`, `limit`, capped) and leave large fields such as scan photos out.
 - Scope data to `req.user` — never trust a user id from the request body. `/:id` routes for a member's own record use `requireSelf`.
 - Return errors with `sendError(res, error, 'fallback message')` from `server/src/utils/http.js`.
 - Never commit secrets: use `server/.env` (git-ignored); document new variables in `server/.env.example`.
 - Server is CommonJS JavaScript; web is TypeScript (strict). Match the surrounding style.
 - Keep `database/schema.sql` and `database/README.md` in step with `server/src/models/`.
-- Escape user text before building a RegExp (`server/src/utils/regex.js`).
+- Escape user text before building a RegExp (`server/src/utils/regex.js`). Only pass strings (never raw `req.body` objects) into a query filter.
+- Never put a password or secret in a `NEXT_PUBLIC_*` variable; it is compiled into the browser bundle.
 - Dependencies are pinned to exact versions; install with `npm install <pkg>@<version> --save-exact`.
 - Do not commit `node_modules/` or `.next/`.
 
@@ -45,8 +51,10 @@ cd server && cp .env.example .env     # set JWT_SECRET and MONGODB_URI
 npm install && npm run db:migrate && npm run seed && npm start    # API on :5000
 cd web && npm install && npm run dev        # web on :3000
 ```
-- Build check (server): `cd server && npm run build`
+- Build check (server): `cd server && npm run build` (syntax check + `check-schema-docs.js`, which fails when `database/schema.sql` drifts from the models)
+- Everything: `npm run check` (or `npm run build`) at the root builds the server check and the web app.
 - Build (web): `cd web && npm run build`
 - End-to-end smoke test (API must be running): `cd server && npm run test:e2e`
 - Check a deployed demo: `cd server && npm run verify:live -- https://<your-app>`
-- Demo logins: `demo.member@nutrilens.app` / `Demo@1234`, `demo.admin@nutrilens.app` / `Admin@1234`
+- Demo logins: one-click `POST /api/auth/demo-login` with `{ role: 'user' | 'admin' }` (needs `DEMO_MODE`; on by default outside production). No demo password lives in code or docs; set `DEMO_MEMBER_PASSWORD` / `DEMO_ADMIN_PASSWORD` in `server/.env` for email + password sign-in.
+- Unit tests: `cd server && npm run test:unit` (`server/tests/`).

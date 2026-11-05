@@ -1,3 +1,5 @@
+// AI food scans: every route needs requireAuth; scans and learned matches are scoped to req.user.
+// Checked by tests/route-guards.test.js.
 const express = require('express');
 const router = express.Router();
 const { requireAuth } = require('../middleware/auth');

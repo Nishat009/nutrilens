@@ -3,10 +3,11 @@
 --
 -- Mirrors the demo data the API creates on start when DEMO_MODE=true
 -- (server/src/services/demo-accounts.js) so a reviewer or buyer sees a working system:
---   demo.member@nutrilens.app / Demo@1234   (member)
---   demo.admin@nutrilens.app  / Admin@1234  (read-only admin)
--- These are public showcase logins for the live demo, not real credentials.
--- Passwords are stored as scrypt hashes, the same format the API verifies.
+--   demo.member@nutrilens.app   (member)
+--   demo.admin@nutrilens.app    (read-only admin)
+-- Demo accounts sign in through POST /api/auth/demo-login; no password is documented here.
+-- Real accounts store scrypt hashes (scrypt$<salt>$<hash>). The demo rows hold a placeholder that never
+-- matches: the API sets their password at startup from DEMO_*_PASSWORD, or a random one.
 -- The full 20-diet catalog and vegetable catalog are loaded by `npm run seed` in server/.
 
 BEGIN;
@@ -16,13 +17,13 @@ INSERT INTO users (id, name, email, password_hash, role, is_demo, gender, dob, h
                    health_conditions, food_preferences, common_foods_eaten, onboarding_completed)
 VALUES
   ('11111111-1111-4111-8111-111111111111', 'Ayesha Rahman', 'demo.member@nutrilens.app',
-   'scrypt$ef6c9adbbaeeb5845c60ced8a4a08b9f$e247eab050a02076368b6dccc6fb859d6fea1b145bad5d9cb95e4213535ffd541090608772246dc007759bbcd388ead982f6eeb6d755f2a7a84bdbed11951770',
+   '!demo-login-only',
    'user', TRUE, 'female', '1994-08-12', 160, 68.4, 60, 86, 'lightly_active', 'lose_weight', 'moderate',
    '{pcos}', '{traditional_bangladeshi,balanced}',
    '{"White Rice","Atta Roti","Lentils (Masoor / Moong Dal)","Rui / Katla Fish","Whole Eggs / Boiled Eggs","Lal Shak / Palong Shak"}',
    TRUE),
   ('22222222-2222-4222-8222-222222222222', 'Demo Admin', 'demo.admin@nutrilens.app',
-   'scrypt$5ad2bca4a7e830544a496ab23a90cfa6$c5ee11a4338e62a1dc63cf18a116fd05d350ca85eda4dd1093f970e044f61a26978d7762ca2a25c99a6245ac7ff3a2d5c037461b7319d2a2f678ae6bdd1dd5f0',
+   '!demo-login-only',
    'admin', TRUE, 'male', '1990-01-01', NULL, NULL, NULL, NULL, 'moderately_active', 'lose_weight', 'moderate',
    '{}', '{balanced,traditional_bangladeshi}', '{}', TRUE)
 ON CONFLICT (email) DO NOTHING;

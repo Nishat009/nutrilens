@@ -7,17 +7,29 @@ const PlannedMeal = require('../models/PlannedMeal');
 const { encodePassword, passwordMatches } = require('../utils/password');
 const { generatePersonalizedDietRecommendation } = require('./diet-recommendation-engine');
 
-// Demo accounts are on unless DEMO_MODE=false, so a fresh deployment's live demo works out of the box.
-const isDemoModeEnabled = () => process.env.DEMO_MODE !== 'false';
+// Demo accounts are opt-in in production (DEMO_MODE=true) and on by default in development.
+const isDemoModeEnabled = () => {
+  if (process.env.DEMO_MODE === 'true') return true;
+  if (process.env.DEMO_MODE === 'false') return false;
+  return process.env.NODE_ENV !== 'production';
+};
 
-// Shown on the login page — keep in sync with web/src/lib/constants (DEMO_LOGINS).
-// The defaults are public showcase passwords; override them per deployment with
-// DEMO_MEMBER_PASSWORD / DEMO_ADMIN_PASSWORD (and the matching NEXT_PUBLIC_* values in web/).
+// No password ships in the code. DEMO_MEMBER_PASSWORD / DEMO_ADMIN_PASSWORD enable email +
+// password sign-in for the demo accounts; when unset a random per-process password is used and
+// the demo is reached only through POST /api/auth/demo-login, so the browser never holds a credential.
+const randomDemoPasswords = {};
+const demoPassword = (account) => {
+  if (process.env[account.passwordEnv]) return process.env[account.passwordEnv];
+  if (!randomDemoPasswords[account.role]) randomDemoPasswords[account.role] = crypto.randomBytes(24).toString('base64url');
+  return randomDemoPasswords[account.role];
+};
+
+// Keep in sync with web/src/lib/constants (DEMO_LOGINS).
 const DEMO_ACCOUNTS = [
   {
     role: 'user',
     email: 'demo.member@nutrilens.app',
-    password: process.env.DEMO_MEMBER_PASSWORD || 'Demo@1234',
+    passwordEnv: 'DEMO_MEMBER_PASSWORD',
     profile: {
       name: 'Ayesha Rahman',
       gender: 'female',
@@ -39,7 +51,7 @@ const DEMO_ACCOUNTS = [
   {
     role: 'admin',
     email: 'demo.admin@nutrilens.app',
-    password: process.env.DEMO_ADMIN_PASSWORD || 'Admin@1234',
+    passwordEnv: 'DEMO_ADMIN_PASSWORD',
     profile: {
       name: 'Demo Admin',
       gender: 'male',
@@ -235,7 +247,7 @@ async function ensureLoginAccount(account) {
   let user = await User.findOne({ email: account.email }).select('+password');
 
   if (!user) {
-    const base = { ...account.profile, email: account.email, role: account.role, isDemo: true, password: encodePassword(account.password) };
+    const base = { ...account.profile, email: account.email, role: account.role, isDemo: true, password: encodePassword(demoPassword(account)) };
     if (account.role === 'user') {
       const { plan, fields } = assessmentFields(account.profile);
       user = await User.create({ ...base, ...fields });
@@ -250,7 +262,7 @@ async function ensureLoginAccount(account) {
   let changed = false;
   if (user.role !== account.role) { user.role = account.role; changed = true; }
   if (!user.isDemo) { user.isDemo = true; changed = true; }
-  if (!passwordMatches(account.password, user.password)) { user.password = encodePassword(account.password); changed = true; }
+  if (!passwordMatches(demoPassword(account), user.password)) { user.password = encodePassword(demoPassword(account)); changed = true; }
   if (account.role === 'user' && !user.personalizedPlan) {
     const { plan, fields } = assessmentFields({ ...account.profile, ...user.toObject() });
     user.set(fields);
@@ -362,8 +374,17 @@ async function ensureDemoAccounts() {
   await refreshDemoActivity();
 }
 
+// The demo login account for a role, or null when demo mode is off.
+async function findDemoLoginUser(role) {
+  if (!isDemoModeEnabled()) return null;
+  const account = DEMO_ACCOUNTS.find((entry) => entry.role === role);
+  if (!account) return null;
+  return User.findOne({ email: account.email, isDemo: true });
+}
+
 module.exports = {
   DEMO_ACCOUNTS,
+  findDemoLoginUser,
   isDemoModeEnabled,
   ensureDemoAccounts,
   refreshDemoActivity,

@@ -384,7 +384,7 @@ export default function ShowcasePage() {
                   </ul>
                   <div className="mt-6 rounded-2xl bg-slate-950/70 border border-slate-800 p-4 font-mono text-xs text-slate-300 space-y-1">
                     <div><span className="text-slate-500">email&nbsp;&nbsp;&nbsp;</span> {demo.email}</div>
-                    <div><span className="text-slate-500">password</span> {demo.password}</div>
+                    <div><span className="text-slate-500">password</span> not needed: one-click sign-in</div>
                   </div>
                   <DemoLink className="mt-5 w-full text-sm py-3">{demo.role === 'admin' ? 'Open admin demo' : 'Open member demo'}</DemoLink>
                 </div>

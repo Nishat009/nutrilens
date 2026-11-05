@@ -43,10 +43,6 @@ const nextConfig: NextConfig = {
         destination: `${apiUrl}/api/scans/:path*`,
       },
       {
-        source: "/api/scan/:path*",
-        destination: `${apiUrl}/api/scan/:path*`,
-      },
-      {
         source: "/api/progress/:path*",
         destination: `${apiUrl}/api/progress/:path*`,
       },

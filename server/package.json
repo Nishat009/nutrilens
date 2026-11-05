@@ -7,7 +7,9 @@
   "description": "NutriLens Express + MongoDB API Server",
   "main": "src/index.js",
   "scripts": {
-    "build": "node scripts/check-syntax.js",
+    "build": "node scripts/check-syntax.js && node scripts/check-schema-docs.js",
+    "check:schema-docs": "node scripts/check-schema-docs.js",
+    "test:unit": "node tests/route-guards.test.js && node tests/auth-token.test.js && node tests/diet-engine.test.js && node tests/intelligence.test.js",
     "test:e2e": "node scripts/e2e-smoke.js",
     "verify:live": "node scripts/verify-live.js",
     "test:persistence": "node scripts/test-user-persistence.js",
@@ -20,10 +22,17 @@
     "cors": "2.8.6",
     "dotenv": "16.6.1",
     "express": "4.22.3",
+    "express-rate-limit": "8.7.3",
+    "helmet": "8.1.0",
     "mongoose": "8.24.8",
     "morgan": "1.12.1"
   },
   "devDependencies": {
     "nodemon": "3.1.14"
+  },
+  "overrides": {
+    "nodemon": {
+      "minimatch": "11.0.4"
+    }
   }
 }

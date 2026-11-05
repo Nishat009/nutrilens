@@ -14,4 +14,5 @@ function checkDirectory(directory) {
 }
 
 checkDirectory(path.join(__dirname, '..', 'src'));
+checkDirectory(path.join(__dirname, '..', 'tests'));
 console.log('Backend JavaScript syntax check passed.');

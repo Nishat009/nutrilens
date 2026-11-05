@@ -10,8 +10,10 @@
     "dev": "concurrently -n \"SERVER,CLIENT\" -c \"blue,green\" \"npm --prefix server run dev\" \"npm --prefix web run dev\"",
     "server": "npm --prefix server run dev",
     "web": "npm --prefix web run dev",
-    "build": "npm --prefix web run build",
+    "build": "npm run build:all",
+    "build:all": "npm --prefix server run build && npm --prefix web run build",
     "start": "npm --prefix web run start",
+    "start:api": "npm --prefix server run start",
     "seed": "npm --prefix server run seed",
     "install:all": "npm ci && npm --prefix server ci && npm --prefix web ci",
     "check": "npm --prefix server run build && npm --prefix web run build"

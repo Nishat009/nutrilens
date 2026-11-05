@@ -291,7 +291,7 @@ const seedDB = async () => {
     // 8. Demo logins (member + admin), sample members and their recent activity
     if (isDemoModeEnabled()) {
       await ensureDemoAccounts();
-      DEMO_ACCOUNTS.forEach((account) => console.log(`🔑 Demo ${account.role}: ${account.email} / ${account.password}`));
+      DEMO_ACCOUNTS.forEach((account) => console.log(`🔑 Demo ${account.role}: ${account.email} (one-click login, or password from ${account.passwordEnv})`));
     }
 
     console.log('✨ Database seeding successfully finished!');

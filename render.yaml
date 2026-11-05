@@ -22,5 +22,7 @@ services:
         sync: false # (Optional) Google Gemini API Key for multimodal AI vision
       - key: HF_TOKEN
         sync: false # (Optional) Hugging Face token for open Food-101 vision model
+      - key: CORS_ORIGINS
+        value: "https://nutrilens-nu-five.vercel.app" # Comma-separated web origins allowed to call the API from the browser; set to your Vercel URL
       - key: DEMO_MODE
-        value: "true" # One-click demo member/admin logins for the live demo
+        value: "true" # Public showcase demo only. It holds sample data, never real members. Set "false" for a deployment with real users.

@@ -1,3 +1,5 @@
+// Admin panel API. Every route: requireAuth + requireAdmin. Every write also: blockDemoWrites
+// (the shared demo admin is read-only and sees real members masked). Checked by tests/route-guards.test.js.
 const express = require('express');
 const router = express.Router();
 const { requireAuth, requireAdmin, blockDemoWrites } = require('../middleware/auth');

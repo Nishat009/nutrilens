@@ -4,7 +4,7 @@ const {
   reviewAdaptiveProgress,
   calculateSafeCalorieAndMacroTargets,
   rankDietProtocols,
-} = require('./services/diet-recommendation-engine');
+} = require('../src/services/diet-recommendation-engine');
 
 console.log('====================================================');
 console.log('🧪 TESTING NUTRILENS DIET RECOMMENDATION ENGINE');

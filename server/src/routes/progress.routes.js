@@ -1,3 +1,5 @@
+// Progress and weight logs: every route needs requireAuth; data is scoped to req.user.
+// Checked by tests/route-guards.test.js.
 const express = require('express');
 const router = express.Router();
 const { requireAuth } = require('../middleware/auth');

@@ -16,6 +16,25 @@ const ok = (res, data, message = 'Admin data retrieved successfully') =>
 
 const fail = (res, error) => sendError(res, error, 'Admin request failed');
 
+// The shared demo admin (DEMO_MODE) is public, so it sees showcase members in full but only a
+// masked name and email, and no health data, for real members. Real admins see everything.
+const maskText = (value = '') => (value ? `${value[0]}***` : value);
+const maskEmail = (email = '') => {
+  const [local, domain] = email.split('@');
+  return domain ? `${maskText(local)}@${domain}` : maskText(email);
+};
+const privacyFor = (req) => (row, isShowcase = row.isDemo) => {
+  if (!req.user.isDemo || isShowcase) return row;
+  const masked = { ...row };
+  if ('name' in masked) masked.name = maskText(masked.name);
+  if ('email' in masked) masked.email = maskEmail(masked.email);
+  if ('userName' in masked) masked.userName = maskText(masked.userName);
+  if ('userEmail' in masked) masked.userEmail = maskEmail(masked.userEmail);
+  if ('healthConditions' in masked) masked.healthConditions = [];
+  return masked;
+};
+const maskScans = (req, scans) => scans.map(({ userIsDemo, ...scan }) => privacyFor(req)(scan, userIsDemo));
+
 const pageParams = (query, defaultLimit = 10) => {
   const page = Math.max(1, parseInt(query.page, 10) || 1);
   const limit = Math.min(50, Math.max(1, parseInt(query.limit, 10) || defaultLimit));
@@ -45,6 +64,7 @@ const scanListStages = [
       id: '$_id',
       userName: { $ifNull: ['$user.name', 'Deleted member'] },
       userEmail: '$user.email',
+      userIsDemo: { $ifNull: ['$user.isDemo', false] },
       imageUrl: hostedImage,
       mealType: '$suggestedMealType',
       status: 1,
@@ -164,7 +184,7 @@ exports.getOverview = async (req, res) => {
       conditions: conditions.map((row) => ({ condition: row._id, count: row.count })),
       mealTypes: mealTypes.map((row) => ({ type: row._id, count: row.count, avgCalories: Math.round(row.avgCalories || 0) })),
       avgScanConfidence: confidence[0]?.avg ?? null,
-      recentMembers: recentMembers.map((user) => ({
+      recentMembers: recentMembers.map((user) => privacyFor(req)({
         id: user._id,
         name: user.name,
         email: user.email,
@@ -174,7 +194,7 @@ exports.getOverview = async (req, res) => {
         dietName: user.personalizedPlan?.selectedDiet?.name || null,
         createdAt: user.createdAt,
       })),
-      recentScans,
+      recentScans: maskScans(req, recentScans),
     });
   } catch (error) {
     fail(res, error);
@@ -220,7 +240,7 @@ exports.listUsers = async (req, res) => {
       limit,
       total,
       pages: Math.max(1, Math.ceil(total / limit)),
-      users: users.map((user) => ({
+      users: users.map((user) => privacyFor(req)({
         id: user._id,
         name: user.name,
         email: user.email,
@@ -250,6 +270,9 @@ exports.getUser = async (req, res) => {
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) return fail(res, 'Member not found');
     const user = await User.findById(req.params.id).lean();
     if (!user) return fail(res, 'Member not found');
+    if (req.user.isDemo && !user.isDemo) {
+      return sendError(res, 'Real member records are hidden from the shared demo admin account', 'Forbidden', 403);
+    }
 
     const userId = user._id;
     const [meals, scans, weightLogs, plannedMeals, latestWeight, recentMeals, recentScans] = await Promise.all([
@@ -294,7 +317,7 @@ exports.getUser = async (req, res) => {
         totalProtein: meal.totalProtein,
         foods: (meal.items || []).map((entry) => entry.foodName),
       })),
-      recentScans,
+      recentScans: maskScans(req, recentScans),
     });
   } catch (error) {
     fail(res, error);
@@ -395,7 +418,7 @@ exports.listScans = async (req, res) => {
         lowConfidenceItems: confidence[0]?.lowConfidence || 0,
         learnedMatches: await LearnedFoodMatch.countDocuments(),
       },
-      scans,
+      scans: maskScans(req, scans),
       learned: learned.map((match) => ({
         id: match._id,
         foodName: match.foodName,

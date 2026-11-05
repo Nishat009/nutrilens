@@ -122,9 +122,18 @@ You can deploy the backend using **Render Blueprint (`render.yaml`)** or manual 
    |---|---|---|
    | `NODE_ENV` | `production` | Enables production optimizations |
    | `PORT` | `10000` | Port assigned by Render |
-   | `MONGODB_URI` | `mongodb+srv://nutrilens_admin:<password>@cluster0.xxxxx.mongodb.net/nutrilens?retryWrites=true&w=majority` | MongoDB Atlas URI |
+   | `MONGODB_URI` | `mongodb+srv://nutrilens_admin:<password>@cluster0.xxxxx.mongodb.net/nutrilens?retryWrites=true&w=majority` | **Required.** MongoDB Atlas URI |
+   | `JWT_SECRET` | 96-char random hex (`node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"`) | **Required.** Signs login tokens; the API refuses tokens in production without it |
+   | `CORS_ORIGINS` | `https://your-app.vercel.app` | **Required** when the web app sets `NEXT_PUBLIC_API_URL` (browser calls the API directly). Comma-separated; no other origin is allowed |
+   | `DEMO_MODE` | `true` only for a showcase deployment | Enables `POST /api/auth/demo-login` (404 without it). See the warning below |
    | `GEMINI_API_KEY` | `AIzaSy...` *(optional)* | Google Gemini 1.5 Flash Vision AI key |
    | `HF_TOKEN` | `hf_...` *(optional)* | Hugging Face Food-101 Vision token |
+
+   > ⚠️ **`DEMO_MODE` and real data.** `DEMO_MODE=true` lets anyone open the one-click demo member and the
+   > demo admin. The demo admin cannot change anything (`blockDemoWrites`) and sees real members only with a
+   > masked name and email and no health data, but it is still a public view of the admin panel. Use
+   > `DEMO_MODE=true` only for a showcase deployment that holds sample data. For a production deployment with
+   > real members, set `DEMO_MODE=false` (or leave it unset: it is off by default when `NODE_ENV=production`).
 
 5. Click **Create Web Service**.
 6. Wait 1–2 minutes for the deployment to finish.
@@ -191,7 +200,8 @@ Output confirmation:
 4. In **Environment Variables**, add:
    | Key | Value | Description |
    |---|---|---|
-   | `NEXT_PUBLIC_API_URL` | `https://nutrilens-api.onrender.com` | Your Render backend URL from Step 2 |
+   | `NEXT_PUBLIC_API_URL` | `https://nutrilens-api.onrender.com` | **Required at build time.** Your Render backend URL from Step 2; `next.config.ts` rewrites `/api/*` to it and the browser client calls it. Add the Vercel URL to `CORS_ORIGINS` on Render |
+   | `NEXT_PUBLIC_DEMO_MODE` | `true` / `false` | Shows the one-click demo buttons; match the API's `DEMO_MODE` |
 
 5. Click **Deploy**.
 6. Once deployed, disable **Vercel Authentication** (see section at the top of this guide) to make your deployment public.
@@ -200,7 +210,14 @@ Output confirmation:
 
 ## Step 5: Post-Deployment Smoke Test & Verification
 
-Perform these tests on your live Vercel URL (e.g. `https://nutrilens.vercel.app`):
+Run the automated check first. It calls `/api/health` and both one-click demo logins through the Vercel
+rewrite and prints PASS / FAIL for each:
+
+```bash
+cd server && npm run verify:live -- https://your-app.vercel.app
+```
+
+Then perform these tests on your live Vercel URL (e.g. `https://nutrilens.vercel.app`):
 
 | Test Area | Action | Expected Result |
 |---|---|---|
@@ -227,7 +244,7 @@ Perform these tests on your live Vercel URL (e.g. `https://nutrilens.vercel.app`
 
 ### 2. CORS Errors in Browser Console
 - **Symptom**: `Access to fetch at ... has been blocked by CORS policy`.
-- **Solution**: The Express server is configured with `cors({ origin: '*' })` and `app.enable('trust proxy')`. Additionally, `next.config.ts` includes built-in reverse proxy rewrites routing `/api/*` requests through the Next.js server directly to the backend.
+- **Solution**: The API only allows the origins in `CORS_ORIGINS` (comma-separated, e.g. `https://your-app.vercel.app`). Add your exact Vercel URL there on Render and redeploy. Requests that go through the `next.config.ts` `/api/*` rewrite are same-origin and need no CORS.
 
 ### 3. MongoDB Connection Timeout (`MongooseServerSelectionError`)
 - **Symptom**: Server logs show `MongoServerSelectionError: connection timed out`.
@@ -235,7 +252,7 @@ Perform these tests on your live Vercel URL (e.g. `https://nutrilens.vercel.app`
 
 ### 4. Large Image Upload Payloads (413 Payload Too Large)
 - **Symptom**: Uploading high-resolution camera photos produces HTTP 413.
-- **Solution**: The Express server configured `express.json({ limit: '10mb' })` and client-side canvas compression downscales high-res camera captures before transmission.
+- **Solution**: The browser downscales uploads and camera captures to 1024 px before sending. The API accepts JSON bodies up to `BODY_LIMIT` (default `5mb`) and scan photos up to `MAX_SCAN_IMAGE_BYTES` (default 3 MB); larger photos get a clear 422 message.
 
 ### 5. Gemini API Key Limits or Network Outages
 - **Symptom**: Food scan falls back to chromatic analysis.

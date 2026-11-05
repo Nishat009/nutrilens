@@ -21,3 +21,6 @@ antigravity.md
 .DS_Store
 Thumbs.db
 
+
+# TypeScript incremental build cache
+*.tsbuildinfo

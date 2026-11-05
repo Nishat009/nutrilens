@@ -1,3 +1,4 @@
+// Checked by tests/route-guards.test.js.
 const express = require('express');
 const router = express.Router();
 const { requireAuth, requireSelf } = require('../middleware/auth');

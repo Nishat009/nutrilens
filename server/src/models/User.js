@@ -55,6 +55,11 @@ const UserSchema = new mongoose.Schema(
       default: 'user',
       index: true,
     },
+    // Embedded in every login token; incrementing it signs the member out everywhere.
+    tokenVersion: {
+      type: Number,
+      default: 0,
+    },
     // Shared showcase accounts (one-click demo logins and sample members)
     isDemo: {
       type: Boolean,

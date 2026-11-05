@@ -1,3 +1,5 @@
+// Vegetable catalogue: public reads; matching and nutrition calculation need requireAuth.
+// Checked by tests/route-guards.test.js.
 const express = require('express');
 const router = express.Router();
 const { requireAuth } = require('../middleware/auth');

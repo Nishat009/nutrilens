@@ -9,6 +9,7 @@ interface AuthState {
   user: UserProfile | null;
   checkAuth: () => Promise<UserProfile | null>;
   login: (email: string, password?: string) => Promise<boolean>;
+  demoLogin: (role: 'user' | 'admin') => Promise<boolean>;
   register: (name: string, email: string, password?: string) => Promise<boolean>;
   logout: () => void;
   setUser: (user: UserProfile) => void;
@@ -40,6 +41,23 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ isLoading: true });
     try {
       const result = await authApi.login({ email, password, clientDate: getTodayDateString() });
+      if (typeof window !== 'undefined') window.localStorage.setItem('nutrilens_token', result.token);
+      set({
+        isAuthenticated: true,
+        user: result.user,
+        isLoading: false,
+      });
+      return true;
+    } catch (error) {
+      set({ isLoading: false });
+      throw error;
+    }
+  },
+
+  demoLogin: async (role: 'user' | 'admin') => {
+    set({ isLoading: true });
+    try {
+      const result = await authApi.demoLogin({ role, clientDate: getTodayDateString() });
       if (typeof window !== 'undefined') window.localStorage.setItem('nutrilens_token', result.token);
       set({
         isAuthenticated: true,

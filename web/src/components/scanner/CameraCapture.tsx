@@ -58,13 +58,17 @@ export function CameraCapture({ onCapture, onCancel }: CameraCaptureProps) {
 
     const video = videoRef.current;
     const canvas = document.createElement('canvas');
-    canvas.width = video.videoWidth || 640;
-    canvas.height = video.videoHeight || 480;
+    // Same 1024px cap as uploaded photos keeps the request well under the API's image limit.
+    const width = video.videoWidth || 640;
+    const height = video.videoHeight || 480;
+    const scale = Math.min(1, 1024 / Math.max(width, height));
+    canvas.width = Math.round(width * scale);
+    canvas.height = Math.round(height * scale);
 
     const ctx = canvas.getContext('2d');
     if (ctx) {
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-      const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
       onCapture(dataUrl);
     }
   };

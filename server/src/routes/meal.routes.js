@@ -1,3 +1,5 @@
+// Meal log: every route needs requireAuth; controllers filter by { _id, userId: req.user._id },
+// so one member can never read or delete another member's meal. Checked by tests/route-guards.test.js.
 const express = require('express');
 const router = express.Router();
 const { requireAuth } = require('../middleware/auth');

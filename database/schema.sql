@@ -24,6 +24,7 @@ CREATE TABLE IF NOT EXISTS users (
   password_hash        TEXT        NOT NULL,                 -- scrypt$<salt>$<hash>, never plain text
   role                 TEXT        NOT NULL DEFAULT 'user'   CHECK (role IN ('user', 'admin')),
   is_demo              BOOLEAN     NOT NULL DEFAULT FALSE,   -- shared showcase accounts
+  token_version        INTEGER     NOT NULL DEFAULT 0,       -- in every login token; +1 on logout-all revokes them
   gender               TEXT        NOT NULL DEFAULT 'male'   CHECK (gender IN ('male', 'female', 'other')),
   dob                  DATE,
   height_cm            NUMERIC(5,1),
@@ -161,6 +162,7 @@ CREATE INDEX IF NOT EXISTS idx_scan_items_scan ON scan_items (scan_id);
 -- ---------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS learned_food_matches (
   id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id          UUID        NOT NULL REFERENCES users (id) ON DELETE CASCADE,  -- each member's own visual memory
   food_id          TEXT        NOT NULL,
   food_name        TEXT        NOT NULL,
   category         TEXT        NOT NULL DEFAULT 'Vegetables',
@@ -174,6 +176,7 @@ CREATE TABLE IF NOT EXISTS learned_food_matches (
 );
 CREATE INDEX IF NOT EXISTS idx_learned_food_id ON learned_food_matches (food_id);
 CREATE INDEX IF NOT EXISTS idx_learned_hash    ON learned_food_matches (perceptual_hash);
+CREATE INDEX IF NOT EXISTS idx_learned_user    ON learned_food_matches (user_id);
 
 -- ---------------------------------------------------------------------------
 -- planned_meals  (server/src/models/PlannedMeal.js)

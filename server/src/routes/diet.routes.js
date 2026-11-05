@@ -1,3 +1,5 @@
+// Diet catalogue reads (GET / and GET /:slug) are public; everything personalised or mutating
+// needs requireAuth and acts on req.user only. Checked by tests/route-guards.test.js.
 const express = require('express');
 const router = express.Router();
 const { requireAuth } = require('../middleware/auth');
