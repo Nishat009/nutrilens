@@ -2,6 +2,32 @@
 
 All notable changes to NutriLens. Format: [Keep a Changelog](https://keepachangelog.com/), versions follow [SemVer](https://semver.org/).
 
+## [1.0.12] - 2026-11-06
+Fixes from audit run #1881 (version 1.0.11).
+
+### Authorisation & access control
+- **Demo mode cannot open on a production database by accident.** With `NODE_ENV=production` and `DEMO_MODE=true` the API now refuses to start unless `DEMO_SHOWCASE=true` confirms the database holds sample data only. `render.yaml` sets it for the showcase; documented in `server/.env.example`, `HowToSetup.md` and `DEPLOYMENT.md`.
+- Route guards the audit could not see (they were not in its digest) are unchanged and in place: `admin.routes.js` runs `router.use(requireAuth, requireAdmin)` with `blockDemoWrites` on every admin write; `diet.routes.js` keeps only `GET /` and `GET /:slug` public; `authLimiter` covers `/register`, `/login` and `/demo-login` (`auth.routes.js`). All checked by `tests/route-guards.test.js`.
+
+### Database access
+- `POST /api/meals`: items must be an array of at most 50 objects. Only `foodName`, `quantity`, `unit`, `calories`, `protein`, `carbs`, `fat`, `fiber`, `confidence` and a valid `foodId` are stored, as bounded numbers and short strings. **Totals are always computed on the server from the items**; client `total*` values are ignored. `type`, `date` (`YYYY-MM-DD`), `time` (`HH:mm`) and `notes` are type-checked. Bad input returns 422.
+- `POST /api/auth/register`: `gender`, `dob`, `heightCm` (50–260), `weightKg` (20–400) and `activityLevel` must be plain values of the right type; an object such as `{"$gt":0}` returns 422.
+- `GET /api/diets`: `.lean()`, `__v` left out, at most 100 plans. The two copies of the built-in fallback response are now one path.
+- New indexes: `foodscans {createdAt: -1}` (admin scan list) and `meals {userId: 1, createdAt: -1}` (meal list sort). In `schema.sql` and `database/README.md`. Run `npm run db:migrate`.
+- Deleting a member also removes their learned food matches (before: meals, scans, weight logs and planned meals only). The cascade lives in `server/src/services/user-data.js`; new `tests/user-data.test.js` fails if a model with a `userId` is missing from it. `database/README.md` states that foreign keys and cascades exist only in the SQL view.
+
+### Code structure
+- `server/scripts/lib/http-helpers.js` holds `randomPassword` and the JSON request helper used by `e2e-smoke.js`, `verify-live.js` and `test-user-persistence.js`.
+- `tests/auth-token.test.js` generates its JWT secret per run (no committed literal).
+- New `tests/input-validation.test.js` (in `npm run test:unit`) covers the meal and registration validation; `e2e-smoke.js` checks that client totals are ignored and bad items are rejected.
+
+### Build reproducibility
+- One install path everywhere: `npm run install:all` in `README.md`, `CLAUDE.md` and `HowToSetup.md`; `npm ci` for the Render and Vercel install commands in `DEPLOYMENT.md`.
+- Root `package.json` gains `db:migrate` and `test:unit`; `HowToSetup.md` already ran `npm run db:migrate` from the root, which failed before.
+- Stack (for the listing): Next.js 15.5.29, React 19.2.9, TypeScript 5.9.3, Tailwind 4.3, Express 4.22.3, Mongoose 8.24.8, MongoDB 7 or 8, Node 24 LTS.
+
+**`npm audit` (2026-11-06):** root 0, `server/` 0, `web/` 0 (production and dev). `npm run test:unit`, `npm run build` (server) and `npm run test:e2e` (61/61) pass.
+
 ## [1.0.10] - 2026-11-05
 ### Security
 - Upgraded `react` and `react-dom` 19.2.8 → **19.2.9** (latest 19.2.x). `next` stays on **15.5.29**, the latest 15.x release (patched for CVE-2025-29927 and the RSC advisories).

@@ -8,6 +8,7 @@ const Food = require('../models/Food');
 const Vegetable = require('../models/Vegetable');
 const LearnedFoodMatch = require('../models/LearnedFoodMatch');
 const { CANONICAL_DIETS } = require('../services/nutrition-intelligence');
+const { deleteUserAndData } = require('../services/user-data');
 const { escapeRegex } = require('../utils/regex');
 const { sendError } = require('../utils/http');
 
@@ -367,15 +368,8 @@ exports.deleteUser = async (req, res) => {
   try {
     const user = await findManageableUser(req, res);
     if (!user) return;
-    const userId = user._id;
-    await Promise.all([
-      Meal.deleteMany({ userId }),
-      FoodScan.deleteMany({ userId }),
-      WeightLog.deleteMany({ userId }),
-      PlannedMeal.deleteMany({ userId }),
-    ]);
-    await user.deleteOne();
-    ok(res, { id: userId }, 'Member and their data deleted');
+    await deleteUserAndData(user);
+    ok(res, { id: user._id }, 'Member and their data deleted');
   } catch (error) {
     fail(res, error);
   }

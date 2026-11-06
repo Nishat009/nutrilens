@@ -4,9 +4,38 @@ const { encodePassword, passwordMatches } = require('../utils/password');
 const { refreshDemoActivity, findDemoLoginUser } = require('../services/demo-accounts');
 const { sendError } = require('../utils/http');
 
-// Body profile fields a member may supply at sign-up; anything left out takes the User model
-// default until onboarding replaces it. `role` and other privileged fields are never accepted.
-const REGISTRATION_FIELDS = ['gender', 'dob', 'heightCm', 'weightKg', 'activityLevel'];
+// Body profile fields a member may supply at sign-up, with the type each must have; anything left
+// out takes the User model default until onboarding replaces it. `role` and other privileged fields
+// are never accepted. Only primitives are stored, so an object such as {"$gt":0} is rejected.
+const REGISTRATION_FIELDS = {
+  gender: { type: 'string', max: 10 },
+  dob: { type: 'string', pattern: /^\d{4}-\d{2}-\d{2}$/ },
+  heightCm: { type: 'number', min: 50, max: 260 },
+  weightKg: { type: 'number', min: 20, max: 400 },
+  activityLevel: { type: 'string', max: 40 },
+};
+
+// Returns { profile } with the validated fields, or { error } naming the first invalid one.
+function readRegistrationProfile(body) {
+  const profile = {};
+  for (const [field, rule] of Object.entries(REGISTRATION_FIELDS)) {
+    const raw = body[field];
+    if (raw === undefined || raw === null || raw === '') continue;
+    if (rule.type === 'number') {
+      const value = typeof raw === 'string' ? Number(raw) : raw;
+      if (typeof value !== 'number' || !Number.isFinite(value) || value < rule.min || value > rule.max) {
+        return { error: `${field} must be a number between ${rule.min} and ${rule.max}` };
+      }
+      profile[field] = value;
+    } else {
+      if (typeof raw !== 'string' || raw.length > (rule.max || 10) || (rule.pattern && !rule.pattern.test(raw))) {
+        return { error: `${field} is not valid` };
+      }
+      profile[field] = raw;
+    }
+  }
+  return { profile };
+}
 
 // Keep the shared demo workspace populated up to the visitor's local "today"; never fail a login over it.
 const refreshDemoSafely = (clientDate) =>
@@ -36,11 +65,9 @@ exports.register = async (req, res) => {
     }
 
     // The unique email index rejects duplicates, including two sign-ups racing each other (code 11000).
-    const profile = {};
-    for (const field of REGISTRATION_FIELDS) {
-      if (req.body[field] !== undefined && req.body[field] !== '') profile[field] = req.body[field];
-    }
-    const user = await User.create({ ...profile, name, email, password: encodePassword(password) });
+    const { profile, error } = readRegistrationProfile(req.body);
+    if (error) return sendError(res, error);
+    const user = await User.create({ ...profile, name: name.trim().slice(0, 100), email, password: encodePassword(password) });
 
     res.status(200).json({
       success: true,

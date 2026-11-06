@@ -101,6 +101,7 @@ CREATE TABLE IF NOT EXISTS meals (
 CREATE INDEX IF NOT EXISTS idx_meals_user ON meals (user_id);
 CREATE INDEX IF NOT EXISTS idx_meals_date ON meals (date);
 CREATE INDEX IF NOT EXISTS idx_meals_user_date ON meals (user_id, date);
+CREATE INDEX IF NOT EXISTS idx_meals_user_created ON meals (user_id, created_at DESC);
 
 CREATE TABLE IF NOT EXISTS meal_items (
   id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -140,6 +141,7 @@ CREATE TABLE IF NOT EXISTS food_scans (
 );
 CREATE INDEX IF NOT EXISTS idx_food_scans_user ON food_scans (user_id);
 CREATE INDEX IF NOT EXISTS idx_food_scans_user_created ON food_scans (user_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_food_scans_created ON food_scans (created_at DESC);
 
 CREATE TABLE IF NOT EXISTS scan_items (
   id                 UUID PRIMARY KEY DEFAULT gen_random_uuid(),

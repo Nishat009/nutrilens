@@ -112,7 +112,7 @@ Short version, with Node 24 LTS (see `.nvmrc`) and a running MongoDB:
 npm run install:all                  # npm ci in root, server/ and web/ (exact lockfile versions)
 cp server/.env.example server/.env   # set MONGODB_URI=mongodb://127.0.0.1:27017/nutrilens and JWT_SECRET
 cp web/.env.example web/.env.local   # NEXT_PUBLIC_API_URL must match the API PORT
-npm --prefix server run db:migrate   # collections + indexes from the Mongoose models
+npm run db:migrate                   # collections + indexes from the Mongoose models
 npm run seed                         # wipes and reloads the database (dev only)
 npm run check                        # server syntax + schema-docs check, then web production build
 npm run dev                          # API + web

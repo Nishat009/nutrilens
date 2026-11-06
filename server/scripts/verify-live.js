@@ -1,18 +1,13 @@
 // Checks a deployed NutriLens: API host up, MongoDB connected, both demo logins return a token.
 // Usage: npm run verify:live -- https://your-app.vercel.app   (or set LIVE_URL)
+const { requestJson } = require('./lib/http-helpers');
+
 const BASE = (process.argv[2] || process.env.LIVE_URL || '').replace(/\/$/, '');
 
 // The one-click demo endpoint needs no password, so none is stored in this script.
 const DEMO_ROLES = ['user', 'admin'];
 
-async function request(method, path, body, token) {
-  const res = await fetch(`${BASE}${path}`, {
-    method,
-    headers: { 'Content-Type': 'application/json', ...(token && { Authorization: `Bearer ${token}` }) },
-    body: body && JSON.stringify(body),
-  });
-  return { status: res.status, json: await res.json().catch(() => null) };
-}
+const request = (method, path, body, token) => requestJson(BASE, method, path, { body, token });
 
 async function main() {
   if (!BASE) throw new Error('Pass the live URL: npm run verify:live -- https://your-app.vercel.app');

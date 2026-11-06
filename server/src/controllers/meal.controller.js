@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const Meal = require('../models/Meal');
 const { sendError } = require('../utils/http');
 const { sumNutrients } = require('../utils/nutrients');
@@ -61,40 +62,87 @@ exports.getMealById = async (req, res) => {
   }
 };
 
-// @desc    Create new meal entry
+const MEAL_TYPES = ['breakfast', 'lunch', 'dinner', 'snack'];
+const MAX_MEAL_ITEMS = 50;
+const MAX_ITEM_VALUE = 10000; // per-item ceiling for quantity, calories and grams of a macro
+const MAX_NOTES_LENGTH = 1000;
+
+// A finite number in [0, max], or null when the value is missing or not numeric.
+const boundedNumber = (value, max = MAX_ITEM_VALUE) => {
+  const number = typeof value === 'string' && value.trim() !== '' ? Number(value) : value;
+  if (typeof number !== 'number' || !Number.isFinite(number)) return null;
+  return Math.min(max, Math.max(0, number));
+};
+const shortString = (value, max) => (typeof value === 'string' ? value.trim().slice(0, max) : '');
+const round1 = (value) => Math.round(value * 10) / 10;
+
+// Whitelists each item's fields and checks their types, so only plain, bounded values reach the
+// model. Returns { items } or { error }.
+function sanitizeMealItems(rawItems) {
+  if (rawItems === undefined || rawItems === null) return { items: [] };
+  if (!Array.isArray(rawItems)) return { error: 'items must be an array' };
+  if (rawItems.length > MAX_MEAL_ITEMS) return { error: `A meal can have at most ${MAX_MEAL_ITEMS} items` };
+
+  const items = [];
+  for (const [index, raw] of rawItems.entries()) {
+    const label = `Item ${index + 1}`;
+    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return { error: `${label} must be an object` };
+    const foodName = shortString(raw.foodName, 120);
+    if (!foodName) return { error: `${label}: foodName is required` };
+    const item = { foodName, unit: shortString(raw.unit, 20) || 'g' };
+    for (const field of ['quantity', 'calories', 'protein', 'carbs', 'fat']) {
+      const value = boundedNumber(raw[field]);
+      if (value === null) return { error: `${label}: ${field} must be a number` };
+      item[field] = value;
+    }
+    item.fiber = boundedNumber(raw.fiber) ?? 0;
+    item.confidence = boundedNumber(raw.confidence, 1) ?? 1;
+    if (typeof raw.foodId === 'string' && mongoose.isValidObjectId(raw.foodId)) item.foodId = raw.foodId;
+    items.push(item);
+  }
+  return { items };
+}
+
+// @desc    Create new meal entry. Items are validated and the totals are always computed here from
+//          the items; totals sent by the client are ignored.
 // @route   POST /api/meals
 exports.createMeal = async (req, res) => {
   try {
-    let { type, date, time, items, imageUrl, notes } = req.body;
+    const { type, date, time, imageUrl, notes } = req.body;
     const userId = req.user._id;
     if (imageUrl && (typeof imageUrl !== 'string' || imageUrl.length > MAX_SCAN_IMAGE_BYTES)) {
       return sendError(res, 'Meal photo is too large. Please upload a smaller photo.');
     }
-
-    // Compute totals if items array provided and totals not explicitly set
-    let totalCalories = req.body.totalCalories || 0;
-    let totalProtein = req.body.totalProtein || 0;
-    let totalCarbs = req.body.totalCarbs || 0;
-    let totalFat = req.body.totalFat || 0;
-    let totalFiber = req.body.totalFiber || 0;
-
-    if (items && items.length > 0 && !req.body.totalCalories) {
-      ({ calories: totalCalories, protein: totalProtein, carbs: totalCarbs, fat: totalFat, fiber: totalFiber } = sumNutrients(items));
+    if (type !== undefined && !MEAL_TYPES.includes(type)) {
+      return sendError(res, `type must be one of: ${MEAL_TYPES.join(', ')}`);
     }
+    if (date !== undefined && (typeof date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(date))) {
+      return sendError(res, 'date must be YYYY-MM-DD');
+    }
+    if (time !== undefined && (typeof time !== 'string' || !/^\d{2}:\d{2}$/.test(time))) {
+      return sendError(res, 'time must be HH:mm');
+    }
+    if (notes !== undefined && typeof notes !== 'string') {
+      return sendError(res, 'notes must be text');
+    }
+
+    const { items, error } = sanitizeMealItems(req.body.items);
+    if (error) return sendError(res, error);
+    const totals = sumNutrients(items);
 
     const meal = await Meal.create({
       userId,
       type: type || 'lunch',
       date: date || new Date().toISOString().split('T')[0],
       time: time || new Date().toTimeString().slice(0, 5),
-      totalCalories: Math.round(totalCalories),
-      totalProtein: Math.round(totalProtein * 10) / 10,
-      totalCarbs: Math.round(totalCarbs * 10) / 10,
-      totalFat: Math.round(totalFat * 10) / 10,
-      totalFiber: Math.round(totalFiber * 10) / 10,
-      items: items || [],
+      totalCalories: Math.round(totals.calories),
+      totalProtein: round1(totals.protein),
+      totalCarbs: round1(totals.carbs),
+      totalFat: round1(totals.fat),
+      totalFiber: round1(totals.fiber),
+      items,
       imageUrl: imageUrl || '',
-      notes: notes || '',
+      notes: (notes || '').slice(0, MAX_NOTES_LENGTH),
     });
 
     res.status(200).json({

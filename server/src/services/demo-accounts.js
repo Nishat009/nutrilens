@@ -14,6 +14,16 @@ const isDemoModeEnabled = () => {
   return process.env.NODE_ENV !== 'production';
 };
 
+// Demo mode publishes a one-click (read-only) admin login. In production it is allowed only on a
+// showcase deployment whose database holds sample data, confirmed with DEMO_SHOWCASE=true.
+// Returns an error message when the configuration is unsafe, or null. index.js refuses to start on it.
+const demoModeConfigError = () => {
+  if (process.env.NODE_ENV !== 'production' || !isDemoModeEnabled()) return null;
+  if (process.env.DEMO_SHOWCASE === 'true') return null;
+  return 'DEMO_MODE=true with NODE_ENV=production needs DEMO_SHOWCASE=true, confirming this database holds '
+    + 'sample data only (no real members). On a server with real members set DEMO_MODE=false. See DEPLOYMENT.md.';
+};
+
 // No password ships in the code. DEMO_MEMBER_PASSWORD / DEMO_ADMIN_PASSWORD enable email +
 // password sign-in for the demo accounts; when unset a random per-process password is used and
 // the demo is reached only through POST /api/auth/demo-login, so the browser never holds a credential.
@@ -386,6 +396,7 @@ module.exports = {
   DEMO_ACCOUNTS,
   findDemoLoginUser,
   isDemoModeEnabled,
+  demoModeConfigError,
   ensureDemoAccounts,
   refreshDemoActivity,
 };

@@ -2,18 +2,14 @@
 // Usage: npm run test:e2e   (API_URL defaults to http://localhost:$PORT)
 require('dotenv').config();
 const assert = require('node:assert/strict');
-const crypto = require('node:crypto');
+const { randomPassword, requestJson } = require('./lib/http-helpers');
 
 const BASE = process.env.API_URL || `http://localhost:${process.env.PORT || 5000}`;
 const results = [];
 
 async function call(method, path, { token, body, expect = 200 } = {}) {
-  const res = await fetch(`${BASE}${path}`, {
-    method,
-    headers: { 'Content-Type': 'application/json', ...(token && { Authorization: `Bearer ${token}` }) },
-    body: body && JSON.stringify(body),
-  });
-  const json = await res.json().catch(() => ({}));
+  const res = await requestJson(BASE, method, path, { body, token });
+  const json = res.json || {};
   const ok = res.status === expect && json.success !== false === (expect < 400);
   results.push({ ok, label: `${method} ${path} -> ${res.status}${ok ? '' : ` (expected ${expect}) ${JSON.stringify(json.errors || '')}`}` });
   return json;
@@ -27,7 +23,7 @@ async function main() {
   const login = await call('POST', '/api/auth/demo-login', { body: { role: 'user' } });
   const token = login.data?.token;
   assert.ok(token, 'demo member login failed — is DEMO_MODE on and did you run "npm run seed"?');
-  await call('POST', '/api/auth/login', { body: { email: 'demo.member@nutrilens.app', password: crypto.randomBytes(12).toString('base64url') }, expect: 422 });
+  await call('POST', '/api/auth/login', { body: { email: 'demo.member@nutrilens.app', password: randomPassword() }, expect: 422 });
   await call('GET', '/api/auth/me', { token });
   await call('GET', '/api/auth/me', { expect: 401 });
   await call('POST', '/api/auth/login', { body: { email: { $ne: null }, password: 'x' }, expect: 422 });
@@ -42,8 +38,10 @@ async function main() {
   await call('GET', '/api/foods?search=(((');
 
   const email = `e2e-${Date.now()}@example.com`;
-  const reg = await call('POST', '/api/auth/register', { body: { name: 'E2E Tester', email, password: crypto.randomBytes(12).toString('base64url') } });
-  await call('POST', '/api/auth/register', { body: { name: 'E2E Tester', email: email.toUpperCase(), password: crypto.randomBytes(12).toString('base64url') }, expect: 422 });
+  const reg = await call('POST', '/api/auth/register', { body: { name: 'E2E Tester', email, password: randomPassword(), heightCm: 170 } });
+  await call('POST', '/api/auth/register', { body: { name: 'E2E Tester', email: email.toUpperCase(), password: randomPassword() }, expect: 422 });
+  // Profile fields must be plain values of the right type.
+  await call('POST', '/api/auth/register', { body: { name: 'E2E Tester', email: `x${email}`, password: randomPassword(), heightCm: { $gt: 0 } }, expect: 422 });
   const t2 = reg.data?.token;
   await call('GET', '/api/users/current', { token: t2 });
   await call('PUT', '/api/users/current', { token: t2, body: { name: 'E2E Renamed' } });
@@ -62,6 +60,16 @@ async function main() {
     body: { name: 'E2E lunch', mealType: 'lunch', loggedAt: new Date().toISOString(), items: [], totalCalories: 400, totalProtein: 30, totalCarbs: 40, totalFat: 10 },
   });
   const mealId = meal.data?._id || meal.data?.id || meal.result?._id;
+  // Totals are computed from the items on the server; client totals are ignored.
+  assert.equal(meal.data?.totalCalories, 0, 'client-supplied meal totals must be ignored');
+  const counted = await call('POST', '/api/meals', {
+    token,
+    body: { type: 'snack', items: [{ foodName: 'E2E apple', quantity: 150, unit: 'g', calories: 78, protein: 0.4, carbs: 21, fat: 0.3 }], totalCalories: 9999 },
+  });
+  assert.equal(counted.data?.totalCalories, 78, 'meal totals must equal the sum of the items');
+  if (counted.data?._id) await call('DELETE', `/api/meals/${counted.data._id}`, { token });
+  await call('POST', '/api/meals', { token, body: { items: 'not-an-array' }, expect: 422 });
+  await call('POST', '/api/meals', { token, body: { items: [{ foodName: 'Bad', quantity: 1, unit: 'g', calories: { $gt: 0 }, protein: 0, carbs: 0, fat: 0 }] }, expect: 422 });
   if (mealId) {
     await call('GET', `/api/meals/${mealId}`, { token });
     // Cross-user access: another member can neither read nor delete this meal.

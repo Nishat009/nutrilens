@@ -5,6 +5,7 @@ const mongoose = require('mongoose');
 const User = require('../src/models/User');
 const { getUserProfile, updateUserProfile } = require('../src/controllers/user.controller');
 const { requireSelf } = require('../src/middleware/auth');
+const { randomPassword } = require('./lib/http-helpers');
 
 async function invoke(handler, user, id, body = {}) {
   const response = {
@@ -15,9 +16,6 @@ async function invoke(handler, user, id, body = {}) {
   await handler({ user, params: { id }, body }, response);
   return response;
 }
-
-// Generated per run so no password-like literal is committed.
-const randomPassword = () => crypto.randomBytes(12).toString('base64url');
 
 async function main() {
   if (!process.env.MONGODB_URI) throw new Error('MONGODB_URI is required');

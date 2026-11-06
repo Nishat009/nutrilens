@@ -94,12 +94,12 @@ placeholders. Test scripts generate passwords at runtime with `crypto.randomByte
 
 All versions are pinned exactly, with a committed `package-lock.json` in the root, `server/` and `web/`.
 
-`npm audit` on 2026-11-05 (`next` 15.5.29, `react`/`react-dom` 19.2.9):
+`npm audit` on 2026-11-06 (`next` 15.5.29, `react`/`react-dom` 19.2.9):
 
 | Project | Production (`--omit=dev`) | All, including dev tools |
 |---|---|---|
 | root | 0 | 0 |
-| `server/` | 0 | 0 (the `nodemon` → `minimatch` advisory is fixed by an `overrides` pin to `minimatch@11.0.4`) |
+| `server/` | 0 | 0 (the `nodemon` → `minimatch` advisory is fixed by an `overrides` pin to `minimatch@11.0.4`. `nodemon` 3.1.14 is the latest release and still asks for `minimatch@^10`; every 10.x is flagged (2 moderate without the pin). Checked: `npm run dev` with 11.0.4 restarts on a changed `.js` file and skips ignored files) |
 | `web/` | 0 | 0 (the ESLint toolchain's `@typescript-eslint/typescript-estree` → `minimatch` advisory, GHSA-g3hv-75wg-m249, is fixed by an `overrides` pin to `minimatch@11.0.4`; `next`'s bundled `postcss` is pinned to 8.5.26 the same way) |
 
 No critical or high advisories. Re-run with `npm audit` in each folder before a release.

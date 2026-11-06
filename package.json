@@ -15,8 +15,10 @@
     "start": "npm --prefix web run start",
     "start:api": "npm --prefix server run start",
     "seed": "npm --prefix server run seed",
+    "db:migrate": "npm --prefix server run db:migrate",
     "install:all": "npm ci && npm --prefix server ci && npm --prefix web ci",
-    "check": "npm --prefix server run build && npm --prefix web run build"
+    "check": "npm --prefix server run build && npm --prefix web run build",
+    "test:unit": "npm --prefix server run test:unit"
   },
   "devDependencies": {
     "concurrently": "9.2.5"

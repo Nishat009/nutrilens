@@ -113,7 +113,7 @@ You can deploy the backend using **Render Blueprint (`render.yaml`)** or manual 
    | **Branch** | `main` |
    | **Root Directory** | `server` |
    | **Runtime** | `Node` |
-   | **Build Command** | `npm install` |
+   | **Build Command** | `npm ci` (installs exactly what `package-lock.json` pins; same as `render.yaml`) |
    | **Start Command** | `npm start` |
    | **Instance Type** | `Free` |
 
@@ -126,6 +126,7 @@ You can deploy the backend using **Render Blueprint (`render.yaml`)** or manual 
    | `JWT_SECRET` | 96-char random hex (`node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"`) | **Required.** Signs login tokens; the API refuses tokens in production without it |
    | `CORS_ORIGINS` | `https://your-app.vercel.app` | **Required** when the web app sets `NEXT_PUBLIC_API_URL` (browser calls the API directly). Comma-separated; no other origin is allowed |
    | `DEMO_MODE` | `true` only for a showcase deployment | Enables `POST /api/auth/demo-login` (404 without it). See the warning below |
+   | `DEMO_SHOWCASE` | `true` with `DEMO_MODE=true` | **Required** with `DEMO_MODE=true` in production: confirms the database holds sample data only. Without it the API exits at startup |
    | `GEMINI_API_KEY` | `AIzaSy...` *(optional)* | Google Gemini 1.5 Flash Vision AI key |
    | `HF_TOKEN` | `hf_...` *(optional)* | Hugging Face Food-101 Vision token |
 
@@ -134,6 +135,8 @@ You can deploy the backend using **Render Blueprint (`render.yaml`)** or manual 
    > masked name and email and no health data, but it is still a public view of the admin panel. Use
    > `DEMO_MODE=true` only for a showcase deployment that holds sample data. For a production deployment with
    > real members, set `DEMO_MODE=false` (or leave it unset: it is off by default when `NODE_ENV=production`).
+   > To enforce this, the API **refuses to start** when `NODE_ENV=production` and `DEMO_MODE=true` unless
+   > `DEMO_SHOWCASE=true` is also set.
 
 5. Click **Create Web Service**.
 6. Wait 1–2 minutes for the deployment to finish.
@@ -195,7 +198,7 @@ Output confirmation:
    - **Root Directory**: Click **Edit** and set to **`web`** *(CRITICAL: The Next.js frontend is located in `/web`)*.
    - **Build Command**: `npm run build` (default).
    - **Output Directory**: `.next` (default).
-   - **Install Command**: `npm install` (default).
+   - **Install Command**: `npm ci` (installs exactly what `web/package-lock.json` pins).
 
 4. In **Environment Variables**, add:
    | Key | Value | Description |

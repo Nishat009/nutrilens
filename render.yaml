@@ -26,3 +26,5 @@ services:
         value: "https://nutrilens-nu-five.vercel.app" # Comma-separated web origins allowed to call the API from the browser; set to your Vercel URL
       - key: DEMO_MODE
         value: "true" # Public showcase demo only. It holds sample data, never real members. Set "false" for a deployment with real users.
+      - key: DEMO_SHOWCASE
+        value: "true" # Confirms this database is a sample-data showcase. Without it the API refuses to start with DEMO_MODE=true in production.

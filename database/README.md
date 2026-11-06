@@ -33,8 +33,8 @@ model field has no matching table or column here, so drift is caught before rele
 |---|---|---|---|
 | `User` (User.js) | `users` | `users` | unique `email`; `role`; `isDemo` |
 | `Food` (Food.js) | `foods` | `foods` | `name`; text(`name`, `category`, `tags`) |
-| `Meal` (Meal.js) | `meals` | `meals` + `meal_items` (embedded `items[]`) | `userId`; `date`; `userId + date` |
-| `FoodScan` (FoodScan.js) | `foodscans` | `food_scans` + `scan_items` (embedded `detectedItems[]`) | `userId`; `userId + createdAt desc` |
+| `Meal` (Meal.js) | `meals` | `meals` + `meal_items` (embedded `items[]`) | `userId`; `date`; `userId + date`; `userId + createdAt desc` |
+| `FoodScan` (FoodScan.js) | `foodscans` | `food_scans` + `scan_items` (embedded `detectedItems[]`) | `userId`; `userId + createdAt desc`; `createdAt desc` (admin scan list) |
 | `LearnedFoodMatch` (LearnedFoodMatch.js) | `learnedfoodmatches` | `learned_food_matches` | `userId`; `foodId`; `perceptualHash` |
 | `PlannedMeal` (PlannedMeal.js) | `plannedmeals` | `planned_meals` | `userId`; `userId + dayOfWeek` |
 | `WeightLog` (WeightLog.js) | `weightlogs` | `weight_logs` | `userId`; `date`; `userId + date desc`; unique `userId + date` (one entry per day) |
@@ -44,6 +44,10 @@ model field has no matching table or column here, so drift is caught before rele
 How the shapes map:
 
 - `_id` (ObjectId) → `id UUID PRIMARY KEY`; references such as `userId` → `user_id ... REFERENCES users(id)`.
+- **Foreign keys and `ON DELETE CASCADE` exist only in this SQL view.** MongoDB does not enforce them. When a
+  member is deleted (`DELETE /api/admin/users/:id`), `server/src/services/user-data.js` removes their meals,
+  scans, weight logs, planned meals and learned food matches first; `server/tests/user-data.test.js` fails if a
+  model with a `userId` is missing from that list. Indexes are created by Mongoose (`npm run db:migrate`).
 - camelCase fields → snake_case columns (`heightCm` → `height_cm`, `isDemo` → `is_demo`).
 - Embedded arrays of sub-documents (meal items, detected scan items) → child tables with a foreign key.
 - Other nested objects (`goal`, `lifestyle`, diet `clinicalProfile`, `macroRatio`, ...) → `JSONB` columns.

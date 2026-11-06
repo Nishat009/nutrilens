@@ -60,10 +60,9 @@ Without mongosh on Windows: `Test-NetConnection 127.0.0.1 -Port 27017` → `TcpT
 ```bash
 git clone https://github.com/Nishat009/nutrilens.git
 cd nutrilens
-npm install                      # root helper (runs both apps together)
-npm --prefix server install
-npm --prefix web install
+npm run install:all              # npm ci in root, server/ and web/ (exact lockfile versions)
 ```
+Use `npm run install:all` (not `npm install`): it installs exactly the versions in the three lockfiles.
 
 ## 4. Configure environment files
 
@@ -81,6 +80,7 @@ DEMO_MODE=true                                    # local demo logins; never tru
 | `JWT_SECRET` | yes in production | Development falls back to a random per-run secret |
 | `CORS_ORIGINS` | when the browser calls the API directly | Defaults to `http://localhost:3000` in development |
 | `DEMO_MODE` | no | Empty = on in development, off in production |
+| `DEMO_SHOWCASE` | only with `NODE_ENV=production` + `DEMO_MODE=true` | `true` confirms the database holds sample data only; without it the API refuses to start |
 | `JWT_TTL_SECONDS`, `BODY_LIMIT`, `MAX_SCAN_IMAGE_BYTES` | no | Token lifetime (7 days), request size (5mb), photo size (3 MB) |
 
 Generate a secret with: `node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"`.

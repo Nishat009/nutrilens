@@ -110,5 +110,7 @@ const MealSchema = new mongoose.Schema(
 
 // Per-user history queries filter by userId and sort or range on date.
 MealSchema.index({ userId: 1, date: 1 });
+// GET /api/meals lists a member's meals newest first.
+MealSchema.index({ userId: 1, createdAt: -1 });
 
 module.exports = mongoose.model('Meal', MealSchema);

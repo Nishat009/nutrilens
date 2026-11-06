@@ -7,9 +7,16 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const mongoose = require('mongoose');
 const connectDB = require('./config/db');
-const { ensureDemoAccounts } = require('./services/demo-accounts');
+const { ensureDemoAccounts, demoModeConfigError } = require('./services/demo-accounts');
 const { apiLimiter } = require('./middleware/rate-limit');
 const { corsOrigins, BODY_LIMIT, DB_UNAVAILABLE_MESSAGE } = require('./config/app');
+
+// Never open the public demo admin on a production database that may hold real members.
+const demoError = demoModeConfigError();
+if (demoError) {
+  console.error(`❌ Refusing to start: ${demoError}`);
+  process.exit(1);
+}
 
 // Connect to MongoDB, then make sure the one-click demo accounts exist
 connectDB().then((conn) => {

@@ -1,11 +1,13 @@
 // Login token and guard behaviour, with the User lookup stubbed so no database is needed.
 // Usage: npm run test:unit
 const assert = require('node:assert/strict');
+const crypto = require('node:crypto');
 const User = require('../src/models/User');
 const { createToken, requireAuth, requireAdmin, requireSelf, blockDemoWrites } = require('../src/middleware/auth');
 const { sumNutrients } = require('../src/utils/nutrients');
 
-process.env.JWT_SECRET = process.env.JWT_SECRET || 'unit-test-secret-not-used-anywhere-else';
+// Random per run, so no signing-secret string is committed.
+process.env.JWT_SECRET = process.env.JWT_SECRET || crypto.randomBytes(32).toString('hex');
 
 const member = { _id: '64b000000000000000000001', role: 'user', tokenVersion: 0, isDemo: false };
 User.findById = async (id) => (id === member._id ? member : null);

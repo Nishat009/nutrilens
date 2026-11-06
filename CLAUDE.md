@@ -48,9 +48,10 @@ web/ (Next.js 15, React 19, Tailwind 4, port 3000)
 
 ## Run and test
 ```bash
-cd server && cp .env.example .env     # set JWT_SECRET and MONGODB_URI
-npm install && npm run db:migrate && npm run seed && npm start    # API on :5000
-cd web && npm install && npm run dev        # web on :3000
+npm run install:all                  # npm ci in root, server/ and web/ (exact lockfile versions)
+cp server/.env.example server/.env   # set JWT_SECRET and MONGODB_URI
+npm run db:migrate && npm run seed   # collections + indexes, then sample data
+npm run dev                          # API on :5000 + web on :3000
 ```
 - Build check (server): `cd server && npm run build` (syntax check + `check-schema-docs.js`, which fails when `database/schema.sql` drifts from the models)
 - Everything: `npm run check` (or `npm run build`) at the root builds the server check and the web app.
@@ -58,4 +59,6 @@ cd web && npm install && npm run dev        # web on :3000
 - End-to-end smoke test (API must be running): `cd server && npm run test:e2e`
 - Check a deployed demo: `cd server && npm run verify:live -- https://<your-app>`
 - Demo logins: one-click `POST /api/auth/demo-login` with `{ role: 'user' | 'admin' }` (needs `DEMO_MODE`; on by default outside production). No demo password lives in code or docs; set `DEMO_MEMBER_PASSWORD` / `DEMO_ADMIN_PASSWORD` in `server/.env` for email + password sign-in.
-- Unit tests: `cd server && npm run test:unit` (`server/tests/`).
+- Unit tests: `npm run test:unit` (`server/tests/`).
+- Production with `DEMO_MODE=true` also needs `DEMO_SHOWCASE=true` (sample-data database only), or the API refuses to start.
+- Deleting a member goes through `server/src/services/user-data.js`; add any new model with a `userId` to `USER_SCOPED_MODELS` (`user-data.test.js` checks it).

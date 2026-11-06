@@ -15,34 +15,27 @@ const {
   rankDietsForUser,
 } = require('../services/nutrition-intelligence');
 
-// @desc    Get all diet plans (Canonical 20)
+// The catalogue holds about 20 plans; the cap only bounds the response if the collection grows.
+const MAX_DIET_PLANS = 100;
+
+const sendDietList = (res, diets) => res.status(200).json({
+  success: true,
+  code: 200,
+  count: diets.length,
+  data: diets,
+});
+
+// @desc    Get all diet plans (Canonical 20). Falls back to the built-in list when the
+//          collection is empty or cannot be read.
 // @route   GET /api/diets
 exports.getDiets = async (req, res) => {
+  let dbDiets = [];
   try {
-    const dbDiets = await DietPlan.find();
-    if (dbDiets && dbDiets.length > 0) {
-      return res.status(200).json({
-        success: true,
-        code: 200,
-        count: dbDiets.length,
-        data: dbDiets,
-      });
-    }
-    res.status(200).json({
-      success: true,
-      code: 200,
-      count: CANONICAL_DIETS.length,
-      data: CANONICAL_DIETS,
-    });
+    dbDiets = await DietPlan.find().select('-__v').limit(MAX_DIET_PLANS).lean();
   } catch (error) {
     console.warn(`Diet catalogue read failed, serving the built-in list: ${error.message}`);
-    res.status(200).json({
-      success: true,
-      code: 200,
-      count: CANONICAL_DIETS.length,
-      data: CANONICAL_DIETS,
-    });
   }
+  sendDietList(res, dbDiets.length > 0 ? dbDiets : CANONICAL_DIETS);
 };
 
 // @desc    Get diet plan by slug or canonical ID
